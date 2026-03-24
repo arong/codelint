@@ -3,8 +3,10 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <vector>
 
 #include "commands.h"
+#include "utils.h"
 
 struct GlobalVarInfo {
   std::string name;
@@ -14,32 +16,6 @@ struct GlobalVarInfo {
   bool isConst;
   std::string initValue;
 };
-
-std::string escape_json(const std::string& s) {
-  std::string result;
-  for (char c : s) {
-    switch (c) {
-      case '"':
-        result += "\\\"";
-        break;
-      case '\\':
-        result += "\\\\";
-        break;
-      case '\n':
-        result += "\\n";
-        break;
-      case '\r':
-        result += "\\r";
-        break;
-      case '\t':
-        result += "\\t";
-        break;
-      default:
-        result += c;
-    }
-  }
-  return result;
-}
 
 bool find_globals_in_file(const std::string& filepath,
                           std::vector<GlobalVarInfo>& globals) {
