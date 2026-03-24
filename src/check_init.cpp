@@ -8,7 +8,11 @@
 #include <vector>
 
 #include "commands.h"
-#include "utils.h"
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
+
+using namespace rapidjson;
 
 enum class InitIssueType {
   UNINITIALIZED,
@@ -201,9 +205,18 @@ void check_init() {
     }
   } catch (const std::filesystem::filesystem_error& e) {
     if (g_opts.output_json) {
-      std::cout << "{\"command\":\"check_init\",\"path\":\"" << g_opts.path
-                << "\",\"status\":\"error\",\"message\":\"" << e.what() << "\"}"
-                << std::endl;
+      Document doc;
+      doc.SetObject();
+      auto& allocator = doc.GetAllocator();
+      doc.AddMember("command", "check_init", allocator);
+      doc.AddMember("path", StringRef(g_opts.path.c_str()), allocator);
+      doc.AddMember("status", "error", allocator);
+      doc.AddMember("message", StringRef(e.what()), allocator);
+
+      StringBuffer buffer;
+      PrettyWriter<StringBuffer> writer(buffer);
+      doc.Accept(writer);
+      std::cout << buffer.GetString() << std::endl;
     } else {
       std::cerr << "Error: " << e.what() << std::endl;
     }
@@ -215,23 +228,35 @@ void check_init() {
   }
 
   if (g_opts.output_json) {
-    std::cout << "{\"command\":\"check_init\",\"path\":\"" << g_opts.path
-              << "\",\"status\":\"success\",\"count\":" << issues.size()
-              << ",\"issues\":[";
-    for (size_t i = 0; i < issues.size(); ++i) {
-      const auto& issue = issues[i];
-      std::cout << "{\"type\":\"" << get_issue_type_name(issue.type)
-                << "\",\"name\":\"" << escape_json(issue.name)
-                << "\",\"varType\":\"" << escape_json(issue.type_str)
-                << "\",\"file\":\"" << escape_json(issue.file)
-                << "\",\"line\":" << issue.line << ",\"description\":\""
-                << escape_json(issue.description) << "\",\"suggestion\":\""
-                << escape_json(issue.suggestion) << "\"}";
-      if (i < issues.size() - 1) {
-        std::cout << ",";
-      }
+    Document doc;
+    doc.SetObject();
+    auto& allocator = doc.GetAllocator();
+    doc.AddMember("command", "check_init", allocator);
+    doc.AddMember("path", StringRef(g_opts.path.c_str()), allocator);
+    doc.AddMember("status", "success", allocator);
+    doc.AddMember("count", static_cast<int>(issues.size()), allocator);
+
+    Value issues_array(kArrayType);
+    for (const auto& issue : issues) {
+      Value obj(kObjectType);
+      obj.AddMember("type", StringRef(get_issue_type_name(issue.type).c_str()),
+                    allocator);
+      obj.AddMember("name", StringRef(issue.name.c_str()), allocator);
+      obj.AddMember("varType", StringRef(issue.type_str.c_str()), allocator);
+      obj.AddMember("file", StringRef(issue.file.c_str()), allocator);
+      obj.AddMember("line", issue.line, allocator);
+      obj.AddMember("description", StringRef(issue.description.c_str()),
+                    allocator);
+      obj.AddMember("suggestion", StringRef(issue.suggestion.c_str()),
+                    allocator);
+      issues_array.PushBack(obj, allocator);
     }
-    std::cout << "]}" << std::endl;
+    doc.AddMember("issues", issues_array, allocator);
+
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+    std::cout << buffer.GetString() << std::endl;
   } else {
     std::cout << "Checking initialization in: " << g_opts.path << std::endl;
     std::cout << "Status: success" << std::endl;

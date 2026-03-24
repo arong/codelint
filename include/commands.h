@@ -3,8 +3,8 @@
 #include <string>
 
 struct GlobalOptions {
+  std::string path;
   bool output_json = false;
-  std::string path = ".";
 };
 
 extern GlobalOptions g_opts;

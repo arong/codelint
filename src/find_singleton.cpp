@@ -6,7 +6,11 @@
 #include <vector>
 
 #include "commands.h"
-#include "utils.h"
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
+
+using namespace rapidjson;
 
 struct SingletonInfo {
   std::string name;
@@ -76,9 +80,18 @@ void find_singleton() {
     }
   } catch (const std::filesystem::filesystem_error& e) {
     if (g_opts.output_json) {
-      std::cout << "{\"command\":\"find_singleton\",\"path\":\"" << g_opts.path
-                << "\",\"status\":\"error\",\"message\":\"" << e.what() << "\"}"
-                << std::endl;
+      Document doc;
+      doc.SetObject();
+      auto& allocator = doc.GetAllocator();
+      doc.AddMember("command", "find_singleton", allocator);
+      doc.AddMember("path", StringRef(g_opts.path.c_str()), allocator);
+      doc.AddMember("status", "error", allocator);
+      doc.AddMember("message", StringRef(e.what()), allocator);
+
+      StringBuffer buffer;
+      PrettyWriter<StringBuffer> writer(buffer);
+      doc.Accept(writer);
+      std::cout << buffer.GetString() << std::endl;
     } else {
       std::cerr << "Error: " << e.what() << std::endl;
     }
@@ -90,20 +103,29 @@ void find_singleton() {
   }
 
   if (g_opts.output_json) {
-    std::cout << "{\"command\":\"find_singleton\",\"path\":\"" << g_opts.path
-              << "\",\"status\":\"success\",\"count\":" << singletons.size()
-              << ",\"singletons\":[";
-    for (size_t i = 0; i < singletons.size(); ++i) {
-      const auto& s = singletons[i];
-      std::cout << "{\"name\":\"" << escape_json(s.name)
-                << "\",\"className\":\"" << escape_json(s.className)
-                << "\",\"file\":\"" << escape_json(s.file)
-                << "\",\"line\":" << s.line << "}";
-      if (i < singletons.size() - 1) {
-        std::cout << ",";
-      }
+    Document doc;
+    doc.SetObject();
+    auto& allocator = doc.GetAllocator();
+    doc.AddMember("command", "find_singleton", allocator);
+    doc.AddMember("path", StringRef(g_opts.path.c_str()), allocator);
+    doc.AddMember("status", "success", allocator);
+    doc.AddMember("count", static_cast<int>(singletons.size()), allocator);
+
+    Value singletons_array(kArrayType);
+    for (const auto& s : singletons) {
+      Value obj(kObjectType);
+      obj.AddMember("name", StringRef(s.name.c_str()), allocator);
+      obj.AddMember("className", StringRef(s.className.c_str()), allocator);
+      obj.AddMember("file", StringRef(s.file.c_str()), allocator);
+      obj.AddMember("line", s.line, allocator);
+      singletons_array.PushBack(obj, allocator);
     }
-    std::cout << "]}" << std::endl;
+    doc.AddMember("singletons", singletons_array, allocator);
+
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+    std::cout << buffer.GetString() << std::endl;
   } else {
     std::cout << "Finding singleton instances in: " << g_opts.path << std::endl;
     std::cout << "Status: success" << std::endl;
