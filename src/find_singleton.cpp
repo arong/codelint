@@ -1,7 +1,7 @@
+#include <clang-c/Index.h>
+
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <regex>
 #include <string>
 #include <vector>
 
@@ -19,43 +19,111 @@ struct SingletonInfo {
   std::string className;
 };
 
-bool find_singletons_in_file(const std::string& filepath,
-                             std::vector<SingletonInfo>& singletons) {
-  std::ifstream file(filepath);
-  if (!file.is_open()) {
-    return false;
+class SingletonFinder {
+ public:
+  std::vector<SingletonInfo> find_singletons(const std::string& filepath) {
+    singletons_.clear();
+
+    CXIndex index = clang_createIndex(0, 0);
+    if (!index) {
+      std::cerr << "Failed to create clang index" << std::endl;
+      return singletons_;
+    }
+
+    const char* args[] = {"-std=c++17", "-x", "c++"};
+    CXTranslationUnit tu = clang_parseTranslationUnit(
+        index, filepath.c_str(), args, 3, nullptr, 0, CXTranslationUnit_None);
+
+    if (!tu) {
+      std::cerr << "Failed to parse translation unit: " << filepath
+                << std::endl;
+      clang_disposeIndex(index);
+      return singletons_;
+    }
+
+    CXCursor cursor = clang_getTranslationUnitCursor(tu);
+    clang_visitChildren(
+        cursor,
+        [](CXCursor c, CXCursor parent, CXClientData data) {
+          auto* finder = static_cast<SingletonFinder*>(data);
+          finder->visit_cursor(c);
+          return CXChildVisit_Continue;
+        },
+        this);
+
+    clang_disposeTranslationUnit(tu);
+    clang_disposeIndex(index);
+
+    return singletons_;
   }
 
-  std::string content((std::istreambuf_iterator<char>(file)),
-                      std::istreambuf_iterator<char>());
+ private:
+  std::vector<SingletonInfo> singletons_;
 
-  std::regex singleton_pattern(
-      R"((\w+)\s*&\s*(?:instance|getInstance)\s*\(\)\s*\{[\s\n]*static\s+(\w+)\s+(\w+)[\s\n;]+)",
-      std::regex::ECMAScript);
+  void visit_cursor(CXCursor cursor) {
+    CXCursorKind kind = clang_getCursorKind(cursor);
 
-  std::smatch match;
-  std::string::const_iterator search_start(content.cbegin());
-  int current_pos = 1;
-  int line_count = 1;
+    if (kind == CXCursor_CXXMethod) {
+      std::string method_name = get_cursor_spelling(cursor);
 
-  while (std::regex_search(search_start, content.cend(), match,
-                           singleton_pattern)) {
-    std::string matched_text = match.prefix().str();
-    line_count += std::count(matched_text.begin(), matched_text.end(), '\n');
+      if (method_name == "instance" || method_name == "getInstance") {
+        CXType result_type = clang_getCursorResultType(cursor);
 
-    SingletonInfo info;
-    info.name = "instance";
-    info.file = filepath;
-    info.line = line_count;
-    info.className = match[1];
-    singletons.push_back(info);
+        if (result_type.kind == CXType_LValueReference ||
+            result_type.kind == CXType_RValueReference) {
+          CXCursor parent = clang_getCursorSemanticParent(cursor);
+          std::string class_name = get_cursor_spelling(parent);
 
-    search_start = match[0].second;
+          if (!class_name.empty()) {
+            SingletonInfo info;
+            info.name = method_name;
+            info.className = class_name;
+            info.file = get_file_location(cursor);
+            info.line = get_line_number(cursor);
+            singletons_.push_back(info);
+          }
+        }
+      }
+    }
+
+    clang_visitChildren(
+        cursor,
+        [](CXCursor c, CXCursor parent, CXClientData data) {
+          auto* finder = static_cast<SingletonFinder*>(data);
+          finder->visit_cursor(c);
+          return CXChildVisit_Continue;
+        },
+        this);
   }
 
-  file.close();
-  return true;
-}
+  std::string get_cursor_spelling(CXCursor cursor) {
+    CXString spelling = clang_getCursorSpelling(cursor);
+    std::string result = clang_getCString(spelling);
+    clang_disposeString(spelling);
+    return result;
+  }
+
+  std::string get_file_location(CXCursor cursor) {
+    CXSourceLocation loc = clang_getCursorLocation(cursor);
+    CXFile file;
+    unsigned line, column, offset;
+    clang_getExpansionLocation(loc, &file, &line, &column, &offset);
+
+    CXString filename = clang_getFileName(file);
+    std::string result = clang_getCString(filename);
+    clang_disposeString(filename);
+
+    return result;
+  }
+
+  int get_line_number(CXCursor cursor) {
+    CXSourceLocation loc = clang_getCursorLocation(cursor);
+    CXFile file;
+    unsigned line, column, offset;
+    clang_getExpansionLocation(loc, &file, &line, &column, &offset);
+    return static_cast<int>(line);
+  }
+};
 
 void find_singleton() {
   std::vector<SingletonInfo> singletons;
@@ -98,8 +166,11 @@ void find_singleton() {
     return;
   }
 
+  SingletonFinder finder;
   for (const auto& file : cpp_files) {
-    find_singletons_in_file(file, singletons);
+    auto file_singletons = finder.find_singletons(file);
+    singletons.insert(singletons.end(), file_singletons.begin(),
+                      file_singletons.end());
   }
 
   if (g_opts.output_json) {

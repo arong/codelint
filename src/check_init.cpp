@@ -1,9 +1,8 @@
+#include <clang-c/Index.h>
+
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <regex>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -43,144 +42,284 @@ std::string get_issue_type_name(InitIssueType type) {
   }
 }
 
-bool check_init_in_file(const std::string& filepath,
-                        std::vector<InitIssue>& issues) {
-  std::ifstream file(filepath);
-  if (!file.is_open()) {
+class InitChecker {
+ public:
+  std::vector<InitIssue> check_init(const std::string& filepath) {
+    issues_.clear();
+
+    CXIndex index = clang_createIndex(0, 0);
+    if (!index) {
+      std::cerr << "Failed to create clang index" << std::endl;
+      return issues_;
+    }
+
+    const char* args[] = {"-std=c++17", "-x", "c++"};
+    CXTranslationUnit tu = clang_parseTranslationUnit(
+        index, filepath.c_str(), args, 3, nullptr, 0, CXTranslationUnit_None);
+
+    if (!tu) {
+      std::cerr << "Failed to parse translation unit: " << filepath
+                << std::endl;
+      clang_disposeIndex(index);
+      return issues_;
+    }
+
+    CXCursor cursor = clang_getTranslationUnitCursor(tu);
+    clang_visitChildren(
+        cursor,
+        [](CXCursor c, CXCursor parent, CXClientData data) {
+          auto* checker = static_cast<InitChecker*>(data);
+          checker->visit_cursor(c);
+          return CXChildVisit_Continue;
+        },
+        this);
+
+    clang_disposeTranslationUnit(tu);
+    clang_disposeIndex(index);
+
+    return issues_;
+  }
+
+ private:
+  std::vector<InitIssue> issues_;
+  bool in_function_ = false;
+
+  void visit_cursor(CXCursor cursor) {
+    CXCursorKind kind = clang_getCursorKind(cursor);
+
+    if (kind == CXCursor_FunctionDecl || kind == CXCursor_CXXMethod) {
+      in_function_ = true;
+      clang_visitChildren(
+          cursor,
+          [](CXCursor c, CXCursor parent, CXClientData data) {
+            auto* checker = static_cast<InitChecker*>(data);
+            checker->visit_function_body(c);
+            return CXChildVisit_Continue;
+          },
+          this);
+      in_function_ = false;
+    } else {
+      clang_visitChildren(
+          cursor,
+          [](CXCursor c, CXCursor parent, CXClientData data) {
+            auto* checker = static_cast<InitChecker*>(data);
+            checker->visit_cursor(c);
+            return CXChildVisit_Continue;
+          },
+          this);
+    }
+  }
+
+  void visit_function_body(CXCursor cursor) {
+    if (clang_getCursorKind(cursor) == CXCursor_VarDecl) {
+      check_variable(cursor);
+    }
+
+    clang_visitChildren(
+        cursor,
+        [](CXCursor c, CXCursor parent, CXClientData data) {
+          auto* checker = static_cast<InitChecker*>(data);
+          checker->visit_function_body(c);
+          return CXChildVisit_Continue;
+        },
+        this);
+  }
+
+  void check_variable(CXCursor cursor) {
+    std::string var_name = get_cursor_spelling(cursor);
+    std::string type_str = get_type_spelling(cursor);
+
+    if (var_name.empty() || type_str.empty()) {
+      return;
+    }
+
+    std::string file = get_file_location(cursor);
+    int line = get_line_number(cursor);
+
+    CXCursor init_cursor = clang_Cursor_getVarDeclInitializer(cursor);
+
+    if (clang_Cursor_isNull(init_cursor)) {
+      check_uninitialized(var_name, type_str, file, line);
+    } else {
+      check_initializer(cursor, init_cursor, var_name, type_str, file, line);
+    }
+  }
+
+  void check_uninitialized(const std::string& var_name,
+                           const std::string& type_str, const std::string& file,
+                           int line) {
+    if (!is_builtin_type(type_str)) {
+      return;
+    }
+
+    InitIssue issue;
+    issue.type = InitIssueType::UNINITIALIZED;
+    issue.name = var_name;
+    issue.type_str = type_str;
+    issue.file = file;
+    issue.line = line;
+    issue.description = "Variable is not explicitly initialized";
+    issue.suggestion = type_str + " " + var_name + "{};";
+    issues_.push_back(issue);
+  }
+
+  void check_initializer(CXCursor var_cursor, CXCursor init_cursor,
+                         const std::string& var_name,
+                         const std::string& type_str, const std::string& file,
+                         int line) {
+    if (!is_builtin_type(type_str)) {
+      return;
+    }
+
+    CXCursorKind init_kind = clang_getCursorKind(init_cursor);
+
+    bool is_brace_init = (init_kind == CXCursor_InitListExpr);
+
+    if (!is_brace_init) {
+      check_equals_init(var_name, type_str, file, line, init_cursor);
+    }
+
+    bool is_unsigned = is_unsigned_type(type_str);
+    if (is_unsigned && !is_brace_init) {
+      check_unsigned_suffix(var_name, type_str, file, line, init_cursor);
+    }
+  }
+
+  void check_equals_init(const std::string& var_name,
+                         const std::string& type_str, const std::string& file,
+                         int line, CXCursor init_cursor) {
+    InitIssue issue;
+    issue.type = InitIssueType::USE_EQUALS_INIT;
+    issue.name = var_name;
+    issue.type_str = type_str;
+    issue.file = file;
+    issue.line = line;
+    issue.description = "Variable initialized with '=' should use '{}' syntax";
+
+    std::string init_value = get_init_value(init_cursor);
+    bool is_unsigned = is_unsigned_type(type_str);
+
+    if (is_unsigned && has_digit_value(init_value) &&
+        !has_unsigned_suffix(init_value)) {
+      issue.suggestion = type_str + " " + var_name + "{" + init_value + "U};";
+    } else {
+      issue.suggestion = type_str + " " + var_name + "{" + init_value + "};";
+    }
+
+    issues_.push_back(issue);
+  }
+
+  void check_unsigned_suffix(const std::string& var_name,
+                             const std::string& type_str,
+                             const std::string& file, int line,
+                             CXCursor init_cursor) {
+    std::string init_value = get_init_value(init_cursor);
+
+    if (has_digit_value(init_value) && !has_unsigned_suffix(init_value)) {
+      InitIssue issue;
+      issue.type = InitIssueType::UNSIGNED_WITHOUT_SUFFIX;
+      issue.name = var_name;
+      issue.type_str = type_str;
+      issue.file = file;
+      issue.line = line;
+      issue.description = "Unsigned integer should have 'U' or 'UL' suffix";
+      issue.suggestion = "";
+      issues_.push_back(issue);
+    }
+  }
+
+  bool is_builtin_type(const std::string& type_str) {
+    std::vector<std::string> builtin_types = {"int",
+                                              "unsigned",
+                                              "char",
+                                              "float",
+                                              "double",
+                                              "bool",
+                                              "unsigned int",
+                                              "unsigned char",
+                                              "short",
+                                              "long",
+                                              "unsigned long",
+                                              "long long",
+                                              "unsigned long long"};
+
+    for (const auto& builtin : builtin_types) {
+      if (type_str.find(builtin) != std::string::npos) {
+        return true;
+      }
+    }
     return false;
   }
 
-  std::string line;
-  int line_num = 0;
-  bool in_function = false;
-  bool in_class = false;
-
-  std::regex var_pattern(
-      R"(int|unsigned|char|float|double|bool|size_t|string|vector)",
-      std::regex::ECMAScript);
-
-  while (std::getline(file, line)) {
-    line_num++;
-
-    if (line.find("{") != std::string::npos) {
-      if (line.find("class") == std::string::npos &&
-          line.find("struct") == std::string::npos &&
-          line.find("namespace") == std::string::npos) {
-        in_function = true;
-      } else if (line.find("class") != std::string::npos ||
-                 line.find("struct") != std::string::npos) {
-        in_class = true;
-      }
-    }
-
-    if (line.find("}") != std::string::npos) {
-      in_function = false;
-      in_class = false;
-    }
-
-    if (!in_class && in_function && line.find(';') != std::string::npos) {
-      size_t equals_pos = line.find('=');
-      size_t semicolon_pos = line.find(';');
-
-      if (equals_pos != std::string::npos && equals_pos < semicolon_pos) {
-        std::string type_part = line.substr(0, equals_pos);
-        std::string init_part =
-            line.substr(equals_pos + 1, semicolon_pos - equals_pos - 1);
-
-        type_part.erase(0, type_part.find_first_not_of(" \t"));
-        type_part.erase(type_part.find_last_not_of(" \t") + 1);
-
-        init_part.erase(0, init_part.find_first_not_of(" \t"));
-        init_part.erase(init_part.find_last_not_of(" \t") + 1);
-
-        size_t last_space = type_part.rfind(' ');
-        if (last_space != std::string::npos) {
-          std::string type_str = type_part.substr(0, last_space);
-          std::string var_name = type_part.substr(last_space + 1);
-
-          if (!var_name.empty() && !type_str.empty() &&
-              std::regex_search(type_str, var_pattern)) {
-            bool is_unsigned = type_str.find("unsigned") != std::string::npos;
-            bool has_brace_init = init_part.find('{') != std::string::npos;
-            bool has_equals_init = !has_brace_init;
-
-            std::string clean_init;
-            if (has_equals_init) {
-              clean_init = init_part;
-              size_t comment_pos = clean_init.find("//");
-              if (comment_pos != std::string::npos) {
-                clean_init = clean_init.substr(0, comment_pos);
-              }
-              clean_init.erase(0, clean_init.find_first_not_of(" \t"));
-              clean_init.erase(clean_init.find_last_not_of(" \t") + 1);
-            }
-
-            if (!has_brace_init) {
-              InitIssue issue;
-              issue.type = InitIssueType::USE_EQUALS_INIT;
-              issue.name = var_name;
-              issue.type_str = type_str;
-              issue.file = filepath;
-              issue.line = line_num;
-              issue.description =
-                  "Variable initialized with '=' should use '{}' syntax";
-
-              if (is_unsigned && clean_init.find('U') == std::string::npos &&
-                  std::any_of(clean_init.begin(), clean_init.end(),
-                              ::isdigit)) {
-                issue.suggestion =
-                    type_str + " " + var_name + "{" + clean_init + "U};";
-              } else {
-                issue.suggestion =
-                    type_str + " " + var_name + "{" + clean_init + "};";
-              }
-              issues.push_back(issue);
-            }
-
-            if (is_unsigned && clean_init.find('U') == std::string::npos &&
-                std::any_of(clean_init.begin(), clean_init.end(), ::isdigit)) {
-              InitIssue issue;
-              issue.type = InitIssueType::UNSIGNED_WITHOUT_SUFFIX;
-              issue.name = var_name;
-              issue.type_str = type_str;
-              issue.file = filepath;
-              issue.line = line_num;
-              issue.description =
-                  "Unsigned integer should have 'U' or 'UL' suffix";
-              issues.push_back(issue);
-            }
-          }
-        }
-      } else {
-        std::string type_part = line.substr(0, semicolon_pos);
-        type_part.erase(0, type_part.find_first_not_of(" \t"));
-        type_part.erase(type_part.find_last_not_of(" \t") + 1);
-
-        size_t last_space = type_part.rfind(' ');
-        if (last_space != std::string::npos) {
-          std::string type_str = type_part.substr(0, last_space);
-          std::string var_name = type_part.substr(last_space + 1);
-
-          if (!var_name.empty() && !type_str.empty() &&
-              std::regex_search(type_str, var_pattern)) {
-            InitIssue issue;
-            issue.type = InitIssueType::UNINITIALIZED;
-            issue.name = var_name;
-            issue.type_str = type_str;
-            issue.file = filepath;
-            issue.line = line_num;
-            issue.description = "Variable is not explicitly initialized";
-            issue.suggestion = type_str + " " + var_name + "{};";
-            issues.push_back(issue);
-          }
-        }
-      }
-    }
+  bool is_unsigned_type(const std::string& type_str) {
+    return type_str.find("unsigned") != std::string::npos;
   }
 
-  file.close();
-  return true;
-}
+  bool has_digit_value(const std::string& value) {
+    return std::any_of(value.begin(), value.end(), ::isdigit);
+  }
+
+  bool has_unsigned_suffix(const std::string& value) {
+    return value.find('U') != std::string::npos ||
+           value.find('u') != std::string::npos;
+  }
+
+  std::string get_cursor_spelling(CXCursor cursor) {
+    CXString spelling = clang_getCursorSpelling(cursor);
+    std::string result = clang_getCString(spelling);
+    clang_disposeString(spelling);
+    return result;
+  }
+
+  std::string get_type_spelling(CXCursor cursor) {
+    CXType type = clang_getCursorType(cursor);
+    CXString spelling = clang_getTypeSpelling(type);
+    std::string result = clang_getCString(spelling);
+    clang_disposeString(spelling);
+    return result;
+  }
+
+  std::string get_file_location(CXCursor cursor) {
+    CXSourceLocation loc = clang_getCursorLocation(cursor);
+    CXFile file;
+    unsigned line, column, offset;
+    clang_getExpansionLocation(loc, &file, &line, &column, &offset);
+
+    CXString filename = clang_getFileName(file);
+    std::string result = clang_getCString(filename);
+    clang_disposeString(filename);
+
+    return result;
+  }
+
+  int get_line_number(CXCursor cursor) {
+    CXSourceLocation loc = clang_getCursorLocation(cursor);
+    CXFile file;
+    unsigned line, column, offset;
+    clang_getExpansionLocation(loc, &file, &line, &column, &offset);
+    return static_cast<int>(line);
+  }
+
+  std::string get_init_value(CXCursor cursor) {
+    std::string result;
+    CXSourceRange range = clang_getCursorExtent(cursor);
+
+    CXToken* tokens = nullptr;
+    unsigned num_tokens = 0;
+    CXTranslationUnit tu = clang_Cursor_getTranslationUnit(cursor);
+    clang_tokenize(tu, range, &tokens, &num_tokens);
+
+    for (unsigned i = 0; i < num_tokens; ++i) {
+      CXString token_spelling = clang_getTokenSpelling(tu, tokens[i]);
+      result += clang_getCString(token_spelling);
+      result += " ";
+      clang_disposeString(token_spelling);
+    }
+
+    clang_disposeTokens(tu, tokens, num_tokens);
+    return result;
+  }
+};
 
 void check_init() {
   std::vector<InitIssue> issues;
@@ -223,8 +362,10 @@ void check_init() {
     return;
   }
 
+  InitChecker checker;
   for (const auto& file : cpp_files) {
-    check_init_in_file(file, issues);
+    auto file_issues = checker.check_init(file);
+    issues.insert(issues.end(), file_issues.begin(), file_issues.end());
   }
 
   if (g_opts.output_json) {
