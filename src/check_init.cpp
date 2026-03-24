@@ -53,9 +53,14 @@ class InitChecker {
       return issues_;
     }
 
-    const char* args[] = {"-std=c++17", "-x", "c++"};
+    const char* args[] = {"-std=c++17",
+                          "-x",
+                          "c++",
+                          "-I/usr/include/c++/13",
+                          "-I/usr/include/x86_64-linux-gnu/c++/13",
+                          "-I/usr/include"};
     CXTranslationUnit tu = clang_parseTranslationUnit(
-        index, filepath.c_str(), args, 3, nullptr, 0, CXTranslationUnit_None);
+        index, filepath.c_str(), args, 6, nullptr, 0, CXTranslationUnit_None);
 
     if (!tu) {
       std::cerr << "Failed to parse translation unit: " << filepath
@@ -135,6 +140,10 @@ class InitChecker {
 
     std::string file = get_file_location(cursor);
     int line = get_line_number(cursor);
+
+    if (is_system_header(file)) {
+      return;
+    }
 
     CXCursor init_cursor = clang_Cursor_getVarDeclInitializer(cursor);
 
@@ -262,6 +271,10 @@ class InitChecker {
   bool has_unsigned_suffix(const std::string& value) {
     return value.find('U') != std::string::npos ||
            value.find('u') != std::string::npos;
+  }
+
+  bool is_system_header(const std::string& file) {
+    return file.find("/usr/include/") == 0 || file.find("/usr/lib/") == 0;
   }
 
   std::string get_cursor_spelling(CXCursor cursor) {

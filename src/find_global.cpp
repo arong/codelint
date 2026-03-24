@@ -32,9 +32,14 @@ class GlobalVarFinder {
       return globals_;
     }
 
-    const char* args[] = {"-std=c++17", "-x", "c++"};
+    const char* args[] = {"-std=c++17",
+                          "-x",
+                          "c++",
+                          "-I/usr/include/c++/13",
+                          "-I/usr/include/x86_64-linux-gnu/c++/13",
+                          "-I/usr/include"};
     CXTranslationUnit tu = clang_parseTranslationUnit(
-        index, filepath.c_str(), args, 3, nullptr, 0, CXTranslationUnit_None);
+        index, filepath.c_str(), args, 6, nullptr, 0, CXTranslationUnit_None);
 
     if (!tu) {
       std::cerr << "Failed to parse translation unit: " << filepath
