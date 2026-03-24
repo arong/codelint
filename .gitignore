@@ -1,0 +1,9 @@
+build/
+*.o
+*.so
+*.a
+*.dylib
+*.exe
+.DS_Store
+third_party/
+compile_commands.json
