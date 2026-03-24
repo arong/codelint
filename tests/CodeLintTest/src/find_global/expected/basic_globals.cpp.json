@@ -1,0 +1,43 @@
+{
+  "issues": [
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_int",
+      "type_str": "int",
+      "file": "basic_globals.cpp",
+      "line": 5,
+      "column": 5,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_const",
+      "type_str": "const int",
+      "file": "basic_globals.cpp",
+      "line": 6,
+      "column": 11,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_uint",
+      "type_str": "unsigned int",
+      "file": "basic_globals.cpp",
+      "line": 7,
+      "column": 14,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "issues": [
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "anon_var1",
+      "type_str": "int",
+      "file": "anon_namespace_globals.cpp",
+      "line": 8,
+      "column": 9,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "anon_var2",
+      "type_str": "std::string",
+      "file": "anon_namespace_globals.cpp",
+      "line": 9,
+      "column": 17,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    }
+  ]
+}

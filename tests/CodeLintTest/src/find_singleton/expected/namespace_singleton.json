@@ -1,0 +1,10 @@
+{
+  "issues": [
+    {
+      "file": "namespace_singleton.cpp",
+      "line": 5,
+      "message": "Possible singleton pattern detected",
+      "suggestion": "Consider if instance() is necessary or if dependency injection would be better"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+build/
+*.o
+*.so
+*.a
+*.dylib
+*.exe
+.DS_Store
+third_party/
+compile_commands.jsoncodelint-*.tar.gz
+codelint-*/
+packaging/AppDir/
+*.AppImage
+!packaging/tools/appimagetool
+codelint-dev-x86_64.AppImage
+.cache
+.sisyphus
+.idea/

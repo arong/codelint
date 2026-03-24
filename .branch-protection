@@ -1,0 +1,106 @@
+# Branch Protection Rules
+
+## 🚫 Branch Restrictions
+
+### AI Development Rules
+
+**AI assistants MUST ONLY develop on the `develop` branch**
+
+| Branch | AI Commit | Purpose |
+|--------|-----------|---------|
+| `develop` | ✅ **ALLOWED** | AI development branch |
+| `main` | ❌ **FORBIDDEN** | Production (humans only) |
+| `master` | ❌ **FORBIDDEN** | Production (humans only) |
+| `production` | ❌ **FORBIDDEN** | Production (humans only) |
+| `feature/*` | ⚠️ **WARNING** | Should use develop instead |
+
+---
+
+## Branch Strategy
+
+```
+main (production - humans merge develop here)
+  ↑
+  | Pull Request
+  |
+develop (AI development - AI commits here)
+  ↑
+  | AI develops here
+```
+
+---
+
+## Enforcement
+
+Two git hooks enforce these rules:
+
+1. **pre-commit hook** - Runs tests (tests must pass)
+2. **commit-msg hook** - Restricts branch access
+
+### Hook Behavior
+
+**On `develop` branch:**
+```
+✓ All tests passed. Commit proceeding.
+```
+
+**On `main` branch:**
+```
+╔════════════════════════════════════╗
+║  🚫 BLOCKED: AI cannot commit      ║
+╚════════════════════════════════════╝
+Reason: Protected branch
+```
+
+**On feature/* branches:**
+```
+╔════════════════════════════════════╗
+║  ⚠️  WARNING: Use develop branch   ║
+╚════════════════════════════════════╝
+Proceeds with warning
+```
+
+---
+
+## Correct AI Workflow
+
+```bash
+# ✅ CORRECT: Work on develop
+git checkout develop
+git pull origin develop
+git commit -m "feat: add new feature"
+git push origin develop
+
+# ❌ WRONG: Cannot commit to main
+git checkout main
+git commit -m "feat: add feature"  # BLOCKED
+
+# ⚠️  WARNING: Should use develop
+git checkout feature/my-feature
+git commit -m "feat: add feature"  # Proceeds but warns
+```
+
+---
+
+## Emergency Bypass (Humans Only)
+
+If you are a human developer with urgent need:
+
+```bash
+git commit --no-verify -m "emergency fix"
+```
+
+**Use sparingly and responsibly.**
+
+---
+
+## Rationale
+
+1. **Code Isolation** - AI development separate from production
+2. **Human Review** - All AI code reviewed before main
+3. **Stability** - main branch always stable
+4. **Traceability** - Clear development history
+
+---
+
+**REMEMBER**: AI develops on develop → Humans review and merge to main

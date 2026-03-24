@@ -1,0 +1,72 @@
+#!/bin/bash
+set -euo pipefail
+
+CLANG_FORMAT="/opt/homebrew/opt/llvm@21/bin/clang-format"
+
+echo "🔍 Running pre-commit checks..."
+
+# ========================================
+# Check 1: clang-format C++ files
+# ========================================
+echo "📝 Checking C++ formatting..."
+
+# Get staged C++ files
+STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' || true)
+
+if [[ -n "$STAGED_CPP" ]]; then
+    if [[ ! -x "$CLANG_FORMAT" ]]; then
+        echo "⚠️  Warning: clang-format not found at $CLANG_FORMAT"
+        echo "   Install LLVM or update CLANG_FORMAT path in .githooks/pre-commit"
+    else
+        echo "$STAGED_CPP" | while read -r file; do
+            if [[ -f "$file" ]]; then
+                "$CLANG_FORMAT" -i "$file"
+                git add "$file"
+                echo "   formatted: $file"
+            fi
+        done
+    fi
+else
+    echo "   No C++ files staged"
+fi
+
+# ========================================
+# Check 2: Trailing whitespace
+# ========================================
+echo "📝 Checking trailing whitespace..."
+
+if grep -r '[[:blank:]]$' \
+    --include='*.cpp' \
+    --include='*.h' \
+    --include='*.txt' \
+    --include='*.md' \
+    --include='*.sh' \
+    --include='*.py' \
+    . 2>/dev/null | grep -v -E '(\.git/|build/|\.sisyphus/)'; then
+    echo "❌ Error: Found trailing whitespace!"
+    echo "Please fix and try again."
+    exit 1
+fi
+echo "✅ No trailing whitespace"
+
+# ========================================
+# Check 3: Missing trailing newline
+# ========================================
+echo "📝 Checking trailing newlines..."
+
+errors=0
+while IFS= read -r -d '' file; do
+    last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
+    if [ "$last" != "0a" ] && [ -s "$file" ]; then
+        echo "❌ Missing trailing newline: $file"
+        errors=$((errors + 1))
+    fi
+done < <(find . -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.py' \) ! -path './.git/*' ! -path './build/*' ! -path './.sisyphus/*' -print0)
+
+if [ $errors -ne 0 ]; then
+    echo "❌ Error: $errors file(s) missing trailing newline"
+    exit 1
+fi
+echo "✅ All files have trailing newlines"
+
+echo "✨ All pre-commit checks passed!"

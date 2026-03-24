@@ -1,0 +1,8 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/enum_types.cpp:6:7: warning: variable is not explicitly initialized [codelint-init]
+    6 | Color color1;
+      |       ^
+      |             {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/enum_types.cpp:17:9: warning: variable is not explicitly initialized [codelint-init]
+   17 |   Color local_color;
+      |         ^
+      |                    {}

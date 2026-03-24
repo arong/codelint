@@ -1,0 +1,44 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:8:7: warning: variable is not explicitly initialized [codelint-init]
+    8 |   int local1;
+      |       ^
+      |             {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:9:10: warning: variable is not explicitly initialized [codelint-init]
+    9 |   double local3;
+      |          ^
+      |                {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:10:8: warning: variable is not explicitly initialized [codelint-init]
+   10 |   char local4;
+      |        ^
+      |              {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:11:8: warning: variable is not explicitly initialized [codelint-init]
+   11 |   bool local5;
+      |        ^
+      |              {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:16:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+   16 |   int local6 = 10;
+      |       ^      ~
+      |             {    }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:17:10: warning: variable should use '{}' syntax for initialization [codelint-init]
+   17 |   double local7 = 3.14;
+      |          ^      ~
+      |                {      }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:18:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+   18 |   int a = 1;
+      |       ^ ~
+      |        {   }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:29:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   29 |   std::string local_str("hello");
+      |               ^        ~       ~
+      |                        {       }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:34:7: warning: field is not explicitly initialized [codelint-init]
+   34 |   int x;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:35:10: warning: field is not explicitly initialized [codelint-init]
+   35 |   double y;
+      |          ^
+      |           {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:38:17: warning: variable is not explicitly initialized [codelint-init]
+   38 |   ComplexStruct cs;
+      |                 ^
+      |                   {}

@@ -1,0 +1,80 @@
+cmake_minimum_required(VERSION 3.20)
+project(codelint-plugin VERSION 1.0.0 LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Find LLVM/Clang
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+# Set Clang_DIR based on LLVM_DIR
+if(NOT DEFINED Clang_DIR)
+  get_filename_component(LLVM_DIR_PARENT "${LLVM_DIR}" DIRECTORY)
+  set(Clang_DIR "${LLVM_DIR_PARENT}/clang")
+endif()
+find_package(Clang REQUIRED CONFIG)
+message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
+
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${Clang_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+# Use LLVM's cmake modules
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+include(AddLLVM)
+
+# Plugin shared library
+add_llvm_library(codelint-plugin SHARED
+    src/codelint_plugin/CodelintModule.cpp
+    src/codelint_plugin/checks/InitCheck.cpp
+    src/codelint_plugin/checks/GlobalCheck.cpp
+    src/codelint_plugin/checks/SingletonCheck.cpp
+
+    LINK_COMPONENTS
+    support
+)
+
+target_include_directories(codelint-plugin PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Link against clang libraries
+target_link_libraries(codelint-plugin PRIVATE
+    clangTidy
+    clangTidyPlugin
+    clangAST
+    clangASTMatchers
+    clangBasic
+    clangLex
+    clangFrontend
+    clangTooling
+    clangSerialization
+    clangSema
+    clangAnalysis
+    clangDriver
+    clangEdit
+    clangParse
+)
+
+# Set plugin properties
+set_target_properties(codelint-plugin PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "codelint-plugin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+)
+
+# Install plugin
+install(TARGETS codelint-plugin LIBRARY DESTINATION lib/clang-tidy)
+
+# Custom target to run all tests
+add_custom_target(test-all
+    COMMAND ${CMAKE_COMMAND} -E env PATH="/opt/homebrew/opt/llvm@21/bin:$ENV{PATH}"
+    bash ${CMAKE_SOURCE_DIR}/tests/run_plugin_regression.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DEPENDS codelint-plugin
+    COMMENT "Running all regression tests"
+    VERBATIM
+)

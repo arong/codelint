@@ -1,0 +1,130 @@
+name: Build and Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake git python3 wget file \
+            curl zip unzip ca-certificates pkg-config \
+            lsb-release software-properties-common gnupg \
+            patchelf tar gzip
+
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 21
+
+          apt-get install -y --no-install-recommends \
+            llvm-21-dev \
+            clang-21 \
+            clang-tidy-21 \
+            libclang-21-dev
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build plugin
+        run: cmake --build build -j$(nproc)
+
+      - name: Verify plugin
+        run: |
+          ls -la build/lib/
+          file build/lib/codelint-plugin.so
+
+      - name: Create offline package
+        run: |
+          chmod +x packaging/scripts/bundle_libs.sh
+          ./packaging/scripts/bundle_libs.sh
+
+      - name: Verify package
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          PACKAGE_NAME="codelint-${VERSION}-linux-${ARCH}"
+
+          ls -la package-output/
+          ls -la package-output/${PACKAGE_NAME}/
+          file package-output/${PACKAGE_NAME}/bin/clang-tidy
+          file package-output/${PACKAGE_NAME}/bin/codelint
+          file package-output/${PACKAGE_NAME}/lib/codelint-plugin.so
+
+          tar -tzf package-output/${PACKAGE_NAME}.tar.gz | head -20
+
+      - name: Test package functionality
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          PACKAGE_NAME="codelint-${VERSION}-linux-${ARCH}"
+
+          cd package-output/${PACKAGE_NAME}
+
+          ./bin/codelint --version
+          ./bin/codelint --list-checks | grep codelint
+
+          cat > /tmp/test.cpp << 'EOF'
+          void test() {
+            int x;
+            int y = 5;
+          }
+          EOF
+
+          ./bin/codelint /tmp/test.cpp 2>&1 | head -20 || true
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codelint-package
+          path: package-output/*.tar.gz
+          retention-days: 5
+
+  release:
+    needs: [build]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: codelint-package
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Create GitHub Release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+
+          gh release create v$VERSION \
+            --title "v$VERSION" \
+            --generate-notes \
+            artifacts/*
+
+      - name: Verify release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          gh release view v$VERSION --json assets,name,tagName

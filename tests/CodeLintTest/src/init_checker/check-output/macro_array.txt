@@ -1,0 +1,38 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:13:5: warning: variable is not explicitly initialized [codelint-init]
+   13 | int regular_var;                         // This SHOULD trigger a warning
+      |     ^
+      |                {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:14:5: warning: C-style array should be initialized with braces '{}' [codelint-init]
+   14 | int regular_array[5];                    // This SHOULD trigger a C-style array warning
+      |     ^
+      |                     {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:15:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+   15 | int initialized_array[5] = {};           // This SHOULD trigger a warning (suggest brace init)
+      |     ^                    ~
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:17:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+   17 | int assigned_array[5] = {1, 2, 3, 4, 5}; // This SHOULD trigger a warning (suggest brace init)
+      |     ^                 ~
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:18:7: warning: C-style array should be initialized with braces '{}' [codelint-init]
+   18 | float float_array[10];                   // This SHOULD trigger a C-style array warning
+      |       ^
+      |                      {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:21:7: warning: variable is not explicitly initialized [codelint-init]
+   21 |   int local_var;     // This SHOULD trigger a warning
+      |       ^
+      |                {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:22:8: warning: C-style array should be initialized with braces '{}' [codelint-init]
+   22 |   char char_arr[20]; // This SHOULD trigger a C-style array warning
+      |        ^
+      |                    {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:40:8: warning: variable is not explicitly initialized [codelint-init]
+   40 | double uninit_double; // This SHOULD trigger a warning
+      |        ^
+      |                     {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:43:6: warning: C-style array should be initialized with braces '{}' [codelint-init]
+   43 | bool bool_flags[25]; // This SHOULD trigger a C-style array warning
+      |      ^
+      |                    {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/macro_array.cpp:44:6: warning: C-style array should be initialized with braces '{}' [codelint-init]
+   44 | char buffer[1024];   // This SHOULD trigger a C-style array warning
+      |      ^
+      |                  {}
