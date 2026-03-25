@@ -1,0 +1,183 @@
+Checking initialization in: 
+Status: success
+Found 30 initialization issue(s)
+
+  [Issue: uninitialized]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:7
+  Description: Variable is not explicitly initialized
+  Suggestion: int a{};
+
+  [Issue: uninitialized]
+  Variable: b (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:8
+  Description: Variable is not explicitly initialized
+  Suggestion: char b{};
+
+  [Issue: uninitialized]
+  Variable: c (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:9
+  Description: Variable is not explicitly initialized
+  Suggestion: double c{};
+
+  [Issue: uninitialized]
+  Variable: d (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:10
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned int d{};
+
+  [Issue: uninitialized]
+  Variable: e (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:11
+  Description: Variable is not explicitly initialized
+  Suggestion: bool e{};
+
+  [Issue: use_equals_init]
+  Variable: f (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:14
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int f{10};
+
+  [Issue: use_equals_init]
+  Variable: g (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:15
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int g{42U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: g (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:15
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
+
+  [Issue: use_equals_init]
+  Variable: h (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:16
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: double h{3.14};
+
+  [Issue: use_equals_init]
+  Variable: i (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:17
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: char i{'x'};
+
+  [Issue: use_equals_init]
+  Variable: j (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:18
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: bool j{true};
+
+  [Issue: use_equals_init]
+  Variable: k (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:21
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int k{100U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: k (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:21
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
+
+  [Issue: use_equals_init]
+  Variable: l (unsigned long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:22
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned long l{2000U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: l (unsigned long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:22
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
+
+  [Issue: use_equals_init]
+  Variable: m (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:23
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int m{5U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: m (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:23
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
+
+  [Issue: use_equals_init]
+  Variable: r (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:32
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int r{100U};
+
+  [Issue: use_equals_init]
+  Variable: s (unsigned long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:33
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned long s{2000UL};
+
+  [Issue: use_equals_init]
+  Variable: t (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:34
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int t{5U};
+
+  [Issue: use_equals_init]
+  Variable: w (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:41
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int w{42U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: w (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:41
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
+
+  [Issue: use_equals_init]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:45
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int x{5};
+
+  [Issue: use_equals_init]
+  Variable: y (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:46
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int y{10U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: y (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:46
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
+
+  [Issue: use_equals_init]
+  Variable: str (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:50
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::string str{"hello"};
+
+  [Issue: use_equals_init]
+  Variable: vec (std::vector<int>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:51
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::vector<int> vec{{1,2,3}};
+
+  [Issue: use_equals_init]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:57
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int a{5};
+
+  [Issue: use_equals_init]
+  Variable: b (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:58
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: unsigned int b{10U};
+
+  [Issue: unsigned_without_suffix]
+  Variable: b (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/test_check_init.cpp:58
+  Description: Unsigned integer should have 'U' or 'UL' suffix
+  Suggestion: 
