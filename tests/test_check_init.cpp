@@ -46,7 +46,7 @@ void test_initialization() {
     unsigned int y = 10;
   }
 
-  // Test 9: Non-builtin types (should NOT report)
+  // Test 9: Non-builtin types (should report)
   std::string str = "hello";
   std::vector<int> vec = {1, 2, 3};
 }

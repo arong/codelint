@@ -1,9 +1,11 @@
 #include <CLI/CLI.hpp>
 #include <iostream>
+#include <limits>
 
 #include "commands.h"
 
 GlobalOptions g_opts;
+CheckInitOptions g_check_init_opts;
 
 int main(int argc, char** argv) {
   CLI::App app{"cndy - C++ code analysis tool"};
@@ -24,6 +26,16 @@ int main(int argc, char** argv) {
   CLI::App* check_init_cmd =
       app.add_subcommand("check_init", "Check initialization");
   check_init_cmd->callback(check_init);
+  check_init_cmd
+      ->add_option("files", g_check_init_opts.files,
+                   "Source files to check (if not specified, checks all files "
+                   "from compile_commands.json)")
+      ->expected(0, std::numeric_limits<size_t>::max());
+  check_init_cmd->add_flag(
+      "--fix", g_opts.fix,
+      "Automatically fix initialization issues and output to stdout");
+  check_init_cmd->add_flag("--inplace", g_opts.inplace,
+                           "Modify files in-place (requires --fix)");
 
   if (argc == 1) {
     std::cout << app.help() << std::endl;

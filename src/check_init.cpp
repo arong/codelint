@@ -2,7 +2,11 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <map>
+#include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -58,7 +62,8 @@ class InitChecker {
                           "c++",
                           "-I/usr/include/c++/13",
                           "-I/usr/include/x86_64-linux-gnu/c++/13",
-                          "-I/usr/include"};
+                          "-I/usr/include",
+                          "-I/usr/local/include"};
     CXTranslationUnit tu = clang_parseTranslationUnit(
         index, filepath.c_str(), args, 6, nullptr, 0, CXTranslationUnit_None);
 
@@ -157,10 +162,6 @@ class InitChecker {
   void check_uninitialized(const std::string& var_name,
                            const std::string& type_str, const std::string& file,
                            int line) {
-    if (!is_builtin_type(type_str)) {
-      return;
-    }
-
     InitIssue issue;
     issue.type = InitIssueType::UNINITIALIZED;
     issue.name = var_name;
@@ -176,10 +177,6 @@ class InitChecker {
                          const std::string& var_name,
                          const std::string& type_str, const std::string& file,
                          int line) {
-    if (!is_builtin_type(type_str)) {
-      return;
-    }
-
     CXCursorKind init_kind = clang_getCursorKind(init_cursor);
 
     bool is_brace_init = (init_kind == CXCursor_InitListExpr);
@@ -237,29 +234,6 @@ class InitChecker {
     }
   }
 
-  bool is_builtin_type(const std::string& type_str) {
-    std::vector<std::string> builtin_types = {"int",
-                                              "unsigned",
-                                              "char",
-                                              "float",
-                                              "double",
-                                              "bool",
-                                              "unsigned int",
-                                              "unsigned char",
-                                              "short",
-                                              "long",
-                                              "unsigned long",
-                                              "long long",
-                                              "unsigned long long"};
-
-    for (const auto& builtin : builtin_types) {
-      if (type_str.find(builtin) != std::string::npos) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   bool is_unsigned_type(const std::string& type_str) {
     return type_str.find("unsigned") != std::string::npos;
   }
@@ -299,7 +273,12 @@ class InitChecker {
     clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
     CXString filename = clang_getFileName(file);
-    std::string result = clang_getCString(filename);
+    const char* filename_cstr = clang_getCString(filename);
+
+    std::string result;
+    if (filename_cstr) {
+      result = filename_cstr;
+    }
     clang_disposeString(filename);
 
     return result;
@@ -325,7 +304,6 @@ class InitChecker {
     for (unsigned i = 0; i < num_tokens; ++i) {
       CXString token_spelling = clang_getTokenSpelling(tu, tokens[i]);
       result += clang_getCString(token_spelling);
-      result += " ";
       clang_disposeString(token_spelling);
     }
 
@@ -337,41 +315,86 @@ class InitChecker {
 void check_init() {
   std::vector<InitIssue> issues;
 
-  std::filesystem::path path(g_opts.path);
   std::vector<std::string> cpp_files;
 
-  try {
-    if (std::filesystem::is_directory(path)) {
-      for (const auto& entry :
-           std::filesystem::recursive_directory_iterator(path)) {
-        if (entry.is_regular_file()) {
-          std::string ext = entry.path().extension().string();
+  // If specific files are provided, use them
+  if (!g_check_init_opts.files.empty()) {
+    for (const auto& file : g_check_init_opts.files) {
+      // Verify files exist and canonicalize paths
+      if (!std::filesystem::exists(file)) {
+        std::cerr << "Error: File not found: " << file << std::endl;
+        return;
+      }
+      try {
+        cpp_files.push_back(std::filesystem::canonical(file).string());
+      } catch (...) {
+        cpp_files.push_back(file);
+      }
+    }
+  } else {
+    // Read compile_commands.json to get all compiled files
+    std::filesystem::path compile_commands_path =
+        std::filesystem::path(g_opts.path) / "compile_commands.json";
+
+    if (!std::filesystem::exists(compile_commands_path)) {
+      std::cerr << "Error: compile_commands.json not found in: " << g_opts.path
+                << std::endl;
+      return;
+    }
+
+    try {
+      std::ifstream file(compile_commands_path);
+      if (!file.is_open()) {
+        std::cerr << "Error: Failed to open compile_commands.json: "
+                  << compile_commands_path << std::endl;
+        return;
+      }
+
+      std::stringstream buffer;
+      buffer << file.rdbuf();
+      std::string content = buffer.str();
+      file.close();
+
+      Document doc;
+      doc.Parse(content.c_str());
+
+      if (doc.HasParseError()) {
+        std::cerr << "Error: Failed to parse compile_commands.json"
+                  << std::endl;
+        return;
+      }
+
+      if (!doc.IsArray()) {
+        std::cerr << "Error: compile_commands.json should be an array"
+                  << std::endl;
+        return;
+      }
+
+      // Extract unique file paths
+      std::set<std::string> file_set;
+      for (const auto& entry : doc.GetArray()) {
+        if (entry.IsObject() && entry.HasMember("file")) {
+          std::string file_path = entry["file"].GetString();
+          std::filesystem::path p(file_path);
+          std::string ext = p.extension().string();
           if (ext == ".cpp" || ext == ".cc" || ext == ".c++" || ext == ".cxx" ||
               ext == ".h" || ext == ".hpp") {
-            cpp_files.push_back(entry.path().string());
+            file_set.insert(file_path);
           }
         }
       }
-    } else if (std::filesystem::is_regular_file(path)) {
-      cpp_files.push_back(path.string());
-    }
-  } catch (const std::filesystem::filesystem_error& e) {
-    if (g_opts.output_json) {
-      Document doc;
-      doc.SetObject();
-      auto& allocator = doc.GetAllocator();
-      doc.AddMember("command", "check_init", allocator);
-      doc.AddMember("path", StringRef(g_opts.path.c_str()), allocator);
-      doc.AddMember("status", "error", allocator);
-      doc.AddMember("message", StringRef(e.what()), allocator);
 
-      StringBuffer buffer;
-      PrettyWriter<StringBuffer> writer(buffer);
-      doc.Accept(writer);
-      std::cout << buffer.GetString() << std::endl;
-    } else {
-      std::cerr << "Error: " << e.what() << std::endl;
+      cpp_files.assign(file_set.begin(), file_set.end());
+
+    } catch (const std::exception& e) {
+      std::cerr << "Error reading compile_commands.json: " << e.what()
+                << std::endl;
+      return;
     }
+  }
+
+  if (cpp_files.empty()) {
+    std::cerr << "Error: No C++ source files found to check" << std::endl;
     return;
   }
 
@@ -379,6 +402,150 @@ void check_init() {
   for (const auto& file : cpp_files) {
     auto file_issues = checker.check_init(file);
     issues.insert(issues.end(), file_issues.begin(), file_issues.end());
+  }
+
+  // Apply fixes if requested
+  if (g_opts.fix && !issues.empty()) {
+    std::map<std::string, std::vector<InitIssue>> file_issues_map;
+    for (const auto& issue : issues) {
+      file_issues_map[issue.file].push_back(issue);
+    }
+
+    for (const auto& [file_path, issue_list] : file_issues_map) {
+      std::ifstream input_file(file_path);
+      if (!input_file.is_open()) {
+        continue;
+      }
+
+      std::stringstream buffer;
+      buffer << input_file.rdbuf();
+      std::string content = buffer.str();
+      input_file.close();
+
+      std::map<int, std::vector<InitIssue>> line_issues;
+      for (const auto& issue : issue_list) {
+        line_issues[issue.line].push_back(issue);
+      }
+
+      std::vector<std::string> lines;
+      std::stringstream ss(content);
+      std::string line;
+      while (std::getline(ss, line)) {
+        lines.push_back(line);
+      }
+
+      for (auto& [line_num, line_issues_vec] : line_issues) {
+        if (line_num > 0 && line_num <= (int)lines.size()) {
+          int idx = line_num - 1;
+          for (const auto& issue : line_issues_vec) {
+            if (issue.type == InitIssueType::UNINITIALIZED) {
+              size_t pos = lines[idx].find(issue.name);
+              if (pos != std::string::npos) {
+                size_t name_end = pos + issue.name.length();
+                while (name_end < lines[idx].length() &&
+                       (lines[idx][name_end] == ' ' ||
+                        lines[idx][name_end] == '\t')) {
+                  name_end++;
+                }
+                if (name_end < lines[idx].length() &&
+                    lines[idx][name_end] == ';') {
+                  lines[idx].insert(name_end, "{}");
+                }
+              }
+            } else if (issue.type == InitIssueType::USE_EQUALS_INIT) {
+              size_t pos = lines[idx].find("=");
+              if (pos != std::string::npos) {
+                size_t comment_pos = lines[idx].find("//");
+                if (comment_pos == std::string::npos || comment_pos > pos) {
+                  size_t end_pos = lines[idx].find(";", pos);
+                  if (end_pos != std::string::npos) {
+                    bool has_unsigned_issue = false;
+                    for (const auto& check_issue : line_issues_vec) {
+                      if (check_issue.type ==
+                              InitIssueType::UNSIGNED_WITHOUT_SUFFIX &&
+                          check_issue.name == issue.name) {
+                        has_unsigned_issue = true;
+                        break;
+                      }
+                    }
+
+                    // Find the start of the replacement (skip all spaces before
+                    // '=')
+                    size_t replace_start = pos;
+                    while (replace_start > 0 &&
+                           (lines[idx][replace_start - 1] == ' ' ||
+                            lines[idx][replace_start - 1] == '\t')) {
+                      replace_start--;
+                    }
+
+                    // Get the full initialization part after =
+                    std::string init_part =
+                        lines[idx].substr(pos + 1, end_pos - pos - 1);
+
+                    // Find the first non-whitespace character after =
+                    size_t val_start = init_part.find_first_not_of(" \t");
+                    if (val_start != std::string::npos) {
+                      init_part = init_part.substr(val_start);
+                    }
+
+                    // Trim trailing whitespace
+                    size_t val_end = init_part.find_last_not_of(" \t");
+                    if (val_end != std::string::npos) {
+                      init_part = init_part.substr(0, val_end + 1);
+                    }
+
+                    // Check if init_part already contains braces (like {1, 2,
+                    // 3})
+                    if (init_part.size() >= 2 && init_part.front() == '{' &&
+                        init_part.back() == '}') {
+                      // Already has braces, just replace =...; with init_part;
+                      lines[idx].replace(replace_start,
+                                         end_pos - replace_start + 1,
+                                         init_part + ";");
+                    } else {
+                      // Need to add braces
+                      std::string replacement;
+                      if (has_unsigned_issue) {
+                        replacement = "{" + init_part + "U};";
+                      } else {
+                        replacement = "{" + init_part + "};";
+                      }
+                      lines[idx].replace(replace_start,
+                                         end_pos - replace_start + 1,
+                                         replacement);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (g_opts.inplace) {
+        std::ofstream output_file(file_path);
+        if (!output_file.is_open()) {
+          std::cerr << "Failed to write to file: " << file_path << std::endl;
+          continue;
+        }
+
+        for (const auto& l : lines) {
+          output_file << l << "\n";
+        }
+        output_file.close();
+      } else {
+        // Only output the fixed code, no extra headers or summaries
+        for (const auto& l : lines) {
+          std::cout << l << "\n";
+        }
+      }
+    }
+
+    if (g_opts.inplace) {
+      std::cout << "\nFixed " << file_issues_map.size() << " file(s) in-place."
+                << std::endl;
+    }
+    return;
   }
 
   if (g_opts.output_json) {
