@@ -1,11 +1,13 @@
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <limits>
+#include <map>
 
 #include "commands.h"
 
 GlobalOptions g_opts;
 CheckInitOptions g_check_init_opts;
+cndy::lint::LintConfig g_lint_config;
 
 int main(int argc, char** argv) {
   CLI::App app{"cndy - C++ code analysis tool"};
@@ -36,6 +38,31 @@ int main(int argc, char** argv) {
       "Automatically fix initialization issues and output to stdout");
   check_init_cmd->add_flag("--inplace", g_opts.inplace,
                            "Modify files in-place (requires --fix)");
+
+  CLI::App* lint_cmd = app.add_subcommand("lint", "Run lint checks on C++ code");
+  lint_cmd->callback(lint);
+  lint_cmd->add_option("files", g_lint_config.files,
+                       "Source files to check")
+      ->expected(0, std::numeric_limits<size_t>::max());
+  lint_cmd->add_option("--only", g_lint_config.only_checkers,
+                       "Only run specific checkers (comma-separated)")
+      ->delimiter(',');
+  lint_cmd->add_option("--exclude", g_lint_config.exclude_patterns,
+                       "Exclude checkers (comma-separated)")
+      ->delimiter(',');
+  lint_cmd->add_flag("--fix", g_lint_config.auto_fix,
+                     "Automatically apply fixes where possible");
+  lint_cmd->add_flag("--inplace", g_lint_config.inplace,
+                     "Modify files in-place (requires --fix)");
+  lint_cmd->add_option("--severity", g_lint_config.min_severity,
+                       "Minimum severity to report (error, warning, info, hint)")
+      ->transform(CLI::CheckedTransformer(
+          std::map<std::string, cndy::lint::Severity>{
+              {"error", cndy::lint::Severity::ERROR},
+              {"warning", cndy::lint::Severity::WARNING},
+              {"info", cndy::lint::Severity::INFO},
+              {"hint", cndy::lint::Severity::HINT}},
+          CLI::ignore_case));
 
   if (argc == 1) {
     std::cout << app.help() << std::endl;

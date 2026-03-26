@@ -17,6 +17,13 @@ add_executable(cndy
   src/find_global.cpp
   src/find_singleton.cpp
   src/check_init.cpp
+  src/lint.cpp
+  src/lint_checker.cpp
+  src/lint/lint_runner.cpp
+  src/lint/checkers/init_checker.cpp
+  src/lint/checkers/const_checker.cpp
+  src/lint/checkers/global_checker.cpp
+  src/lint/checkers/singleton_checker.cpp
 )
 
 target_include_directories(cndy PRIVATE
