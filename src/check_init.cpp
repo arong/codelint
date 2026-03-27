@@ -125,11 +125,6 @@ class InitChecker {
       return;
     }
 
-    // Skip non-builtin types (std::vector, std::map, etc.) - they have their own constructors
-    if (!is_builtin_type(type_str)) {
-      return;
-    }
-
     std::string file = get_file_location(cursor);
     int line = get_line_number(cursor);
 
@@ -187,7 +182,7 @@ class InitChecker {
     issue.type_str = type_str;
     issue.file = file;
     issue.line = line;
-    issue.description = "Variable initialized with '=' should use '{}' syntax";
+    issue.description = "Variable should use '{}' syntax for initialization";
 
     std::string init_value = get_init_value(init_cursor);
     bool is_unsigned = is_unsigned_type(type_str);
@@ -199,6 +194,7 @@ class InitChecker {
       return;
     }
 
+    // Handle unsigned suffix for numeric values
     if (is_unsigned && has_digit_value(init_value) &&
         !has_unsigned_suffix(init_value)) {
       issue.suggestion = type_str + " " + var_name + "{" + init_value + "U};";
@@ -473,6 +469,7 @@ void check_init() {
             } else if (issue.type == InitIssueType::USE_EQUALS_INIT) {
               size_t pos = lines[idx].find("=");
               if (pos != std::string::npos) {
+                // Handle case: Type name = value;
                 size_t comment_pos = lines[idx].find("//");
                 if (comment_pos == std::string::npos || comment_pos > pos) {
                   size_t end_pos = lines[idx].find(";", pos);
@@ -531,6 +528,47 @@ void check_init() {
                       lines[idx].replace(replace_start,
                                          end_pos - replace_start + 1,
                                          replacement);
+                    }
+                  }
+                }
+              } else {
+                // Handle case: Type name; or Type name(args); (no = sign)
+                // Insert {} after variable name, before semicolon
+                size_t var_pos = lines[idx].find(issue.name);
+                if (var_pos != std::string::npos) {
+                  size_t var_end = var_pos + issue.name.length();
+                  // Skip whitespace after variable name
+                  while (var_end < lines[idx].length() &&
+                         (lines[idx][var_end] == ' ' || lines[idx][var_end] == '\t')) {
+                    var_end++;
+                  }
+                  // Check for constructor call ( or just semicolon
+                  if (var_end < lines[idx].length() && 
+                      (lines[idx][var_end] == '(' || lines[idx][var_end] == ';')) {
+                    if (lines[idx][var_end] == '(') {
+                      // Replace (...) with {}
+                      size_t close_paren = lines[idx].find(")", var_end);
+                      if (close_paren != std::string::npos) {
+                        std::string init_value = lines[idx].substr(var_end + 1, close_paren - var_end - 1);
+                        // Trim whitespace
+                        size_t val_start = init_value.find_first_not_of(" \t");
+                        if (val_start != std::string::npos) {
+                          init_value = init_value.substr(val_start);
+                        }
+                        size_t val_end = init_value.find_last_not_of(" \t");
+                        if (val_end != std::string::npos) {
+                          init_value = init_value.substr(0, val_end + 1);
+                        }
+                        // Replace (...) with {value} or {}
+                        if (init_value.empty()) {
+                          lines[idx].replace(var_end, close_paren - var_end + 1, "{}");
+                        } else {
+                          lines[idx].replace(var_end, close_paren - var_end + 1, "{" + init_value + "}");
+                        }
+                      }
+                    } else {
+                      // Insert {} before semicolon
+                      lines[idx].insert(var_end, "{}");
                     }
                   }
                 }

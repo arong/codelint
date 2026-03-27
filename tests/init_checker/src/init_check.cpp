@@ -104,12 +104,11 @@ static int static_global1;
 // 14. FUNCTIONS - LOCAL VARIABLES
 void test_function1() {
   int local1;
-  int local2;
   double local3;
   char local4;
   bool local5;
   int local6 = 10;
-  int local7{20};
+  uint32_t local7{20};
   std::string local8("hello");
 }
 

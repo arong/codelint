@@ -38,7 +38,7 @@ bool b1{};
 
 // 4. STRING TYPES
 const char* str1{};
-std::string str2;
+std::string str2{};
 
 // 5. POINTER TYPES
 int* ptr1{};
@@ -51,7 +51,7 @@ struct CStruct {
   int x{};
   double y{};
 };
-CStruct cs1;
+CStruct cs1{};
 
 // 7. CLASSES
 class TestClass {
@@ -60,7 +60,7 @@ class TestClass {
   std::string name{};
   TestClass() : value(0) {}
 };
-TestClass tc1;
+TestClass tc1{};
 
 // 8. ENUMS
 enum Color { RED = 0, GREEN, BLUE };
@@ -70,7 +70,7 @@ enum class ErrorCode {
   Timeout = 3,
 };
 Color color1{};
-ErrorCode ec1;
+ErrorCode ec1{};
 
 // 9. STD CONTAINERS
 std::vector<int> vec1{};
@@ -104,13 +104,12 @@ static int static_global1{};
 // 14. FUNCTIONS - LOCAL VARIABLES
 void test_function1() {
   int local1{};
-  int local2{};
   double local3{};
   char local4{};
   bool local5{};
   int local6{10};
-  int local7{20};
-  std::string local8("hello");
+  uint32_t local7{20};
+  std::string local8{"hello"};
 }
 
 void test_function2() {
@@ -135,7 +134,7 @@ struct ComplexStruct {
   int* ptr{};
 };
 void complex_test() {
-  ComplexStruct cs;
+  ComplexStruct cs{};
   int* raw_array{new int[10]};
   delete[] raw_array;
 }
@@ -166,17 +165,17 @@ using IntAlias2 = int;
 IntAlias2 alias3{};
 
 // 18. TEMPLATE TYPES
-std::pair<int, int> pair1;
-std::deque<int> deque1;
-std::set<int> set1;
-std::unordered_map<int, std::string> umap1;
+std::pair<int, int> pair1{};
+std::deque<int> deque1{};
+std::set<int> set1{};
+std::unordered_map<int, std::string> umap1{};
 
 // 19. MULTI-DIMENSIONAL ARRAYS
 int arr2d[3][4];
 int arr3d[2][3][4];
 
 // 20. EXTERNAL AND FORWARD DECLARATIONS
-extern int extern_var;
+extern int extern_var{};
 
 // 21. VARIADIC AND SPECIAL TYPES
 size_t sz1{};
@@ -191,7 +190,7 @@ union UnionType {
   double d;
   char c;
 };
-UnionType ut1;
+UnionType ut1{};
 
 // 23. NESTED STRUCTURES
 struct Outer {
@@ -200,7 +199,7 @@ struct Outer {
     int y{};
   } inner{};
   int outer_val{};
-} outer1;
+} outer1{};
 
 // 24. VIRTUAL FUNCTIONS
 class BaseClass {
@@ -213,7 +212,7 @@ class DerivedClass : public BaseClass {
   void foo() override {}
   int derived_val{};
 };
-DerivedClass dc1;
+DerivedClass dc1{};
 
 // 25. ARRAY OF POINTERS
 int* ptr_array1[10];
@@ -227,7 +226,7 @@ struct StructWithUnion {
     double dval;
     char* sval;
   } u{};
-} swu1;
+} swu1{};
 
 // 28. Pointer to Member
 class ClassForMemberPtr {
