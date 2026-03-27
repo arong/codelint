@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 
   app.add_option("-p,--path", g_opts.path,
                  "Path to compile_commands.json directory")
-      ->default_str(".");
+      ->required();
   app.add_flag("--output-json", g_opts.output_json, "Output format as JSON");
 
   CLI::App* find_global_cmd =

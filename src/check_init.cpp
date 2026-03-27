@@ -92,13 +92,22 @@ class InitChecker {
 
   private:
     std::vector<InitIssue> issues_;
+    std::set<std::string> reported_vars_;  // Track reported variables to avoid duplicates
 
   void visit_cursor(CXCursor cursor) {
     CXCursorKind kind = clang_getCursorKind(cursor);
 
     // Check all variable declarations (local, global, struct members)
     if (kind == CXCursor_VarDecl || kind == CXCursor_FieldDecl) {
-      check_variable(cursor);
+      // Create unique key from location and name to avoid duplicates
+      std::string file = get_file_location(cursor);
+      int line = get_line_number(cursor);
+      std::string name = get_cursor_spelling(cursor);
+      std::string key = file + ":" + std::to_string(line) + ":" + name;
+      
+      if (reported_vars_.insert(key).second) {  // Only process if not already reported
+        check_variable(cursor);
+      }
     }
 
     clang_visitChildren(
@@ -122,6 +131,12 @@ class InitChecker {
     // Skip union members - they share memory and shouldn't be initialized individually
     CXCursor parent = clang_getCursorSemanticParent(cursor);
     if (clang_getCursorKind(parent) == CXCursor_UnionDecl) {
+      return;
+    }
+
+    // Skip class/struct members - they are initialized in class definition
+    CXCursorKind parent_kind = clang_getCursorKind(parent);
+    if (parent_kind == CXCursor_ClassDecl || parent_kind == CXCursor_StructDecl) {
       return;
     }
 
@@ -185,12 +200,23 @@ class InitChecker {
   }
 
   void check_initializer(CXCursor var_cursor, CXCursor init_cursor,
-                         const std::string& var_name,
-                         const std::string& type_str, const std::string& file,
-                         int line) {
+                          const std::string& var_name,
+                          const std::string& type_str, const std::string& file,
+                          int line) {
     CXCursorKind init_kind = clang_getCursorKind(init_cursor);
 
+    // Brace initialization: CXCursor_InitListExpr or empty constructor call
     bool is_brace_init = (init_kind == CXCursor_InitListExpr);
+    
+    // For non-class types with {}, init_cursor might be a CallExpr
+    // Check if it's a default constructor call (no arguments)
+    if (!is_brace_init && init_kind == CXCursor_CallExpr) {
+      // Check if this is a default constructor call (empty parens/braces)
+      unsigned num_args = clang_Cursor_getNumArguments(init_cursor);
+      if (num_args == 0) {
+        is_brace_init = true;
+      }
+    }
 
     if (!is_brace_init) {
       check_equals_init(var_name, type_str, file, line, init_cursor);
@@ -205,6 +231,25 @@ class InitChecker {
   void check_equals_init(const std::string& var_name,
                           const std::string& type_str, const std::string& file,
                           int line, CXCursor init_cursor) {
+    std::string init_value = get_init_value(init_cursor);
+    
+    // Skip if init_value contains braces (already using {} initialization)
+    if (init_value.find('{') != std::string::npos || 
+        init_value.find('}') != std::string::npos) {
+      return;
+    }
+    
+    // Skip if init_value is empty or contains only whitespace
+    if (init_value.empty() || 
+        init_value.find_first_not_of(" \t\n\r") == std::string::npos) {
+      return;
+    }
+    
+    // Skip if init_value equals variable name (default initialization)
+    if (init_value == var_name) {
+      return;
+    }
+
     InitIssue issue;
     issue.type = InitIssueType::USE_EQUALS_INIT;
     issue.name = var_name;
@@ -213,15 +258,7 @@ class InitChecker {
     issue.line = line;
     issue.description = "Variable should use '{}' syntax for initialization";
 
-    std::string init_value = get_init_value(init_cursor);
     bool is_unsigned = is_unsigned_type(type_str);
-
-    // If init_value equals the variable name, it's likely a default initialization
-    if (init_value == var_name) {
-      issue.suggestion = type_str + " " + var_name + "{};";
-      issues_.push_back(issue);
-      return;
-    }
 
     // Handle unsigned suffix for numeric values
     if (is_unsigned && has_digit_value(init_value) &&
@@ -694,8 +731,7 @@ void check_init() {
     for (const auto& issue : issues) {
       std::cout << "\n  [Issue: " << get_issue_type_name(issue.type) << "]"
                 << std::endl;
-      std::cout << "  Variable: " << issue.name << " (" << issue.type_str << ")"
-                << std::endl;
+      std::cout << "  Variable: " << issue.name << std::endl;
       std::cout << "  Location: " << issue.file << ":" << issue.line
                 << std::endl;
       std::cout << "  Description: " << issue.description << std::endl;
