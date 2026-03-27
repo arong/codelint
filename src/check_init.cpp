@@ -125,6 +125,11 @@ class InitChecker {
       return;
     }
 
+    // Skip non-builtin types (std::vector, std::map, etc.) - they have their own constructors
+    if (!is_builtin_type(type_str)) {
+      return;
+    }
+
     std::string file = get_file_location(cursor);
     int line = get_line_number(cursor);
 
@@ -238,6 +243,29 @@ class InitChecker {
 
   bool is_system_header(const std::string& file) {
     return file.find("/usr/include/") == 0 || file.find("/usr/lib/") == 0;
+  }
+
+  bool is_builtin_type(const std::string& type_str) {
+    // Check for primitive types (int, char, float, bool, etc.)
+    // Non-builtin types like std::vector, std::map, MyClass have constructors
+    if (type_str.find("std::") != std::string::npos) {
+      return false;
+    }
+    if (type_str.find("struct ") != std::string::npos ||
+        type_str.find("class ") != std::string::npos) {
+      return false;
+    }
+    // Check for primitive type keywords
+    static const char* builtin_types[] = {
+      "int", "char", "bool", "float", "double", "void",
+      "short", "long", "signed", "unsigned", "wchar_t", "char16_t", "char32_t"
+    };
+    for (const auto* t : builtin_types) {
+      if (type_str.find(t) != std::string::npos) {
+        return true;
+      }
+    }
+    return false;
   }
 
   std::string get_cursor_spelling(CXCursor cursor) {
