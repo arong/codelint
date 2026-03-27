@@ -119,6 +119,12 @@ class InitChecker {
       return;
     }
 
+    // Skip union members - they share memory and shouldn't be initialized individually
+    CXCursor parent = clang_getCursorSemanticParent(cursor);
+    if (clang_getCursorKind(parent) == CXCursor_UnionDecl) {
+      return;
+    }
+
     std::string file = get_file_location(cursor);
     int line = get_line_number(cursor);
 
@@ -422,7 +428,20 @@ void check_init() {
           int idx = line_num - 1;
           for (const auto& issue : line_issues_vec) {
             if (issue.type == InitIssueType::UNINITIALIZED) {
-              lines[idx] = issue.suggestion;
+              // Find variable name position and insert {} after it, preserving modifiers
+              size_t var_pos = lines[idx].find(issue.name);
+              if (var_pos != std::string::npos) {
+                size_t var_end = var_pos + issue.name.length();
+                // Skip whitespace after variable name
+                while (var_end < lines[idx].length() &&
+                       (lines[idx][var_end] == ' ' || lines[idx][var_end] == '\t')) {
+                  var_end++;
+                }
+                // Insert {} before semicolon
+                if (var_end < lines[idx].length() && lines[idx][var_end] == ';') {
+                  lines[idx].insert(var_end, "{}");
+                }
+              }
             } else if (issue.type == InitIssueType::USE_EQUALS_INIT) {
               size_t pos = lines[idx].find("=");
               if (pos != std::string::npos) {
