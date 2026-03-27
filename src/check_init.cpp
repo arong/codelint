@@ -125,6 +125,35 @@ class InitChecker {
       return;
     }
 
+    // Skip extern variables - they are declarations, not definitions
+    CX_StorageClass storage = clang_Cursor_getStorageClass(cursor);
+    if (storage == CX_SC_Extern) {
+      return;
+    }
+
+    // Skip enum class types where 0 is not a valid enumerator value
+    // Using {} would initialize to 0, which may not be a valid enum value
+    CXType var_type = clang_getCursorType(cursor);
+    CXCursor type_decl = clang_getTypeDeclaration(var_type);
+    if (clang_getCursorKind(type_decl) == CXCursor_EnumDecl) {
+      // Check if this is an enum class (scoped enum) and if 0 is not a valid value
+      if (clang_EnumDecl_isScoped(type_decl)) {
+        bool has_zero_value = false;
+        clang_visitChildren(type_decl, [](CXCursor c, CXCursor parent, CXClientData data) {
+          if (clang_getCursorKind(c) == CXCursor_EnumConstantDecl) {
+            auto* has_zero = static_cast<bool*>(data);
+            if (clang_getEnumConstantDeclValue(c) == 0) {
+              *has_zero = true;
+            }
+          }
+          return CXChildVisit_Continue;
+        }, &has_zero_value);
+        if (!has_zero_value) {
+          return;
+        }
+      }
+    }
+
     std::string file = get_file_location(cursor);
     int line = get_line_number(cursor);
 
@@ -450,21 +479,44 @@ void check_init() {
       for (auto& [line_num, line_issues_vec] : line_issues) {
         if (line_num > 0 && line_num <= (int)lines.size()) {
           int idx = line_num - 1;
+          
+          // Sort issues by variable name position in line (right to left)
+          // to avoid position shifts when inserting {}
+          std::vector<std::pair<size_t, InitIssue>> sorted_issues;
           for (const auto& issue : line_issues_vec) {
+            size_t var_pos = lines[idx].find(issue.name);
+            if (var_pos != std::string::npos) {
+              sorted_issues.push_back({var_pos, issue});
+            }
+          }
+          std::sort(sorted_issues.begin(), sorted_issues.end(), 
+                    [](const auto& a, const auto& b) { return a.first > b.first; });
+          
+          for (const auto& [var_pos, issue] : sorted_issues) {
             if (issue.type == InitIssueType::UNINITIALIZED) {
               // Find variable name position and insert {} after it, preserving modifiers
-              size_t var_pos = lines[idx].find(issue.name);
-              if (var_pos != std::string::npos) {
-                size_t var_end = var_pos + issue.name.length();
-                // Skip whitespace after variable name
-                while (var_end < lines[idx].length() &&
-                       (lines[idx][var_end] == ' ' || lines[idx][var_end] == '\t')) {
-                  var_end++;
+              size_t var_end = var_pos + issue.name.length();
+              // Skip whitespace after variable name
+              while (var_end < lines[idx].length() &&
+                     (lines[idx][var_end] == ' ' || lines[idx][var_end] == '\t')) {
+                var_end++;
+              }
+              // For arrays, skip array dimensions [...] and insert {} after ]
+              while (var_end < lines[idx].length() && lines[idx][var_end] == '[') {
+                // Find matching closing bracket for this dimension
+                int bracket_count = 1;
+                size_t pos = var_end + 1;
+                while (pos < lines[idx].length() && bracket_count > 0) {
+                  if (lines[idx][pos] == '[') bracket_count++;
+                  else if (lines[idx][pos] == ']') bracket_count--;
+                  pos++;
                 }
-                // Insert {} before semicolon
-                if (var_end < lines[idx].length() && lines[idx][var_end] == ';') {
-                  lines[idx].insert(var_end, "{}");
-                }
+                var_end = pos;
+              }
+              // Handle comma or semicolon
+              if (var_end < lines[idx].length() && 
+                  (lines[idx][var_end] == ';' || lines[idx][var_end] == ',')) {
+                lines[idx].insert(var_end, "{}");
               }
             } else if (issue.type == InitIssueType::USE_EQUALS_INIT) {
               size_t pos = lines[idx].find("=");

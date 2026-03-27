@@ -1,5 +1,6 @@
 // Test file for initialization checks - comprehensive test cases
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <deque>
 #include <iostream>
@@ -235,7 +236,9 @@ class ClassForMemberPtr {
 };
 int ClassForMemberPtr::* pmem = nullptr;
 
-// 29. Multiple Variables on One Line
-int x1, x2, x3;
-
-int main() { return 0; }
+int main() {
+  // 29. Multiple Variables on One Line
+  int x1, x2, x3;
+  assert(x1 == 0);
+  return 0;
+}

@@ -1,5 +1,6 @@
 // Test file for initialization checks - comprehensive test cases
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <deque>
 #include <iostream>
@@ -70,7 +71,7 @@ enum class ErrorCode {
   Timeout = 3,
 };
 Color color1{};
-ErrorCode ec1{};
+ErrorCode ec1;
 
 // 9. STD CONTAINERS
 std::vector<int> vec1{};
@@ -171,11 +172,11 @@ std::set<int> set1{};
 std::unordered_map<int, std::string> umap1{};
 
 // 19. MULTI-DIMENSIONAL ARRAYS
-int arr2d[3][4];
-int arr3d[2][3][4];
+int arr2d[3][4]{};
+int arr3d[2][3][4]{};
 
 // 20. EXTERNAL AND FORWARD DECLARATIONS
-extern int extern_var{};
+extern int extern_var;
 
 // 21. VARIADIC AND SPECIAL TYPES
 size_t sz1{};
@@ -215,8 +216,8 @@ class DerivedClass : public BaseClass {
 DerivedClass dc1{};
 
 // 25. ARRAY OF POINTERS
-int* ptr_array1[10];
-const char* str_ptr_array[5];
+int* ptr_array1[10]{};
+const char* str_ptr_array[5]{};
 
 // 26. STRUCT WITH UNION
 struct StructWithUnion {
@@ -235,7 +236,9 @@ class ClassForMemberPtr {
 };
 int ClassForMemberPtr::* pmem{nullptr};
 
-// 29. Multiple Variables on One Line
-int x1, x2, x3{};
-
-int main() { return 0; }
+int main() {
+  // 29. Multiple Variables on One Line
+  int x1{}, x2{}, x3{};
+  assert(x1 == 0);
+  return 0;
+}
