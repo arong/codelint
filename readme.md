@@ -72,13 +72,27 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j4
 
 # 运行检查
-./codelint check_init ../tests/test_check_init.cpp --fix
-./codelint lint ../src/
+./codelint -p tests/CodeLintTest/build check_init
+./codelint -p tests/CodeLintTest/build find_global
+./codelint -p tests/CodeLintTest/build lint
 
 # 运行回归测试
 cd ..
 bash tests/run_regression_tests.sh
 ```
+
+## 打包发布
+
+项目支持打包为 AppImage 格式，便于分发和部署：
+
+```bash
+# 构建项目后执行打包脚本
+python3 packaging/scripts/create_appimage.py
+```
+
+打包完成后会在项目根目录生成 `codelint-VERSION-ARCH.AppImage` 文件。
+
+详细打包说明请参考 [packaging/README.md](packaging/README.md)。
 
 ## 许可证
 
