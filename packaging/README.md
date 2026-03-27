@@ -7,8 +7,7 @@ This directory contains all the tools and scripts needed to create portable AppI
 ```
 packaging/
 ├── scripts/              # Packaging scripts
-│   ├── create_appimage.py    # Python version (recommended)
-│   └── create_appimage.sh    # Shell version (alternative)
+│   └── create_appimage.py    # AppImage creation script
 ├── tools/                # External tools
 │   └── appimagetool          # AppImage creation tool
 └── AppDir/               # Temporary AppDir structure (created during build)
@@ -29,22 +28,14 @@ packaging/
 
 ## Usage
 
-### Method 1: Python Script (Recommended)
 ```bash
 cd /path/to/cndy
 python3 packaging/scripts/create_appimage.py
 ```
 
-### Method 2: Shell Script
-```bash
-cd /path/to/cndy
-chmod +x packaging/scripts/create_appimage.sh
-./packaging/scripts/create_appimage.sh
-```
-
 ## Output
 
-Both methods will create:
+Creates:
 - **AppImage file**: `cndy-VERSION-ARCH.AppImage` (e.g., `cndy-dev-x86_64.AppImage`)
 - **Size**: ~63MB (includes bundled LLVM 18 libraries)
 - **Location**: Project root directory

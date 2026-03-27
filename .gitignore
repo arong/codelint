@@ -9,3 +9,5 @@ third_party/
 compile_commands.jsoncndy-*.tar.gz
 cndy-*/
 packaging/AppDir/
+*.AppImage
+!packaging/tools/appimagetool
