@@ -92,20 +92,70 @@ class InitChecker {
 
   private:
     std::vector<InitIssue> issues_;
-    std::set<std::string> reported_vars_;  // Track reported variables to avoid duplicates
+    std::set<std::string> reported_vars_;
+    std::map<std::string, std::vector<std::string>> file_contents_;
 
-  void visit_cursor(CXCursor cursor) {
+    bool has_explicit_initializer(const std::string& file, int line, const std::string& var_name) {
+      if (file_contents_.find(file) == file_contents_.end()) {
+        std::ifstream f(file);
+        if (!f.is_open()) return false;
+        std::vector<std::string> lines;
+        std::string l;
+        while (std::getline(f, l)) {
+          lines.push_back(l);
+        }
+        file_contents_[file] = lines;
+      }
+
+      const auto& lines = file_contents_[file];
+      if (line <= 0 || line > (int)lines.size()) return false;
+
+      const std::string& line_content = lines[line - 1];
+      size_t var_pos = line_content.find(var_name);
+      if (var_pos == std::string::npos) return false;
+
+      size_t var_end = var_pos + var_name.length();
+
+      while (var_end < line_content.length() &&
+             (line_content[var_end] == ' ' || line_content[var_end] == '\t')) {
+        var_end++;
+      }
+
+      while (var_end < line_content.length() && line_content[var_end] == '[') {
+        int bracket_count = 1;
+        size_t pos = var_end + 1;
+        while (pos < line_content.length() && bracket_count > 0) {
+          if (line_content[pos] == '[') bracket_count++;
+          else if (line_content[pos] == ']') bracket_count--;
+          pos++;
+        }
+        var_end = pos;
+      }
+
+      while (var_end < line_content.length() &&
+             (line_content[var_end] == ' ' || line_content[var_end] == '\t')) {
+        var_end++;
+      }
+
+      if (var_end >= line_content.length()) return false;
+      char next_char = line_content[var_end];
+      return (next_char == '{' || next_char == '(' || next_char == '=');
+    }
+
+    void visit_cursor(CXCursor cursor) {
     CXCursorKind kind = clang_getCursorKind(cursor);
 
-    // Check all variable declarations (local, global, struct members)
     if (kind == CXCursor_VarDecl || kind == CXCursor_FieldDecl) {
-      // Create unique key from location and name to avoid duplicates
       std::string file = get_file_location(cursor);
       int line = get_line_number(cursor);
       std::string name = get_cursor_spelling(cursor);
       std::string key = file + ":" + std::to_string(line) + ":" + name;
-      
-      if (reported_vars_.insert(key).second) {  // Only process if not already reported
+
+      if (kind == CXCursor_VarDecl) {
+        if (reported_vars_.insert(key).second) {
+          check_variable(cursor);
+        }
+      } else {
         check_variable(cursor);
       }
     }
@@ -134,13 +184,6 @@ class InitChecker {
       return;
     }
 
-    // Skip class/struct members - they are initialized in class definition
-    CXCursorKind parent_kind = clang_getCursorKind(parent);
-    if (parent_kind == CXCursor_ClassDecl || parent_kind == CXCursor_StructDecl) {
-      return;
-    }
-
-    // Skip extern variables - they are declarations, not definitions
     CX_StorageClass storage = clang_Cursor_getStorageClass(cursor);
     if (storage == CX_SC_Extern) {
       return;
@@ -176,10 +219,22 @@ class InitChecker {
       return;
     }
 
+    CXCursorKind kind = clang_getCursorKind(cursor);
+    bool has_explicit = has_explicit_initializer(file, line, var_name);
+
+    if (!has_explicit) {
+      check_uninitialized(var_name, type_str, file, line);
+      return;
+    }
+
     CXCursor init_cursor = clang_Cursor_getVarDeclInitializer(cursor);
 
     if (clang_Cursor_isNull(init_cursor)) {
-      check_uninitialized(var_name, type_str, file, line);
+      return;
+    }
+
+    if (kind == CXCursor_FieldDecl) {
+      check_initializer(cursor, init_cursor, var_name, type_str, file, line);
     } else {
       check_initializer(cursor, init_cursor, var_name, type_str, file, line);
     }
