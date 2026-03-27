@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 class LintRunner {
@@ -35,4 +35,4 @@ private:
 };
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

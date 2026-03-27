@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create AppImage for cndy C++ code analysis tool
+Create AppImage for codelint C++ code analysis tool
 
 This script automates the entire AppImage creation process:
 1. Builds the AppDir structure
@@ -9,7 +9,7 @@ This script automates the entire AppImage creation process:
 4. Uses appimagetool to create the final AppImage
 
 Requirements:
-- build/cndy must exist (build the project first with cmake --build build)
+- build/codelint must exist (build the project first with cmake --build build)
 - appimagetool must be available in the packaging/tools directory
 """
 
@@ -28,8 +28,8 @@ def get_version():
     except (subprocess.CalledProcessError, FileNotFoundError):
         return "dev"
 
-def create_appdir(binary_path="build/cndy", appdir_path="packaging/AppDir"):
-    """Create AppDir structure for cndy AppImage"""
+def create_appdir(binary_path="build/codelint", appdir_path="packaging/AppDir"):
+    """Create AppDir structure for codelint AppImage"""
     
     # Ensure binary exists
     if not os.path.exists(binary_path):
@@ -42,7 +42,7 @@ def create_appdir(binary_path="build/cndy", appdir_path="packaging/AppDir"):
     
     # Copy the binary
     print("Copying binary...")
-    shutil.copy2(binary_path, f"{appdir_path}/usr/bin/cndy")
+    shutil.copy2(binary_path, f"{appdir_path}/usr/bin/codelint")
     
     # Get library dependencies using ldd
     print("Analyzing library dependencies...")
@@ -87,7 +87,7 @@ def create_appdir(binary_path="build/cndy", appdir_path="packaging/AppDir"):
     apprun_content = '''#!/bin/bash
 APPDIR="$(dirname "$(readlink -f "$0")")"
 export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
-exec "${APPDIR}/usr/bin/cndy" "$@"
+exec "${APPDIR}/usr/bin/codelint" "$@"
 '''
     with open(f"{appdir_path}/AppRun", 'w') as f:
         f.write(apprun_content)
@@ -96,14 +96,14 @@ exec "${APPDIR}/usr/bin/cndy" "$@"
     # Create desktop file
     print("Creating desktop file...")
     desktop_content = '''[Desktop Entry]
-Name=cndy
-Exec=cndy
-Icon=cndy
+Name=codelint
+Exec=codelint
+Icon=codelint
 Type=Application
 Categories=Development;
 Comment=C++ code analysis tool
 '''
-    with open(f"{appdir_path}/cndy.desktop", 'w') as f:
+    with open(f"{appdir_path}/codelint.desktop", 'w') as f:
         f.write(desktop_content)
     
     # Create icon
@@ -111,17 +111,17 @@ Comment=C++ code analysis tool
     icon_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <rect width="128" height="128" fill="#3B82F6" rx="16"/>
   <text x="64" y="80" text-anchor="middle" font-family="monospace" font-size="48" fill="white" font-weight="bold">C++</text>
-  <text x="64" y="110" text-anchor="middle" font-family="sans-serif" font-size="16" fill="white" font-weight="bold">cndy</text>
+  <text x="64" y="110" text-anchor="middle" font-family="sans-serif" font-size="16" fill="white" font-weight="bold">codelint</text>
 </svg>
 '''
-    with open(f"{appdir_path}/cndy.svg", 'w') as f:
+    with open(f"{appdir_path}/codelint.svg", 'w') as f:
         f.write(icon_content)
     
     # Create README
     print("Creating README...")
-    readme_content = '''# cndy - C++ Code Analysis Tool
+    readme_content = '''# codelint - C++ Code Analysis Tool
 
-This is an AppImage distribution of cndy, a C++ code analysis tool.
+This is an AppImage distribution of codelint, a C++ code analysis tool.
 
 ## Requirements
 
@@ -135,24 +135,24 @@ Note: LLVM 18 libraries are bundled in this AppImage for portability.
 Run directly from AppImage:
 
 ```bash
-./cndy-x86_64.AppImage --help
+./codelint-x86_64.AppImage --help
 ```
 
 ## Examples
 
 Check initialization issues:
 ```bash
-./cndy-x86_64.AppImage check_init mycode.cpp --fix
+./codelint-x86_64.AppImage check_init mycode.cpp --fix
 ```
 
 Find global variables:
 ```bash
-./cndy-x86_64.AppImage find_global mycode.cpp
+./codelint-x86_64.AppImage find_global mycode.cpp
 ```
 
 Find singletons:
 ```bash
-./cndy-x86_64.AppImage find_singleton mycode.cpp
+./codelint-x86_64.AppImage find_singleton mycode.cpp
 ```
 '''
     with open(f"{appdir_path}/README.md", 'w') as f:
@@ -165,7 +165,7 @@ def create_appimage(appdir_path, output_dir="."):
     """Create AppImage using appimagetool from tools directory"""
     version = get_version()
     arch = subprocess.check_output(["uname", "-m"]).decode().strip()
-    appimage_name = f"cndy-{version}-{arch}.AppImage"
+    appimage_name = f"codelint-{version}-{arch}.AppImage"
     appimage_path = os.path.join(output_dir, appimage_name)
     
     print(f"Creating AppImage: {appimage_path}")
@@ -193,7 +193,7 @@ def create_appimage(appdir_path, output_dir="."):
 
 def main():
     """Main function to create AppImage"""
-    print("🚀 Creating cndy AppImage...")
+    print("🚀 Creating codelint AppImage...")
     
     # Step 1: Create AppDir
     appdir = create_appdir()

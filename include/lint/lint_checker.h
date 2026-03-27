@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 class ClangUtils {
@@ -126,4 +126,4 @@ public:
 };
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

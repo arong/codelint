@@ -1,6 +1,6 @@
-# cndy AppImage Packaging Guide
+# codelint AppImage Packaging Guide
 
-This directory contains all the tools and scripts needed to create portable AppImage packages for the cndy C++ code analysis tool.
+This directory contains all the tools and scripts needed to create portable AppImage packages for the codelint C++ code analysis tool.
 
 ## Directory Structure
 
@@ -23,20 +23,20 @@ packaging/
 
 2. **Verify binary exists**:
    ```bash
-   ls -la build/cndy
+   ls -la build/codelint
    ```
 
 ## Usage
 
 ```bash
-cd /path/to/cndy
+cd /path/to/codelint
 python3 packaging/scripts/create_appimage.py
 ```
 
 ## Output
 
 Creates:
-- **AppImage file**: `cndy-VERSION-ARCH.AppImage` (e.g., `cndy-dev-x86_64.AppImage`)
+- **AppImage file**: `codelint-VERSION-ARCH.AppImage` (e.g., `codelint-dev-x86_64.AppImage`)
 - **Size**: ~63MB (includes bundled LLVM 18 libraries)
 - **Location**: Project root directory
 
@@ -52,8 +52,8 @@ Creates:
 
 After creation, test the AppImage:
 ```bash
-./cndy-dev-x86_64.AppImage --help
-./cndy-dev-x86_64.AppImage check_init tests/test_check_init.cpp
+./codelint-dev-x86_64.AppImage --help
+./codelint-dev-x86_64.AppImage check_init tests/test_check_init.cpp
 ```
 
 ## Reusing for Future Releases
@@ -84,13 +84,13 @@ Edit the `get_version()` function in `create_appimage.py` to customize version n
 Modify the library copying logic in both scripts to include/exclude specific libraries.
 
 ### Updating Icon
-Replace the SVG content in the scripts or modify the `cndy.svg` generation section.
+Replace the SVG content in the scripts or modify the `codelint.svg` generation section.
 
 ## Troubleshooting
 
 ### "Binary not found"
 - Ensure you've built the project with `cmake --build build`
-- Verify `build/cndy` exists
+- Verify `build/codelint` exists
 
 ### "appimagetool not found"
 - Ensure `packaging/tools/appimagetool` exists
@@ -102,4 +102,4 @@ Replace the SVG content in the scripts or modify the `cndy.svg` generation secti
 
 ## License
 
-The packaging scripts are part of the cndy project and follow the same license terms.
+The packaging scripts are part of the codelint project and follow the same license terms.

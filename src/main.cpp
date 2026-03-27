@@ -7,10 +7,10 @@
 
 GlobalOptions g_opts;
 CheckInitOptions g_check_init_opts;
-cndy::lint::LintConfig g_lint_config;
+codelint::lint::LintConfig g_lint_config;
 
 int main(int argc, char** argv) {
-  CLI::App app{"cndy - C++ code analysis tool"};
+  CLI::App app{"codelint - C++ code analysis tool"};
 
   app.add_option("-p,--path", g_opts.path,
                  "Path to compile_commands.json directory")
@@ -57,11 +57,11 @@ int main(int argc, char** argv) {
   lint_cmd->add_option("--severity", g_lint_config.min_severity,
                        "Minimum severity to report (error, warning, info, hint)")
       ->transform(CLI::CheckedTransformer(
-          std::map<std::string, cndy::lint::Severity>{
-              {"error", cndy::lint::Severity::ERROR},
-              {"warning", cndy::lint::Severity::WARNING},
-              {"info", cndy::lint::Severity::INFO},
-              {"hint", cndy::lint::Severity::HINT}},
+          std::map<std::string, codelint::lint::Severity>{
+              {"error", codelint::lint::Severity::ERROR},
+              {"warning", codelint::lint::Severity::WARNING},
+              {"info", codelint::lint::Severity::INFO},
+              {"hint", codelint::lint::Severity::HINT}},
           CLI::ignore_case));
 
   if (argc == 1) {

@@ -9,7 +9,7 @@
 #include <algorithm>
 
 void lint() {
-    using namespace cndy::lint;
+    using namespace codelint::lint;
     
     LintConfig config = g_lint_config;
     

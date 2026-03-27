@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(cndy VERSION 1.0.0 LANGUAGES CXX)
+project(codelint VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,7 +12,7 @@ if(NOT CLANG_LIB)
   message(FATAL_ERROR "Could not find libclang library")
 endif()
 
-add_executable(cndy
+add_executable(codelint
   src/main.cpp
   src/find_global.cpp
   src/find_singleton.cpp
@@ -26,13 +26,13 @@ add_executable(cndy
   src/lint/checkers/singleton_checker.cpp
 )
 
-target_include_directories(cndy PRIVATE
+target_include_directories(codelint PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/rapidjson/include
   /usr/lib/llvm-18/include
 )
 
-target_link_libraries(cndy PRIVATE ${CLANG_LIB})
+target_link_libraries(codelint PRIVATE ${CLANG_LIB})
 
-install(TARGETS cndy DESTINATION bin)
+install(TARGETS codelint DESTINATION bin)

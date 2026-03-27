@@ -1,6 +1,6 @@
 #include "lint/checkers/global_checker.h"
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 LintResult GlobalChecker::check(const std::string& filepath) {
@@ -69,4 +69,4 @@ void GlobalChecker::visit_cursor(CXCursor cursor, LintResult& result) {
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

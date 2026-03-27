@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 class ConstChecker : public LintChecker {
@@ -56,4 +56,4 @@ private:
 };
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

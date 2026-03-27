@@ -2,7 +2,7 @@
 
 #include "../lint_checker.h"
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 class InitChecker : public LintChecker {
@@ -42,4 +42,4 @@ private:
 };
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <set>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 LintResult ConstChecker::check(const std::string& filepath) {
@@ -162,4 +162,4 @@ bool ConstChecker::apply_fixes(const std::string& filepath, const std::vector<Li
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

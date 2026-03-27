@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 LintResult InitChecker::check(const std::string& filepath) {
@@ -257,4 +257,4 @@ bool InitChecker::apply_fixes(const std::string& filepath,
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

@@ -5,7 +5,7 @@
 #include <map>
 #include <sstream>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 enum class Severity {
@@ -127,4 +127,4 @@ inline CheckType string_to_check_type(const std::string& str) {
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

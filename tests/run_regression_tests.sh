@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Comprehensive regression test suite for cndy
+# Comprehensive regression test suite for codelint
 # This script runs all regression tests and reports failures
 
 set -e
@@ -102,9 +102,9 @@ run_negative_test() {
     fi
 }
 
-# Check if cndy is built
-if [ ! -f "$BUILD_DIR/cndy" ]; then
-    echo -e "${RED}Error: cndy not found. Please build the project first.${NC}"
+# Check if codelint is built
+if [ ! -f "$BUILD_DIR/codelint" ]; then
+    echo -e "${RED}Error: codelint not found. Please build the project first.${NC}"
     echo "Run: cd $ROOT_DIR && cmake -B build && cmake --build build"
     exit 1
 fi
@@ -113,7 +113,7 @@ fi
 mkdir -p "$TEST_DIR"
 
 echo "========================================"
-echo "CNDY Regression Test Suite"
+echo "Codelint Regression Test Suite"
 echo "========================================"
 echo ""
 
@@ -122,17 +122,17 @@ echo "=== Test Suite: check_init ==="
 
 # Test 1: check_init without fix on single file
 run_test "check_init_single_file" \
-    "$BUILD_DIR/cndy check_init tests/test_check_init.cpp" \
+    "$BUILD_DIR/codelint check_init tests/test_check_init.cpp" \
     "$EXPECTED_DIR/check_init_single_file.txt"
 
 # Test 2: check_init with --fix flag
 run_test "check_init_fix" \
-    "$BUILD_DIR/cndy check_init tests/test_check_init.cpp --fix" \
+    "$BUILD_DIR/codelint check_init tests/test_check_init.cpp --fix" \
     "$EXPECTED_DIR/check_init_fix.txt"
 
 # Test 3: check_init with --output-json
 run_test "check_init_json" \
-    "$BUILD_DIR/cndy check_init tests/test_check_init.cpp --output-json" \
+    "$BUILD_DIR/codelint check_init tests/test_check_init.cpp --output-json" \
     "$EXPECTED_DIR/check_init_json.json"
 
 # Test 4: check_init on non-existent file
@@ -141,37 +141,37 @@ run_test "check_init_json" \
 echo "Test 4: check_init on non-existent file - SKIPPED (needs error code fix)"
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 # run_negative_test "check_init_nonexistent_file" \
-#     "$BUILD_DIR/cndy check_init tests/nonexistent.cpp" \
+#     "$BUILD_DIR/codelint check_init tests/nonexistent.cpp" \
 #     "File not found"
 
 # Test 5: check_init on file with braces in initialization
 run_test "check_init_brace_init" \
-    "$BUILD_DIR/cndy check_init tests/test_check_init_braces.cpp --fix" \
+    "$BUILD_DIR/codelint check_init tests/test_check_init_braces.cpp --fix" \
     "$EXPECTED_DIR/check_init_brace_init.txt"
 
 # Test 6: check_init on multiple files
 run_test "check_init_multiple_files" \
-    "$BUILD_DIR/cndy check_init tests/test_check_init.cpp tests/test_find_global.cpp" \
+    "$BUILD_DIR/codelint check_init tests/test_check_init.cpp tests/test_find_global.cpp" \
     "$EXPECTED_DIR/check_init_multiple_files.txt"
 
 # Test 7: check_init with all types (including non-builtin)
 run_test "check_init_all_types" \
-    "$BUILD_DIR/cndy check_init tests/test_check_init_all_types.cpp --fix" \
+    "$BUILD_DIR/codelint check_init tests/test_check_init_all_types.cpp --fix" \
     "$EXPECTED_DIR/check_init_all_types.txt"
 
 # Test 8: check_init comprehensive test with init_check_src.cpp
 run_test "check_init_comprehensive" \
-    "$BUILD_DIR/cndy check_init tests/init_check_src.cpp" \
+    "$BUILD_DIR/codelint check_init tests/init_check_src.cpp" \
     "$EXPECTED_DIR/init_check_src_output.txt"
 
 # Test 9: check_init comprehensive test --fix
 run_test "check_init_comprehensive_fix" \
-    "$BUILD_DIR/cndy check_init tests/init_check_src.cpp --fix" \
+    "$BUILD_DIR/codelint check_init tests/init_check_src.cpp --fix" \
     "$EXPECTED_DIR/init_check_src_fix.cpp"
 
 # Test 10: check_init comprehensive test JSON output
 run_test "check_init_comprehensive_json" \
-    "$BUILD_DIR/cndy check_init tests/init_check_src.cpp --output-json" \
+    "$BUILD_DIR/codelint check_init tests/init_check_src.cpp --output-json" \
     "$EXPECTED_DIR/init_check_src_output.json"
 
 # Test suite: find_global
@@ -180,17 +180,17 @@ echo "=== Test Suite: find_global ==="
 
 # Test 8: find_global on single file
 run_test "find_global_single_file" \
-    "$BUILD_DIR/cndy find_global tests/test_find_global.cpp" \
+    "$BUILD_DIR/codelint find_global tests/test_find_global.cpp" \
     "$EXPECTED_DIR/find_global_single_file.txt"
 
 # Test 9: find_global with --output-json
 run_test "find_global_json" \
-    "$BUILD_DIR/cndy find_global tests/test_find_global.cpp --output-json" \
+    "$BUILD_DIR/codelint find_global tests/test_find_global.cpp --output-json" \
     "$EXPECTED_DIR/find_global_json.json"
 
 # Test 10: find_global on directory
 run_test "find_global_directory" \
-    "$BUILD_DIR/cndy find_global tests" \
+    "$BUILD_DIR/codelint find_global tests" \
     "$EXPECTED_DIR/find_global_directory.txt"
 
 # Test suite: find_singleton
@@ -199,17 +199,17 @@ echo "=== Test Suite: find_singleton ==="
 
 # Test 11: find_singleton on single file
 run_test "find_singleton_single_file" \
-    "$BUILD_DIR/cndy find_singleton tests/test_find_singleton.cpp" \
+    "$BUILD_DIR/codelint find_singleton tests/test_find_singleton.cpp" \
     "$EXPECTED_DIR/find_singleton_single_file.txt"
 
 # Test 12: find_singleton with --output-json
 run_test "find_singleton_json" \
-    "$BUILD_DIR/cndy find_singleton tests/test_find_singleton.cpp --output-json" \
+    "$BUILD_DIR/codelint find_singleton tests/test_find_singleton.cpp --output-json" \
     "$EXPECTED_DIR/find_singleton_json.json"
 
 # Test 13: find_singleton on directory
 run_test "find_singleton_directory" \
-    "$BUILD_DIR/cndy find_singleton tests" \
+    "$BUILD_DIR/codelint find_singleton tests" \
     "$EXPECTED_DIR/find_singleton_directory.txt"
 
 # Print summary

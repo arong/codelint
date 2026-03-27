@@ -1,6 +1,6 @@
-# CNDY Test Suite
+# Codelint Test Suite
 
-This directory contains test files and scripts for the cndy C++ code analysis tool.
+This directory contains test files and scripts for the codelint C++ code analysis tool.
 
 ## Test Files
 
@@ -62,7 +62,7 @@ Test script for the `check_init` command.
 
 ### run_all_tests.sh
 Master test script that runs all individual test scripts.
-- Verifies cndy executable exists
+- Verifies codelint executable exists
 - Runs all three test scripts
 - Provides summary of test results
 
@@ -84,14 +84,14 @@ bash tests/test_check_init.sh
 ### Run commands directly:
 ```bash
 # From build directory
-./cndy -p ../tests/test_find_global.cpp find_global
-./cndy -p ../tests/test_find_singleton.cpp find_singleton
-./cndy -p ../tests/test_check_init.cpp check_init
+./codelint -p ../tests/test_find_global.cpp find_global
+./codelint -p ../tests/test_find_singleton.cpp find_singleton
+./codelint -p ../tests/test_check_init.cpp check_init
 
 # With JSON output
-./cndy -p ../tests/test_find_global.cpp --output-json find_global
-./cndy -p ../tests/test_find_singleton.cpp --output-json find_singleton
-./cndy -p ../tests/test_check_init.cpp --output-json check_init
+./codelint -p ../tests/test_find_global.cpp --output-json find_global
+./codelint -p ../tests/test_find_singleton.cpp --output-json find_singleton
+./codelint -p ../tests/test_check_init.cpp --output-json check_init
 ```
 
 ## Test Expectations

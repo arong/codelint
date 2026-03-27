@@ -11,7 +11,7 @@
 #include <set>
 #include <map>
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 LintRunner::LintRunner(const LintConfig& config)
@@ -351,4 +351,4 @@ LintConfig LintRunner::load_config(const std::string& config_path) {
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

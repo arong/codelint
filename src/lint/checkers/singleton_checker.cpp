@@ -1,6 +1,6 @@
 #include "lint/checkers/singleton_checker.h"
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 LintResult SingletonChecker::check(const std::string& filepath) {
@@ -73,4 +73,4 @@ void SingletonChecker::visit_cursor(CXCursor cursor, LintResult& result) {
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint

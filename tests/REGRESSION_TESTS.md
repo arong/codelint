@@ -1,6 +1,6 @@
-# CNDY Test Suite
+# Codelint Test Suite
 
-This directory contains the test suite for the cndy C++ code analysis tool.
+This directory contains the test suite for the codelint C++ code analysis tool.
 
 ## Test Files
 
@@ -47,7 +47,7 @@ This directory contains the test suite for the cndy C++ code analysis tool.
 2. Add test cases to the appropriate test script
 3. Generate expected output:
    ```bash
-   ./build/cndy check_init tests/new_test.cpp > tests/expected/new_test.txt 2>&1
+   ./build/codelint check_init tests/new_test.cpp > tests/expected/new_test.txt 2>&1
    ```
 4. Update `run_regression_tests.sh` to include the new test
 5. Run the regression tests to verify

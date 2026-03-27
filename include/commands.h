@@ -18,7 +18,7 @@ struct CheckInitOptions {
 
 extern GlobalOptions g_opts;
 extern CheckInitOptions g_check_init_opts;
-extern cndy::lint::LintConfig g_lint_config;
+extern codelint::lint::LintConfig g_lint_config;
 
 void find_global();
 void find_singleton();

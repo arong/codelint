@@ -4,7 +4,7 @@
 #include "lint/checkers/global_checker.h"
 #include "lint/checkers/singleton_checker.h"
 
-namespace cndy {
+namespace codelint {
 namespace lint {
 
 std::unique_ptr<LintChecker> CheckerFactory::create(const std::string& name) {
@@ -34,4 +34,4 @@ std::vector<std::string> CheckerFactory::available_checkers() {
 }
 
 }  // namespace lint
-}  // namespace cndy
+}  // namespace codelint
