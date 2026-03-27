@@ -90,14 +90,38 @@ class InitChecker {
     return issues_;
   }
 
-  private:
-    std::vector<InitIssue> issues_;
+ private:
+  std::vector<InitIssue> issues_;
+  bool in_function_ = false;
 
   void visit_cursor(CXCursor cursor) {
     CXCursorKind kind = clang_getCursorKind(cursor);
 
-    // Check all variable declarations (local, global, struct members)
-    if (kind == CXCursor_VarDecl || kind == CXCursor_FieldDecl) {
+    if (kind == CXCursor_FunctionDecl || kind == CXCursor_CXXMethod) {
+      in_function_ = true;
+      clang_visitChildren(
+          cursor,
+          [](CXCursor c, CXCursor parent, CXClientData data) {
+            auto* checker = static_cast<InitChecker*>(data);
+            checker->visit_function_body(c);
+            return CXChildVisit_Continue;
+          },
+          this);
+      in_function_ = false;
+    } else {
+      clang_visitChildren(
+          cursor,
+          [](CXCursor c, CXCursor parent, CXClientData data) {
+            auto* checker = static_cast<InitChecker*>(data);
+            checker->visit_cursor(c);
+            return CXChildVisit_Continue;
+          },
+          this);
+    }
+  }
+
+  void visit_function_body(CXCursor cursor) {
+    if (clang_getCursorKind(cursor) == CXCursor_VarDecl) {
       check_variable(cursor);
     }
 
@@ -105,8 +129,8 @@ class InitChecker {
         cursor,
         [](CXCursor c, CXCursor parent, CXClientData data) {
           auto* checker = static_cast<InitChecker*>(data);
-          checker->visit_cursor(c);
-          return CXChildVisit_Recurse;
+          checker->visit_function_body(c);
+          return CXChildVisit_Continue;
         },
         this);
   }
@@ -136,8 +160,8 @@ class InitChecker {
   }
 
   void check_uninitialized(const std::string& var_name,
-                           const std::string& type_str, const std::string& file,
-                           int line) {
+                            const std::string& type_str, const std::string& file,
+                            int line) {
     InitIssue issue;
     issue.type = InitIssueType::UNINITIALIZED;
     issue.name = var_name;
@@ -145,7 +169,23 @@ class InitChecker {
     issue.file = file;
     issue.line = line;
     issue.description = "Variable is not explicitly initialized";
-    issue.suggestion = type_str + " " + var_name + "{};";
+    
+    // Generate zero initialization suggestion based on type
+    std::string zero_value = "0";
+    if (type_str.find('*') != std::string::npos || 
+        type_str.find("ptr") != std::string::npos) {
+      zero_value = "nullptr";
+    } else if (type_str.find("float") != std::string::npos || 
+               type_str.find("double") != std::string::npos) {
+      zero_value = "0.0";
+    } else if (type_str.find("bool") != std::string::npos) {
+      zero_value = "false";
+    } else if (type_str.find("char") != std::string::npos && 
+               type_str.find("string") == std::string::npos) {
+      zero_value = "'\\0'";
+    }
+    
+    issue.suggestion = type_str + " " + var_name + "{" + zero_value + "};";
     issues_.push_back(issue);
   }
 
@@ -168,8 +208,8 @@ class InitChecker {
   }
 
   void check_equals_init(const std::string& var_name,
-                          const std::string& type_str, const std::string& file,
-                          int line, CXCursor init_cursor) {
+                         const std::string& type_str, const std::string& file,
+                         int line, CXCursor init_cursor) {
     InitIssue issue;
     issue.type = InitIssueType::USE_EQUALS_INIT;
     issue.name = var_name;
@@ -180,13 +220,6 @@ class InitChecker {
 
     std::string init_value = get_init_value(init_cursor);
     bool is_unsigned = is_unsigned_type(type_str);
-
-    // If init_value equals the variable name, it's likely a default initialization
-    if (init_value == var_name) {
-      issue.suggestion = type_str + " " + var_name + "{};";
-      issues_.push_back(issue);
-      return;
-    }
 
     if (is_unsigned && has_digit_value(init_value) &&
         !has_unsigned_suffix(init_value)) {
@@ -420,10 +453,37 @@ void check_init() {
       for (auto& [line_num, line_issues_vec] : line_issues) {
         if (line_num > 0 && line_num <= (int)lines.size()) {
           int idx = line_num - 1;
-          for (const auto& issue : line_issues_vec) {
-            if (issue.type == InitIssueType::UNINITIALIZED) {
-              lines[idx] = issue.suggestion;
-            } else if (issue.type == InitIssueType::USE_EQUALS_INIT) {
+           for (const auto& issue : line_issues_vec) {
+             if (issue.type == InitIssueType::UNINITIALIZED) {
+               size_t pos = lines[idx].find(issue.name);
+               if (pos != std::string::npos) {
+                 // Determine zero value based on type
+                 std::string zero_value = "0";
+                 if (issue.type_str.find('*') != std::string::npos || 
+                     issue.type_str.find("ptr") != std::string::npos) {
+                   zero_value = "nullptr";
+                 } else if (issue.type_str.find("float") != std::string::npos || 
+                            issue.type_str.find("double") != std::string::npos) {
+                   zero_value = "0.0";
+                 } else if (issue.type_str.find("bool") != std::string::npos) {
+                   zero_value = "false";
+                 } else if (issue.type_str.find("char") != std::string::npos && 
+                            issue.type_str.find("string") == std::string::npos) {
+                   zero_value = "'\\0'";
+                 }
+                 
+                 size_t name_end = pos + issue.name.length();
+                 while (name_end < lines[idx].length() &&
+                        (lines[idx][name_end] == ' ' ||
+                         lines[idx][name_end] == '\t')) {
+                   name_end++;
+                 }
+                 if (name_end < lines[idx].length() &&
+                     lines[idx][name_end] == ';') {
+                   lines[idx].insert(name_end, "{" + zero_value + "}");
+                 }
+               }
+             } else if (issue.type == InitIssueType::USE_EQUALS_INIT) {
               size_t pos = lines[idx].find("=");
               if (pos != std::string::npos) {
                 size_t comment_pos = lines[idx].find("//");

@@ -3,7 +3,7 @@
 #include <vector>
 
 void test_all_types() {
-  int a{};
+int a{};
   int b{5};
   unsigned int c{10U};
   double d{3.14};

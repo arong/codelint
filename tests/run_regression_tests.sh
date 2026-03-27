@@ -159,6 +159,21 @@ run_test "check_init_all_types" \
     "$BUILD_DIR/cndy check_init tests/test_check_init_all_types.cpp --fix" \
     "$EXPECTED_DIR/check_init_all_types.txt"
 
+# Test 8: check_init comprehensive test with init_check_src.cpp
+run_test "check_init_comprehensive" \
+    "$BUILD_DIR/cndy check_init tests/init_check_src.cpp" \
+    "$EXPECTED_DIR/init_check_src_output.txt"
+
+# Test 9: check_init comprehensive test --fix
+run_test "check_init_comprehensive_fix" \
+    "$BUILD_DIR/cndy check_init tests/init_check_src.cpp --fix" \
+    "$EXPECTED_DIR/init_check_src_fix.cpp"
+
+# Test 10: check_init comprehensive test JSON output
+run_test "check_init_comprehensive_json" \
+    "$BUILD_DIR/cndy check_init tests/init_check_src.cpp --output-json" \
+    "$EXPECTED_DIR/init_check_src_output.json"
+
 # Test suite: find_global
 echo ""
 echo "=== Test Suite: find_global ==="

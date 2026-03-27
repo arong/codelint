@@ -4,11 +4,11 @@
 
 void test_initialization() {
   // Test 1: Uninitialized variables (should report)
-  int a{};
-  char b{};
-  double c{};
-  unsigned int d;
-  bool e{};
+int a{};
+char b{};
+double c{};
+unsigned int d{};
+bool e{};
 
   // Test 2: Variables initialized with '=' (should report use_equals_init)
   int f{10};

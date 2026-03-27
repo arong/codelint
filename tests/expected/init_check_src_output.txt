@@ -1,0 +1,1743 @@
+Checking initialization in: 
+Status: success
+Found 290 initialization issue(s)
+
+  [Issue: uninitialized]
+  Variable: c1 (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:13
+  Description: Variable is not explicitly initialized
+  Suggestion: char c1{};
+
+  [Issue: uninitialized]
+  Variable: uc1 (unsigned char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:14
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned char uc1{};
+
+  [Issue: uninitialized]
+  Variable: sc1 (signed char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:15
+  Description: Variable is not explicitly initialized
+  Suggestion: signed char sc1{};
+
+  [Issue: uninitialized]
+  Variable: s1 (short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:16
+  Description: Variable is not explicitly initialized
+  Suggestion: short s1{};
+
+  [Issue: uninitialized]
+  Variable: us1 (unsigned short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:17
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned short us1{};
+
+  [Issue: uninitialized]
+  Variable: i16 (int16_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:18
+  Description: Variable is not explicitly initialized
+  Suggestion: int16_t i16{};
+
+  [Issue: uninitialized]
+  Variable: ui16 (uint16_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:19
+  Description: Variable is not explicitly initialized
+  Suggestion: uint16_t ui16{};
+
+  [Issue: uninitialized]
+  Variable: i1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:20
+  Description: Variable is not explicitly initialized
+  Suggestion: int i1{};
+
+  [Issue: uninitialized]
+  Variable: ui1 (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:21
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned int ui1{};
+
+  [Issue: uninitialized]
+  Variable: l1 (long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:22
+  Description: Variable is not explicitly initialized
+  Suggestion: long l1{};
+
+  [Issue: uninitialized]
+  Variable: ul1 (unsigned long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:23
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned long ul1{};
+
+  [Issue: uninitialized]
+  Variable: i32 (int32_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:24
+  Description: Variable is not explicitly initialized
+  Suggestion: int32_t i32{};
+
+  [Issue: uninitialized]
+  Variable: ui32 (uint32_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:25
+  Description: Variable is not explicitly initialized
+  Suggestion: uint32_t ui32{};
+
+  [Issue: uninitialized]
+  Variable: ll1 (long long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:26
+  Description: Variable is not explicitly initialized
+  Suggestion: long long ll1{};
+
+  [Issue: uninitialized]
+  Variable: ull1 (unsigned long long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:27
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned long long ull1{};
+
+  [Issue: uninitialized]
+  Variable: i64 (int64_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:28
+  Description: Variable is not explicitly initialized
+  Suggestion: int64_t i64{};
+
+  [Issue: uninitialized]
+  Variable: ui64 (uint64_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:29
+  Description: Variable is not explicitly initialized
+  Suggestion: uint64_t ui64{};
+
+  [Issue: uninitialized]
+  Variable: f1 (float)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:32
+  Description: Variable is not explicitly initialized
+  Suggestion: float f1{};
+
+  [Issue: uninitialized]
+  Variable: d1 (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:33
+  Description: Variable is not explicitly initialized
+  Suggestion: double d1{};
+
+  [Issue: uninitialized]
+  Variable: ld1 (long double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:34
+  Description: Variable is not explicitly initialized
+  Suggestion: long double ld1{};
+
+  [Issue: uninitialized]
+  Variable: b1 (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:37
+  Description: Variable is not explicitly initialized
+  Suggestion: bool b1{};
+
+  [Issue: uninitialized]
+  Variable: str1 (const char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:40
+  Description: Variable is not explicitly initialized
+  Suggestion: const char * str1{};
+
+  [Issue: use_equals_init]
+  Variable: str2 (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:41
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::string str2{};
+
+  [Issue: uninitialized]
+  Variable: ptr1 (int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:44
+  Description: Variable is not explicitly initialized
+  Suggestion: int * ptr1{};
+
+  [Issue: uninitialized]
+  Variable: ptr2 (const int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:45
+  Description: Variable is not explicitly initialized
+  Suggestion: const int * ptr2{};
+
+  [Issue: uninitialized]
+  Variable: ptr3 (int **)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:46
+  Description: Variable is not explicitly initialized
+  Suggestion: int ** ptr3{};
+
+  [Issue: uninitialized]
+  Variable: void_ptr (void *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:47
+  Description: Variable is not explicitly initialized
+  Suggestion: void * void_ptr{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:51
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:52
+  Description: Variable is not explicitly initialized
+  Suggestion: double y{};
+
+  [Issue: use_equals_init]
+  Variable: cs1 (CStruct)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:54
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: CStruct cs1{};
+
+  [Issue: uninitialized]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:56
+  Description: Variable is not explicitly initialized
+  Suggestion: int a{};
+
+  [Issue: uninitialized]
+  Variable: b (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:57
+  Description: Variable is not explicitly initialized
+  Suggestion: std::string b{};
+
+  [Issue: uninitialized]
+  Variable: c (float)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:58
+  Description: Variable is not explicitly initialized
+  Suggestion: float c{};
+
+  [Issue: use_equals_init]
+  Variable: cpps1 (CPPStruct)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:60
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: CPPStruct cpps1{};
+
+  [Issue: uninitialized]
+  Variable: value (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:65
+  Description: Variable is not explicitly initialized
+  Suggestion: int value{};
+
+  [Issue: uninitialized]
+  Variable: name (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:66
+  Description: Variable is not explicitly initialized
+  Suggestion: std::string name{};
+
+  [Issue: use_equals_init]
+  Variable: tc1 (TestClass)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:69
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: TestClass tc1{};
+
+  [Issue: uninitialized]
+  Variable: color1 (Color)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:74
+  Description: Variable is not explicitly initialized
+  Suggestion: Color color1{};
+
+  [Issue: uninitialized]
+  Variable: ec1 (ErrorCode)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:75
+  Description: Variable is not explicitly initialized
+  Suggestion: ErrorCode ec1{};
+
+  [Issue: use_equals_init]
+  Variable: vec1 (std::vector<int>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:78
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::vector<int> vec1{};
+
+  [Issue: use_equals_init]
+  Variable: map1 (std::map<int, std::string>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:79
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::map<int, std::string> map1{};
+
+  [Issue: use_equals_init]
+  Variable: arr1_array (std::array<int, 5>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:80
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::array<int, 5> arr1_array{};
+
+  [Issue: use_equals_init]
+  Variable: tpl1 (std::tuple<int, double>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:81
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::tuple<int, double> tpl1{};
+
+  [Issue: use_equals_init]
+  Variable: const_val1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:84
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int const_val1{42};
+
+  [Issue: use_equals_init]
+  Variable: constexpr_val1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:85
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int constexpr_val1{100};
+
+  [Issue: use_equals_init]
+  Variable: const_pi (const double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:86
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const double const_pi{3.14159};
+
+  [Issue: use_equals_init]
+  Variable: var_can_be_const1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:87
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int var_can_be_const1{10};
+
+  [Issue: use_equals_init]
+  Variable: var_can_be_const2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:88
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int var_can_be_const2{20};
+
+  [Issue: use_equals_init]
+  Variable: var_can_be_const3 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:89
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int var_can_be_const3{30};
+
+  [Issue: use_equals_init]
+  Variable: c_style1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:92
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int c_style1{10};
+
+  [Issue: use_equals_init]
+  Variable: c_style2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:93
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int c_style2{20};
+
+  [Issue: use_equals_init]
+  Variable: c_style3 (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:94
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: double c_style3{3.14};
+
+  [Issue: uninitialized]
+  Variable: si1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:100
+  Description: Variable is not explicitly initialized
+  Suggestion: int si1{};
+
+  [Issue: uninitialized]
+  Variable: uii1 (unsigned int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:101
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned int uii1{};
+
+  [Issue: uninitialized]
+  Variable: ss1 (short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:102
+  Description: Variable is not explicitly initialized
+  Suggestion: short ss1{};
+
+  [Issue: uninitialized]
+  Variable: uis1 (unsigned short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:103
+  Description: Variable is not explicitly initialized
+  Suggestion: unsigned short uis1{};
+
+  [Issue: uninitialized]
+  Variable: global_var1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:106
+  Description: Variable is not explicitly initialized
+  Suggestion: int global_var1{};
+
+  [Issue: uninitialized]
+  Variable: static_global1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:107
+  Description: Variable is not explicitly initialized
+  Suggestion: int static_global1{};
+
+  [Issue: uninitialized]
+  Variable: local1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:111
+  Description: Variable is not explicitly initialized
+  Suggestion: int local1{};
+
+  [Issue: uninitialized]
+  Variable: local1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:111
+  Description: Variable is not explicitly initialized
+  Suggestion: int local1{};
+
+  [Issue: uninitialized]
+  Variable: local2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:112
+  Description: Variable is not explicitly initialized
+  Suggestion: int local2{};
+
+  [Issue: uninitialized]
+  Variable: local2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:112
+  Description: Variable is not explicitly initialized
+  Suggestion: int local2{};
+
+  [Issue: uninitialized]
+  Variable: local3 (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:113
+  Description: Variable is not explicitly initialized
+  Suggestion: double local3{};
+
+  [Issue: uninitialized]
+  Variable: local3 (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:113
+  Description: Variable is not explicitly initialized
+  Suggestion: double local3{};
+
+  [Issue: uninitialized]
+  Variable: local4 (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:114
+  Description: Variable is not explicitly initialized
+  Suggestion: char local4{};
+
+  [Issue: uninitialized]
+  Variable: local4 (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:114
+  Description: Variable is not explicitly initialized
+  Suggestion: char local4{};
+
+  [Issue: uninitialized]
+  Variable: local5 (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:115
+  Description: Variable is not explicitly initialized
+  Suggestion: bool local5{};
+
+  [Issue: uninitialized]
+  Variable: local5 (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:115
+  Description: Variable is not explicitly initialized
+  Suggestion: bool local5{};
+
+  [Issue: use_equals_init]
+  Variable: local6 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:116
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int local6{10};
+
+  [Issue: use_equals_init]
+  Variable: local6 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:116
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int local6{10};
+
+  [Issue: use_equals_init]
+  Variable: local8 (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:118
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::string local8{local8("hello")};
+
+  [Issue: use_equals_init]
+  Variable: local8 (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:118
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::string local8{local8("hello")};
+
+  [Issue: uninitialized]
+  Variable: local1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:111
+  Description: Variable is not explicitly initialized
+  Suggestion: int local1{};
+
+  [Issue: uninitialized]
+  Variable: local1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:111
+  Description: Variable is not explicitly initialized
+  Suggestion: int local1{};
+
+  [Issue: uninitialized]
+  Variable: local2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:112
+  Description: Variable is not explicitly initialized
+  Suggestion: int local2{};
+
+  [Issue: uninitialized]
+  Variable: local2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:112
+  Description: Variable is not explicitly initialized
+  Suggestion: int local2{};
+
+  [Issue: uninitialized]
+  Variable: local3 (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:113
+  Description: Variable is not explicitly initialized
+  Suggestion: double local3{};
+
+  [Issue: uninitialized]
+  Variable: local3 (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:113
+  Description: Variable is not explicitly initialized
+  Suggestion: double local3{};
+
+  [Issue: uninitialized]
+  Variable: local4 (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:114
+  Description: Variable is not explicitly initialized
+  Suggestion: char local4{};
+
+  [Issue: uninitialized]
+  Variable: local4 (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:114
+  Description: Variable is not explicitly initialized
+  Suggestion: char local4{};
+
+  [Issue: uninitialized]
+  Variable: local5 (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:115
+  Description: Variable is not explicitly initialized
+  Suggestion: bool local5{};
+
+  [Issue: uninitialized]
+  Variable: local5 (bool)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:115
+  Description: Variable is not explicitly initialized
+  Suggestion: bool local5{};
+
+  [Issue: use_equals_init]
+  Variable: local6 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:116
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int local6{10};
+
+  [Issue: use_equals_init]
+  Variable: local6 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:116
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int local6{10};
+
+  [Issue: use_equals_init]
+  Variable: local8 (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:118
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::string local8{local8("hello")};
+
+  [Issue: use_equals_init]
+  Variable: local8 (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:118
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::string local8{local8("hello")};
+
+  [Issue: uninitialized]
+  Variable: f_local (float)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:122
+  Description: Variable is not explicitly initialized
+  Suggestion: float f_local{};
+
+  [Issue: uninitialized]
+  Variable: f_local (float)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:122
+  Description: Variable is not explicitly initialized
+  Suggestion: float f_local{};
+
+  [Issue: uninitialized]
+  Variable: lng_local (long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:123
+  Description: Variable is not explicitly initialized
+  Suggestion: long lng_local{};
+
+  [Issue: uninitialized]
+  Variable: lng_local (long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:123
+  Description: Variable is not explicitly initialized
+  Suggestion: long lng_local{};
+
+  [Issue: uninitialized]
+  Variable: sh_local (short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:124
+  Description: Variable is not explicitly initialized
+  Suggestion: short sh_local{};
+
+  [Issue: uninitialized]
+  Variable: sh_local (short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:124
+  Description: Variable is not explicitly initialized
+  Suggestion: short sh_local{};
+
+  [Issue: uninitialized]
+  Variable: f_local (float)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:122
+  Description: Variable is not explicitly initialized
+  Suggestion: float f_local{};
+
+  [Issue: uninitialized]
+  Variable: f_local (float)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:122
+  Description: Variable is not explicitly initialized
+  Suggestion: float f_local{};
+
+  [Issue: uninitialized]
+  Variable: lng_local (long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:123
+  Description: Variable is not explicitly initialized
+  Suggestion: long lng_local{};
+
+  [Issue: uninitialized]
+  Variable: lng_local (long)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:123
+  Description: Variable is not explicitly initialized
+  Suggestion: long lng_local{};
+
+  [Issue: uninitialized]
+  Variable: sh_local (short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:124
+  Description: Variable is not explicitly initialized
+  Suggestion: short sh_local{};
+
+  [Issue: uninitialized]
+  Variable: sh_local (short)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:124
+  Description: Variable is not explicitly initialized
+  Suggestion: short sh_local{};
+
+  [Issue: use_equals_init]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:128
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int a{1};
+
+  [Issue: use_equals_init]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:128
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int a{1};
+
+  [Issue: use_equals_init]
+  Variable: b (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:129
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int b{2};
+
+  [Issue: use_equals_init]
+  Variable: b (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:129
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int b{2};
+
+  [Issue: use_equals_init]
+  Variable: e (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:132
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int e{5};
+
+  [Issue: use_equals_init]
+  Variable: e (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:132
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int e{5};
+
+  [Issue: use_equals_init]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:128
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int a{1};
+
+  [Issue: use_equals_init]
+  Variable: a (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:128
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int a{1};
+
+  [Issue: use_equals_init]
+  Variable: b (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:129
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int b{2};
+
+  [Issue: use_equals_init]
+  Variable: b (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:129
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int b{2};
+
+  [Issue: use_equals_init]
+  Variable: e (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:132
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int e{5};
+
+  [Issue: use_equals_init]
+  Variable: e (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:132
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int e{5};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:137
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:138
+  Description: Variable is not explicitly initialized
+  Suggestion: double y{};
+
+  [Issue: uninitialized]
+  Variable: z (std::string)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:139
+  Description: Variable is not explicitly initialized
+  Suggestion: std::string z{};
+
+  [Issue: uninitialized]
+  Variable: ptr (int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:140
+  Description: Variable is not explicitly initialized
+  Suggestion: int * ptr{};
+
+  [Issue: use_equals_init]
+  Variable: cs (ComplexStruct)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:143
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: ComplexStruct cs{};
+
+  [Issue: use_equals_init]
+  Variable: cs (ComplexStruct)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:143
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: ComplexStruct cs{};
+
+  [Issue: use_equals_init]
+  Variable: raw_array (int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:144
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int * raw_array{newint[10]};
+
+  [Issue: use_equals_init]
+  Variable: raw_array (int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:144
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int * raw_array{newint[10]};
+
+  [Issue: use_equals_init]
+  Variable: cs (ComplexStruct)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:143
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: ComplexStruct cs{};
+
+  [Issue: use_equals_init]
+  Variable: cs (ComplexStruct)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:143
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: ComplexStruct cs{};
+
+  [Issue: use_equals_init]
+  Variable: raw_array (int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:144
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int * raw_array{newint[10]};
+
+  [Issue: use_equals_init]
+  Variable: raw_array (int *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:144
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int * raw_array{newint[10]};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:150
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate1{100};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:150
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate1{100};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:151
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate2{200};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:151
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate2{200};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate3 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:152
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate3{300};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate3 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:152
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate3{300};
+
+  [Issue: use_equals_init]
+  Variable: already_const1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:153
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const1{1000};
+
+  [Issue: use_equals_init]
+  Variable: already_const1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:153
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const1{1000};
+
+  [Issue: use_equals_init]
+  Variable: already_const2 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:154
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const2{2000};
+
+  [Issue: use_equals_init]
+  Variable: already_const2 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:154
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const2{2000};
+
+  [Issue: use_equals_init]
+  Variable: const_expr1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:155
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int const_expr1{3000};
+
+  [Issue: use_equals_init]
+  Variable: const_expr1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:155
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int const_expr1{3000};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:150
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate1{100};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:150
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate1{100};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:151
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate2{200};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:151
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate2{200};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate3 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:152
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate3{300};
+
+  [Issue: use_equals_init]
+  Variable: const_candidate3 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:152
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int const_candidate3{300};
+
+  [Issue: use_equals_init]
+  Variable: already_const1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:153
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const1{1000};
+
+  [Issue: use_equals_init]
+  Variable: already_const1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:153
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const1{1000};
+
+  [Issue: use_equals_init]
+  Variable: already_const2 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:154
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const2{2000};
+
+  [Issue: use_equals_init]
+  Variable: already_const2 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:154
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int already_const2{2000};
+
+  [Issue: use_equals_init]
+  Variable: const_expr1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:155
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int const_expr1{3000};
+
+  [Issue: use_equals_init]
+  Variable: const_expr1 (const int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:155
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: const int const_expr1{3000};
+
+  [Issue: use_equals_init]
+  Variable: modifiable1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:159
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable1{10};
+
+  [Issue: use_equals_init]
+  Variable: modifiable1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:159
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable1{10};
+
+  [Issue: use_equals_init]
+  Variable: modifiable2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:160
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable2{20};
+
+  [Issue: use_equals_init]
+  Variable: modifiable2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:160
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable2{20};
+
+  [Issue: use_equals_init]
+  Variable: modifiable1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:159
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable1{10};
+
+  [Issue: use_equals_init]
+  Variable: modifiable1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:159
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable1{10};
+
+  [Issue: use_equals_init]
+  Variable: modifiable2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:160
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable2{20};
+
+  [Issue: use_equals_init]
+  Variable: modifiable2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:160
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int modifiable2{20};
+
+  [Issue: uninitialized]
+  Variable: alias1 (IntAlias)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:168
+  Description: Variable is not explicitly initialized
+  Suggestion: IntAlias alias1{};
+
+  [Issue: uninitialized]
+  Variable: alias2 (DoubleAlias)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:169
+  Description: Variable is not explicitly initialized
+  Suggestion: DoubleAlias alias2{};
+
+  [Issue: uninitialized]
+  Variable: alias3 (IntAlias2)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:171
+  Description: Variable is not explicitly initialized
+  Suggestion: IntAlias2 alias3{};
+
+  [Issue: use_equals_init]
+  Variable: pair1 (std::pair<int, int>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:174
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::pair<int, int> pair1{};
+
+  [Issue: use_equals_init]
+  Variable: deque1 (std::deque<int>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:175
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::deque<int> deque1{};
+
+  [Issue: use_equals_init]
+  Variable: set1 (std::set<int>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:176
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::set<int> set1{};
+
+  [Issue: use_equals_init]
+  Variable: umap1 (std::unordered_map<int, std::string>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:177
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::unordered_map<int, std::string> umap1{};
+
+  [Issue: uninitialized]
+  Variable: arr2d (int[3][4])
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:180
+  Description: Variable is not explicitly initialized
+  Suggestion: int[3][4] arr2d{};
+
+  [Issue: uninitialized]
+  Variable: arr3d (int[2][3][4])
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:181
+  Description: Variable is not explicitly initialized
+  Suggestion: int[2][3][4] arr3d{};
+
+  [Issue: uninitialized]
+  Variable: extern_var (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:184
+  Description: Variable is not explicitly initialized
+  Suggestion: int extern_var{};
+
+  [Issue: uninitialized]
+  Variable: extern_var2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:185
+  Description: Variable is not explicitly initialized
+  Suggestion: int extern_var2{};
+
+  [Issue: uninitialized]
+  Variable: sz1 (size_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:188
+  Description: Variable is not explicitly initialized
+  Suggestion: size_t sz1{};
+
+  [Issue: uninitialized]
+  Variable: pt1 (ptrdiff_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:189
+  Description: Variable is not explicitly initialized
+  Suggestion: ptrdiff_t pt1{};
+
+  [Issue: uninitialized]
+  Variable: wc1 (wchar_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:190
+  Description: Variable is not explicitly initialized
+  Suggestion: wchar_t wc1{};
+
+  [Issue: uninitialized]
+  Variable: char16_1 (char16_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:191
+  Description: Variable is not explicitly initialized
+  Suggestion: char16_t char16_1{};
+
+  [Issue: uninitialized]
+  Variable: char32_1 (char32_t)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:192
+  Description: Variable is not explicitly initialized
+  Suggestion: char32_t char32_1{};
+
+  [Issue: uninitialized]
+  Variable: i (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:196
+  Description: Variable is not explicitly initialized
+  Suggestion: int i{};
+
+  [Issue: uninitialized]
+  Variable: d (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:197
+  Description: Variable is not explicitly initialized
+  Suggestion: double d{};
+
+  [Issue: uninitialized]
+  Variable: c (char)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:198
+  Description: Variable is not explicitly initialized
+  Suggestion: char c{};
+
+  [Issue: use_equals_init]
+  Variable: ut1 (UnionType)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:200
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: UnionType ut1{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: inner (struct Inner)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:207
+  Description: Variable is not explicitly initialized
+  Suggestion: struct Inner inner{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: outer_val (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:208
+  Description: Variable is not explicitly initialized
+  Suggestion: int outer_val{};
+
+  [Issue: use_equals_init]
+  Variable: outer1 (struct Outer)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:209
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: struct Outer outer1{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: inner (struct Inner)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:207
+  Description: Variable is not explicitly initialized
+  Suggestion: struct Inner inner{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: outer_val (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:208
+  Description: Variable is not explicitly initialized
+  Suggestion: int outer_val{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: inner (struct Inner)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:207
+  Description: Variable is not explicitly initialized
+  Suggestion: struct Inner inner{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: x (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:205
+  Description: Variable is not explicitly initialized
+  Suggestion: int x{};
+
+  [Issue: uninitialized]
+  Variable: y (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:206
+  Description: Variable is not explicitly initialized
+  Suggestion: int y{};
+
+  [Issue: uninitialized]
+  Variable: outer_val (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:208
+  Description: Variable is not explicitly initialized
+  Suggestion: int outer_val{};
+
+  [Issue: uninitialized]
+  Variable: base_val (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:215
+  Description: Variable is not explicitly initialized
+  Suggestion: int base_val{};
+
+  [Issue: uninitialized]
+  Variable: derived_val (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:220
+  Description: Variable is not explicitly initialized
+  Suggestion: int derived_val{};
+
+  [Issue: use_equals_init]
+  Variable: dc1 (DerivedClass)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:222
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: DerivedClass dc1{};
+
+  [Issue: uninitialized]
+  Variable: ptr_array1 (int *[10])
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:225
+  Description: Variable is not explicitly initialized
+  Suggestion: int *[10] ptr_array1{};
+
+  [Issue: uninitialized]
+  Variable: str_ptr_array (const char *[5])
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:226
+  Description: Variable is not explicitly initialized
+  Suggestion: const char *[5] str_ptr_array{};
+
+  [Issue: uninitialized]
+  Variable: tag (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:230
+  Description: Variable is not explicitly initialized
+  Suggestion: int tag{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: u (union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3))
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:235
+  Description: Variable is not explicitly initialized
+  Suggestion: union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3) u{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: use_equals_init]
+  Variable: swu1 (struct StructWithUnion)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:236
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: struct StructWithUnion swu1{};
+
+  [Issue: uninitialized]
+  Variable: tag (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:230
+  Description: Variable is not explicitly initialized
+  Suggestion: int tag{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: u (union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3))
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:235
+  Description: Variable is not explicitly initialized
+  Suggestion: union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3) u{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: tag (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:230
+  Description: Variable is not explicitly initialized
+  Suggestion: int tag{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: u (union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3))
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:235
+  Description: Variable is not explicitly initialized
+  Suggestion: union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3) u{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: uninitialized]
+  Variable: ival (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:232
+  Description: Variable is not explicitly initialized
+  Suggestion: int ival{};
+
+  [Issue: uninitialized]
+  Variable: dval (double)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:233
+  Description: Variable is not explicitly initialized
+  Suggestion: double dval{};
+
+  [Issue: uninitialized]
+  Variable: sval (char *)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:234
+  Description: Variable is not explicitly initialized
+  Suggestion: char * sval{};
+
+  [Issue: use_equals_init]
+  Variable: vec_str1 (std::vector<std::string>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:239
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::vector<std::string> vec_str1{};
+
+  [Issue: use_equals_init]
+  Variable: map_str_int1 (std::map<std::string, int>)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:240
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: std::map<std::string, int> map_str_int1{};
+
+  [Issue: uninitialized]
+  Variable: member (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:245
+  Description: Variable is not explicitly initialized
+  Suggestion: int member{};
+
+  [Issue: use_equals_init]
+  Variable: pmem (int ClassForMemberPtr::*)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:247
+  Description: Variable initialized with '=' should use '{}' syntax
+  Suggestion: int ClassForMemberPtr::* pmem{nullptr};
+
+  [Issue: uninitialized]
+  Variable: x1 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:250
+  Description: Variable is not explicitly initialized
+  Suggestion: int x1{};
+
+  [Issue: uninitialized]
+  Variable: x2 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:250
+  Description: Variable is not explicitly initialized
+  Suggestion: int x2{};
+
+  [Issue: uninitialized]
+  Variable: x3 (int)
+  Location: /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:250
+  Description: Variable is not explicitly initialized
+  Suggestion: int x3{};

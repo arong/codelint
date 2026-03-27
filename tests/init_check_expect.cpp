@@ -108,28 +108,28 @@ static int static_global1;
 
 // 14. FUNCTIONS - LOCAL VARIABLES
 void test_function1() {
-  int local1;
-  int local2;
-  double local3;
-  char local4;
-  bool local5;
-  int local6 = 10;
+  int local1{};
+  int local2{};
+  double local3{};
+  char local4{};
+  bool local5{};
+  int local6{10};
   int local7{20};
   std::string local8("hello");
 }
 
 void test_function2() {
-  float f_local;
-  long lng_local;
-  short sh_local;
+  float f_local{};
+  long lng_local{};
+  short sh_local{};
 }
 
 void test_function3() {
-  int a = 1;
-  int b = 2;
+  int a{1};
+  int b{2};
   int c{3};
   int d{4};
-  int e = 5;
+  int e{5};
 }
 
 // 15. COMPLEX SCENARIOS
@@ -141,23 +141,23 @@ struct ComplexStruct {
 };
 void complex_test() {
   ComplexStruct cs;
-  int* raw_array = new int[10];
+  int* raw_array{new int[10]};
   delete[] raw_array;
 }
 
 // 16. SPECIFIC TEST CASES FOR LINT
 void something() {
-  int const_candidate1 = 100;
-  int const_candidate2 = 200;
-  int const_candidate3 = 300;
-  const int already_const1 = 1000;
-  const int already_const2 = 2000;
-  constexpr int const_expr1 = 3000;
+  int const_candidate1{100};
+  int const_candidate2{200};
+  int const_candidate3{300};
+  const int already_const1{1000};
+  const int already_const2{2000};
+  constexpr int const_expr1{3000};
 }
 
 void modify_test() {
-  int modifiable1 = 10;
-  int modifiable2 = 20;
+  int modifiable1{10};
+  int modifiable2{20};
   modifiable1++;
   modifiable2 += 5;
 }
