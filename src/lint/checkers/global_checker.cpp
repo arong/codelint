@@ -139,7 +139,7 @@ bool GlobalChecker::isGlobalVariable(clang::VarDecl *VD) const {
             clang::isa<clang::RecordDecl>(parentDC)) {
             return false;
         }
-        parentDC = parentDC->getLexicalDeclContext();
+        parentDC = parentDC->getParent();
     }
 
     return false;

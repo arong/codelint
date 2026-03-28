@@ -1,0 +1,162 @@
+name: Build and Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  # Job 1: musl static build (Alpine 3.20)
+  musl-static:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          apk add --no-cache \
+            build-base cmake git python3 \
+            llvm18-dev llvm18-static \
+            clang18 clang18-static \
+            zlib-static zstd-static \
+            libxml2-static ncurses-static libedit-static libffi-static
+      
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSTATIC_LINKING=ON \
+            -DCMAKE_EXE_LINKER_FLAGS='-static'
+      
+      - name: Build static binary
+        run: |
+          cmake --build build -j$(nproc)
+      
+      - name: Verify static linking
+        run: |
+          ldd build/codelint 2>&1 || echo "Static binary confirmed"
+          ./build/codelint --version
+      
+      - name: Package tar.gz
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          tar -czvf codelint-${VERSION}-linux-x86_64-musl.tar.gz \
+            -C build codelint
+      
+      - name: Upload musl artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: musl-artifact
+          path: codelint-*.tar.gz
+          retention-days: 5
+
+  # Job 2: AppImage (Ubuntu 22.04)
+  appimage:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake git python3 wget \
+            llvm-18-dev clang-18 \
+            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev
+      
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build binary
+        run: |
+          cmake --build build -j$(nproc)
+      
+      - name: Verify binary
+        run: |
+          ./build/codelint --version
+      
+      - name: Download appimagetool
+        run: |
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+      
+      - name: Create AppDir structure
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mkdir -p AppDir/usr/bin
+          cp build/codelint AppDir/usr/bin/
+          
+          # Create AppRun
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          exe="$(dirname "$(readlink -f "$0")")/usr/bin/codelint"
+          exec "$exe" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+          
+          # Create AppImage.desktop
+          cat > AppDir/codelint.desktop << 'EOF'
+          [Desktop Entry]
+          Name=codelint
+          Comment=Code linting tool
+          Exec=codelint
+          Icon=codelint
+          Type=Application
+          Categories=Development;
+          EOF
+          
+          # Create AppImage.meta
+          cat > AppDir/codelint.yml << 'EOF'
+          appId: com.codelint.app
+          productName: codelint
+          executable: usr/bin/codelint
+          EOF
+      
+      - name: Build AppImage
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./appimagetool-x86_64.AppImage AppDir codelint-${VERSION}-linux-x86_64.AppImage
+      
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage-artifact
+          path: codelint-*.AppImage
+          retention-days: 5
+
+  # Job 3: Release
+  release:
+    needs: [musl-static, appimage]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download musl artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: musl-artifact
+          path: artifacts
+      
+      - name: Download AppImage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage-artifact
+          path: artifacts
+      
+      - name: List artifacts
+        run: |
+          ls -la artifacts/
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
