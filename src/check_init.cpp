@@ -178,6 +178,28 @@ class InitChecker {
       return;
     }
 
+    std::string file = get_file_location(cursor);
+    int line = get_line_number(cursor);
+
+    // Skip auto declarations inside functions - keep = syntax
+    // Check source code for "auto" keyword before variable name
+    // Also skip for loop variables - they have implicit initialization in the loop
+    if (file_contents_.find(file) != file_contents_.end() &&
+        line > 0 && line <= (int)file_contents_[file].size()) {
+      const std::string& line_content = file_contents_[file][line - 1];
+      size_t auto_pos = line_content.find("auto ");
+      size_t var_pos = line_content.find(var_name);
+      size_t for_pos = line_content.find("for (");
+      if ((auto_pos != std::string::npos && 
+           var_pos != std::string::npos && 
+           auto_pos < var_pos) ||
+          (for_pos != std::string::npos && 
+           var_pos != std::string::npos && 
+           for_pos < var_pos)) {
+        return;
+      }
+    }
+
     // Skip union members - they share memory and shouldn't be initialized individually
     CXCursor parent = clang_getCursorSemanticParent(cursor);
     if (clang_getCursorKind(parent) == CXCursor_UnionDecl) {
@@ -211,9 +233,6 @@ class InitChecker {
         }
       }
     }
-
-    std::string file = get_file_location(cursor);
-    int line = get_line_number(cursor);
 
     if (is_system_header(file)) {
       return;
