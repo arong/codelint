@@ -16,7 +16,6 @@
 #endif
 
 GlobalOptions g_opts;
-CheckInitOptions g_check_init_opts;
 codelint::lint::LintConfig g_lint_config;
 
 // LibTooling options category for lint subcommand
@@ -35,29 +34,6 @@ int main(int argc, char** argv) {
   app.add_option("-p,--path", g_opts.path,
                  "Path to compile_commands.json directory");
   app.add_flag("--output-json", g_opts.output_json, "Output format as JSON");
-
-  // Legacy subcommands (will be removed in Phase 3)
-  CLI::App* find_global_cmd =
-      app.add_subcommand("find_global", "Find global variables");
-  find_global_cmd->callback(find_global);
-
-  CLI::App* find_singleton_cmd =
-      app.add_subcommand("find_singleton", "Find singleton instances");
-  find_singleton_cmd->callback(find_singleton);
-
-  CLI::App* check_init_cmd =
-      app.add_subcommand("check_init", "Check initialization");
-  check_init_cmd->callback(check_init);
-  check_init_cmd
-      ->add_option("files", g_check_init_opts.files,
-                   "Source files to check (if not specified, checks all files "
-                   "from compile_commands.json)")
-      ->expected(0, std::numeric_limits<size_t>::max());
-  check_init_cmd->add_flag(
-      "--fix", g_opts.fix,
-      "Automatically fix initialization issues and output to stdout");
-  check_init_cmd->add_flag("--inplace", g_opts.inplace,
-                            "Modify files in-place (requires --fix)");
 
   // Lint subcommand with CLI11 options
   CLI::App* lint_cmd = app.add_subcommand("lint", "Run lint checks on C++ code");

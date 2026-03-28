@@ -55,9 +55,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/rapidjson/include)
 # ========== Executable Definition ==========
 add_executable(codelint
   src/main.cpp
-  src/find_global.cpp
-  src/find_singleton.cpp
-  src/check_init.cpp
   src/lint.cpp
   src/lint_checker.cpp
   src/issue_reporter.cpp

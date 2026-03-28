@@ -26,6 +26,7 @@ public:
     bool can_fix() const override { return false; }
 
     bool VisitVarDecl(clang::VarDecl *VD);
+    void runOnAST(clang::ASTContext *Context);
 
 private:
     clang::ASTContext *Context_ = nullptr;
@@ -36,7 +37,6 @@ private:
     bool isInSystemHeader(clang::VarDecl *VD) const;
     bool isExternDeclaration(clang::VarDecl *VD) const;
     void reportGlobalVariable(clang::VarDecl *VD);
-    void runOnAST(clang::ASTContext *Context);
 };
 
 }  // namespace lint

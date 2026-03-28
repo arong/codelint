@@ -5,6 +5,7 @@
 #include "clang/AST/Expr.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Tooling/Tooling.h"
+#include "clang/Tooling/CompilationDatabase.h"
 
 namespace codelint {
 namespace lint {
@@ -34,6 +35,18 @@ private:
     SingletonChecker *checker_;
 };
 
+class SingletonFrontendActionFactory : public clang::tooling::FrontendActionFactory {
+public:
+    explicit SingletonFrontendActionFactory(SingletonChecker *checker) : checker_(checker) {}
+
+    std::unique_ptr<clang::FrontendAction> create() override {
+        return std::make_unique<SingletonFrontendAction>(checker_);
+    }
+
+private:
+    SingletonChecker *checker_;
+};
+
 LintResult SingletonChecker::check(const std::string& filepath) {
     Result_.issues.clear();
     Result_.error_count = 0;
@@ -42,7 +55,8 @@ LintResult SingletonChecker::check(const std::string& filepath) {
     Result_.hint_count = 0;
     Reporter_.clear();
 
-    std::vector<std::string> args = {
+    std::vector<const char*> cargs = {
+        "codelint",
         "-std=c++17",
         "-x", "c++",
         "-I/usr/include/c++/13",
@@ -51,12 +65,20 @@ LintResult SingletonChecker::check(const std::string& filepath) {
         "-I/usr/local/include"
     };
 
-    clang::tooling::FixedCompilationDatabase compilations(".", args);
+    std::string errorMsg;
+    int argc = static_cast<int>(cargs.size());
+    auto compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
+        argc, cargs.data(), errorMsg, ".");
+
+    if (!compilations) {
+        return Result_;
+    }
 
     std::vector<std::string> sources = {filepath};
-    clang::tooling::ClangTool tool(compilations, sources);
+    clang::tooling::ClangTool tool(*compilations, sources);
 
-    tool.run(clang::tooling::newFrontendActionFactory<SingletonFrontendAction>(this).get());
+    SingletonFrontendActionFactory factory(this);
+    tool.run(&factory);
 
     for (const auto& issue : Reporter_.issues()) {
         Result_.add_issue(issue);

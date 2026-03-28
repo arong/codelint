@@ -61,7 +61,8 @@ LintResult ConstChecker::check(const std::string& filepath) {
     variables_.clear();
     modified_vars_.clear();
 
-    std::vector<std::string> args = {
+    std::vector<const char*> cargs = {
+        "codelint",
         "-std=c++17",
         "-x", "c++",
         "-I/usr/include/c++/13",
@@ -71,8 +72,9 @@ LintResult ConstChecker::check(const std::string& filepath) {
     };
 
     std::string errorMsg;
+    int argc = static_cast<int>(cargs.size());
     auto compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
-        args, errorMsg);
+        argc, cargs.data(), errorMsg, ".");
 
     if (!compilations) {
         return Result_;
