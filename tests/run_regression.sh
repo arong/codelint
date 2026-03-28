@@ -42,7 +42,7 @@ run_test() {
     
     # Run codelint with --fix
     local output_file=$(mktemp)
-    "$CODELINT" -p "$TEST_DIR/CodeLintTest/build" check_init "$src_file" --fix > "$output_file" 2>/dev/null || true
+    "$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" --fix > "$output_file" 2>/dev/null || true
     
     # Compare with expected
     if diff -q "$expected_file" "$output_file" > /dev/null 2>&1; then
@@ -71,7 +71,7 @@ run_json_test() {
     echo "Test $TEST_COUNT: $name (JSON)"
     echo "------------------------------------------"
     
-    local output=$( "$CODELINT" -p "$TEST_DIR/CodeLintTest/build" check_init "$src_file" --output-json 2>/dev/null | python3 -c "
+    local output=$( "$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" --output-json 2>/dev/null | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 issues = data.get('issues', [])
@@ -89,7 +89,7 @@ print(count)
     echo ""
 }
 
-echo "Running check_init tests..."
+echo "Running lint --only=init tests..."
 echo ""
 
 # Test 1: init_check.cpp
@@ -107,15 +107,20 @@ run_test "std.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/src/std.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/fixed/std.cpp"
 
+# Test 4: exception.cpp (Bug #2 verification - catch variables)
+run_test "exception.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/exception.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/exception.cpp"
+
 echo ""
 
-# Test 4: Verify fixed file reports 0 issues
+# Test 5: Verify fixed file reports 0 issues
 echo "------------------------------------------"
 echo "Test: Verify fixed files report 0 issues"
 echo "------------------------------------------"
 for fixed_file in "$TEST_DIR"/CodeLintTest/src/init_checker/fixed/*.cpp; do
     TEST_COUNT=$((TEST_COUNT + 1))
-    issue_count=$("$CODELINT" -p "$TEST_DIR/CodeLintTest/build" check_init "$fixed_file" 2>/dev/null | grep "Issue:" | wc -l)
+    issue_count=$("$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$fixed_file" 2>/dev/null | grep "Issue:" | wc -l)
     if [ "$issue_count" = "0" ]; then
         echo "PASS: $(basename $fixed_file) reports 0 issues"
         PASS_COUNT=$((PASS_COUNT + 1))
@@ -126,13 +131,13 @@ for fixed_file in "$TEST_DIR"/CodeLintTest/src/init_checker/fixed/*.cpp; do
 done
 echo ""
 
-# Test 5: Verify source file detects issues
+# Test 6: Verify source file detects issues
 echo "------------------------------------------"
 echo "Test: Verify source files detect issues"
 echo "------------------------------------------"
 for src_file in "$TEST_DIR"/CodeLintTest/src/init_checker/src/*.cpp; do
     TEST_COUNT=$((TEST_COUNT + 1))
-    issue_count=$("$CODELINT" -p "$TEST_DIR/CodeLintTest/build" check_init "$src_file" 2>/dev/null | grep "Issue:" | wc -l)
+    issue_count=$("$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" 2>/dev/null | grep "Issue:" | wc -l)
     if [ "$issue_count" -gt 0 ]; then
         echo "PASS: $(basename $src_file) detects $issue_count issue(s)"
         PASS_COUNT=$((PASS_COUNT + 1))
