@@ -1,71 +1,201 @@
 #include "lint/checkers/global_checker.h"
+#include "clang/Basic/SourceManager.h"
+#include "clang/AST/Decl.h"
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Tooling/Tooling.h"
 
 namespace codelint {
 namespace lint {
 
+class GlobalASTConsumer : public clang::ASTConsumer {
+public:
+    explicit GlobalASTConsumer(GlobalChecker *checker) : checker_(checker) {}
+
+    void HandleTranslationUnit(clang::ASTContext &Context) override {
+        checker_->runOnAST(&Context);
+    }
+
+private:
+    GlobalChecker *checker_;
+};
+
+class GlobalFrontendAction : public clang::ASTFrontendAction {
+public:
+    explicit GlobalFrontendAction(GlobalChecker *checker) : checker_(checker) {}
+
+    std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(
+        clang::CompilerInstance &CI, llvm::StringRef InFile) override {
+        return std::make_unique<GlobalASTConsumer>(checker_);
+    }
+
+private:
+    GlobalChecker *checker_;
+};
+
 LintResult GlobalChecker::check(const std::string& filepath) {
-    LintResult result;
-    
-    CXIndex index = clang_createIndex(0, 0);
-    if (!index) {
-        return result;
+    Result_.issues.clear();
+    Result_.error_count = 0;
+    Result_.warning_count = 0;
+    Result_.info_count = 0;
+    Result_.hint_count = 0;
+    Reporter_.clear();
+
+    std::vector<std::string> args = {
+        "-std=c++17",
+        "-x", "c++",
+        "-I/usr/include/c++/13",
+        "-I/usr/include/x86_64-linux-gnu/c++/13",
+        "-I/usr/include",
+        "-I/usr/local/include"
+    };
+
+    clang::tooling::FixedCompilationDatabase compilations(".", args);
+
+    std::vector<std::string> sources = {filepath};
+    clang::tooling::ClangTool tool(compilations, sources);
+
+    tool.run(clang::tooling::newFrontendActionFactory<GlobalFrontendAction>(this).get());
+
+    for (const auto& issue : Reporter_.issues()) {
+        Result_.add_issue(issue);
     }
-    
-    CXTranslationUnit tu = parse_file(index, filepath);
-    if (!tu) {
-        clang_disposeIndex(index);
-        return result;
-    }
-    
-    CXCursor cursor = clang_getTranslationUnitCursor(tu);
-    visit_cursor(cursor, result);
-    
-    clang_disposeTranslationUnit(tu);
-    clang_disposeIndex(index);
-    
-    return result;
+
+    return Result_;
 }
 
-void GlobalChecker::visit_cursor(CXCursor cursor, LintResult& result) {
-    if (clang_isDeclaration(clang_getCursorKind(cursor))) {
-        CXCursorKind kind = clang_getCursorKind(cursor);
-        CXCursor parent = clang_getCursorSemanticParent(cursor);
-        
-        if ((kind == CXCursor_VarDecl) &&
-            (clang_getCursorKind(parent) == CXCursor_TranslationUnit)) {
-            
-            std::string name = ClangUtils::get_cursor_spelling(cursor);
-            std::string type = ClangUtils::get_type_spelling(cursor);
-            std::string file = ClangUtils::get_file_path(cursor);
-            
-            if (!name.empty() && !type.empty() && !ClangUtils::is_system_header(file)) {
-                LintIssue issue;
-                issue.type = CheckType::GLOBAL_VARIABLE;
-                issue.severity = Severity::WARNING;
-                issue.checker_name = "global";
-                issue.name = name;
-                issue.type_str = type;
-                issue.file = file;
-                issue.line = ClangUtils::get_line_number(cursor);
-                issue.column = ClangUtils::get_column_number(cursor);
-                issue.description = "Global variable detected";
-                issue.suggestion = "Consider using a singleton or dependency injection";
-                issue.fixable = false;
-                result.add_issue(issue);
-            }
+void GlobalChecker::runOnAST(clang::ASTContext *Context) {
+    Context_ = Context;
+
+    clang::TranslationUnitDecl *TU = Context->getTranslationUnitDecl();
+    TraverseDecl(TU);
+}
+
+bool GlobalChecker::VisitVarDecl(clang::VarDecl *VD) {
+    if (!VD || !Context_) {
+        return true;
+    }
+
+    if (isGlobalVariable(VD) && !isInSystemHeader(VD) && !isExternDeclaration(VD)) {
+        reportGlobalVariable(VD);
+    }
+
+    return true;
+}
+
+bool GlobalChecker::isGlobalVariable(clang::VarDecl *VD) const {
+    if (!VD) {
+        return false;
+    }
+
+    if (clang::isa<clang::ParmVarDecl>(VD)) {
+        return false;
+    }
+
+    if (VD->isLocalVarDecl() || VD->isStaticLocal()) {
+        return false;
+    }
+
+    clang::DeclContext *DC = VD->getDeclContext();
+    if (clang::isa<clang::RecordDecl>(DC) || clang::isa<clang::ClassTemplateDecl>(DC)) {
+        return false;
+    }
+
+    if (!VD->hasGlobalStorage()) {
+        return false;
+    }
+
+    if (VD->isFileVarDecl()) {
+        return true;
+    }
+
+    clang::DeclContext *parentDC = VD->getLexicalDeclContext();
+    while (parentDC) {
+        if (clang::isa<clang::TranslationUnitDecl>(parentDC)) {
+            return true;
+        }
+        if (clang::isa<clang::FunctionDecl>(parentDC) ||
+            clang::isa<clang::RecordDecl>(parentDC)) {
+            return false;
+        }
+        parentDC = parentDC->getLexicalDeclContext();
+    }
+
+    return false;
+}
+
+bool GlobalChecker::isInSystemHeader(clang::VarDecl *VD) const {
+    if (!VD || !Context_) {
+        return false;
+    }
+
+    clang::SourceLocation loc = VD->getLocation();
+    clang::SourceManager &SM = Context_->getSourceManager();
+
+    clang::FileID fileID = SM.getFileID(loc);
+    if (fileID.isInvalid()) {
+        return true;
+    }
+
+    const clang::FileEntry *fileEntry = SM.getFileEntryForID(fileID);
+    if (!fileEntry) {
+        return true;
+    }
+
+    std::string filename = fileEntry->getName().str();
+    return filename.find("/usr/include/") == 0 ||
+           filename.find("/usr/lib/") == 0 ||
+           filename.find("/usr/local/include/") == 0 ||
+           filename.empty();
+}
+
+bool GlobalChecker::isExternDeclaration(clang::VarDecl *VD) const {
+    if (!VD) {
+        return false;
+    }
+
+    if (VD->getStorageClass() == clang::SC_Extern) {
+        if (!VD->hasInit()) {
+            return true;
         }
     }
-    
-    clang_visitChildren(
-        cursor,
-        [](CXCursor c, CXCursor parent, CXClientData data) {
-            auto* res = static_cast<LintResult*>(data);
-            auto* self = reinterpret_cast<GlobalChecker*>(
-                reinterpret_cast<uintptr_t*>(data)[1]);
-            self->visit_cursor(c, *res);
-            return CXChildVisit_Continue;
-        },
-        &result);
+
+    return false;
+}
+
+void GlobalChecker::reportGlobalVariable(clang::VarDecl *VD) {
+    if (!VD || !Context_) {
+        return;
+    }
+
+    std::string name = VD->getName().str();
+    if (name.empty()) {
+        return;
+    }
+
+    clang::QualType type = VD->getType();
+    std::string type_str = type.getAsString();
+
+    clang::SourceLocation loc = VD->getLocation();
+    clang::SourceManager &SM = Context_->getSourceManager();
+
+    std::string file = SM.getFilename(loc).str();
+    int line = SM.getExpansionLineNumber(loc);
+    int column = SM.getExpansionColumnNumber(loc);
+
+    LintIssue issue;
+    issue.type = CheckType::GLOBAL_VARIABLE;
+    issue.severity = Severity::INFO;
+    issue.checker_name = "global";
+    issue.name = name;
+    issue.type_str = type_str;
+    issue.file = file;
+    issue.line = line;
+    issue.column = column;
+    issue.description = "Global variable detected";
+    issue.suggestion = "Consider using a singleton or dependency injection pattern";
+    issue.fixable = false;
+
+    Reporter_.add_issue(issue);
 }
 
 }  // namespace lint

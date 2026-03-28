@@ -1,17 +1,23 @@
 #pragma once
 
-#include "../lint_checker.h"
+#include "lint/lint_checker.h"
+#include "clang/AST/ASTContext.h"
+#include "clang/AST/RecursiveASTVisitor.h"
+#include "lint/issue_reporter.h"
 
 namespace codelint {
 namespace lint {
 
-class SingletonChecker : public LintChecker {
+class SingletonChecker : public LintChecker, public clang::RecursiveASTVisitor<SingletonChecker> {
 public:
+    SingletonChecker() = default;
+    ~SingletonChecker() = default;
+
     LintResult check(const std::string& filepath) override;
     
     std::string name() const override { return "singleton"; }
     std::string description() const override { 
-        return "Detect singleton patterns"; 
+        return "Detect Meyer's Singleton pattern (static local variable in function returning reference)"; 
     }
     std::vector<CheckType> provides() const override {
         return {CheckType::SINGLETON_PATTERN};
@@ -19,8 +25,18 @@ public:
     
     bool can_fix() const override { return false; }
 
+    bool VisitFunctionDecl(clang::FunctionDecl *FD);
+    void runOnAST(clang::ASTContext *Context);
+
 private:
-    void visit_cursor(CXCursor cursor, LintResult& result);
+    clang::ASTContext *Context_ = nullptr;
+    IssueReporter Reporter_;
+    LintResult Result_;
+
+    bool returnsReference(clang::FunctionDecl *FD) const;
+    bool hasMeyersSingletonPattern(clang::FunctionDecl *FD, std::string& staticVarName) const;
+    bool isInSystemHeader(clang::Decl *D) const;
+    void reportSingletonPattern(clang::FunctionDecl *FD, const std::string& staticVarName);
 };
 
 }  // namespace lint
