@@ -3,20 +3,40 @@
 #include <limits>
 #include <map>
 
+#include <clang/Tooling/CommonOptionsParser.h>
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/InitLLVM.h>
+#include <llvm/Support/raw_ostream.h>
+
 #include "commands.h"
+
+// Version info - defined in commands.h or CMake
+#ifndef CODELINT_VERSION
+#define CODELINT_VERSION "1.0.0"
+#endif
 
 GlobalOptions g_opts;
 CheckInitOptions g_check_init_opts;
 codelint::lint::LintConfig g_lint_config;
 
+// LibTooling options category for lint subcommand
+static llvm::cl::OptionCategory LintToolCategory("Lint Tool Options");
+
 int main(int argc, char** argv) {
+  // Init LLVM for LibTooling
+  llvm::InitLLVM Ilvm(argc, argv, true);
+
   CLI::App app{"codelint - C++ code analysis tool"};
 
+  // Global options via CLI11
+  bool show_version = false;
+  app.add_flag("--version", show_version, "Show version information");
+
   app.add_option("-p,--path", g_opts.path,
-                 "Path to compile_commands.json directory")
-      ->required();
+                 "Path to compile_commands.json directory");
   app.add_flag("--output-json", g_opts.output_json, "Output format as JSON");
 
+  // Legacy subcommands (will be removed in Phase 3)
   CLI::App* find_global_cmd =
       app.add_subcommand("find_global", "Find global variables");
   find_global_cmd->callback(find_global);
@@ -37,10 +57,10 @@ int main(int argc, char** argv) {
       "--fix", g_opts.fix,
       "Automatically fix initialization issues and output to stdout");
   check_init_cmd->add_flag("--inplace", g_opts.inplace,
-                           "Modify files in-place (requires --fix)");
+                            "Modify files in-place (requires --fix)");
 
+  // Lint subcommand with CLI11 options
   CLI::App* lint_cmd = app.add_subcommand("lint", "Run lint checks on C++ code");
-  lint_cmd->callback(lint);
   lint_cmd->add_option("files", g_lint_config.files,
                        "Source files to check")
       ->expected(0, std::numeric_limits<size_t>::max());
@@ -64,12 +84,48 @@ int main(int argc, char** argv) {
               {"hint", codelint::lint::Severity::HINT}},
           CLI::ignore_case));
 
+  // Handle --version flag before CLI11 parsing
+  if (show_version) {
+    std::cout << "codelint version " << CODELINT_VERSION << "\n";
+    std::cout << "Built with LLVM LibTooling\n";
+    std::cout << "Target: C++14 (AUTOSAR 2014)" << std::endl;
+    return 0;
+  }
+
   if (argc == 1) {
     std::cout << app.help() << std::endl;
     return 0;
   }
 
-  CLI11_PARSE(app, argc, argv);
+  // Parse CLI11 options
+  try {
+    app.parse(argc, argv);
+  } catch (const CLI::ParseError& e) {
+    return app.exit(e);
+  }
+
+  // If lint subcommand was invoked, use CommonOptionsParser
+  if (app.got_subcommand("lint")) {
+    // Use the factory method to create CommonOptionsParser
+    // This handles compilation database and source path parsing
+    auto OptionsParserOrErr = clang::tooling::CommonOptionsParser::create(
+        argc, const_cast<const char**>(argv), LintToolCategory,
+        llvm::cl::OneOrMore, "codelint lint");
+
+    if (!OptionsParserOrErr) {
+      llvm::errs() << "Error parsing options: "
+                   << OptionsParserOrErr.takeError() << "\n";
+      return 1;
+    }
+
+    clang::tooling::CommonOptionsParser& OptionsParser = *OptionsParserOrErr;
+
+    // OptionsParser.getCompilations() - compilation database
+    // OptionsParser.getSourcePathList() - list of source files
+
+    // Call the lint function (implementation will use OptionsParser)
+    lint();
+  }
 
   return 0;
 }
