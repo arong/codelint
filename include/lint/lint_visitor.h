@@ -22,6 +22,23 @@ public:
 private:
     clang::ASTContext *Context_;
     IssueReporter &Reporter_;
+
+    // Helper methods for variable initialization checking
+    void checkVariableInitialization(clang::VarDecl *VD);
+    bool isUnsignedType(clang::QualType type) const;
+
+    // Skip rule helper methods
+    bool shouldSkipAutoDeclaration(clang::VarDecl *VD);
+    bool shouldSkipForLoopVariable(clang::VarDecl *VD);
+    bool shouldSkipUnionMember(clang::VarDecl *VD);
+    bool shouldSkipEnumClassWithoutZero(clang::VarDecl *VD);
+    bool shouldSkipExternDeclaration(clang::VarDecl *VD);
+    bool shouldSkipExceptionVariable(clang::VarDecl *VD);
+
+    // Const/constexpr suggestion helper methods
+    bool canBeConst(clang::VarDecl *VD);
+    bool canBeConstexpr(clang::VarDecl *VD);
+    bool isAssignmentToVar(const clang::Stmt *S, clang::VarDecl *VD);
 };
 
 } // namespace lint

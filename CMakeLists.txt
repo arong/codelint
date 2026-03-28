@@ -61,6 +61,7 @@ add_executable(codelint
   src/lint.cpp
   src/lint_checker.cpp
   src/issue_reporter.cpp
+  src/fix_applier.cpp
   src/lint/lint_runner.cpp
   src/lint/lint_action.cpp
   src/lint_visitor.cpp
@@ -99,10 +100,9 @@ else()
     endforeach()
     
     # Use libclang-cpp shared library and filtered LLVM components
-    # Add -L for library search path
-    link_directories(${LLVM_LIBRARY_DIRS})
     target_link_libraries(codelint PRIVATE 
-        -lclang-cpp
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
+        ${LLVM_LIBRARY_DIR}/libclang.so
         ${filtered_llvm_libs}
     )
 endif()

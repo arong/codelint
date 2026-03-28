@@ -21,7 +21,9 @@ enum class CheckType {
     INIT_UNSIGNED_SUFFIX,
     GLOBAL_VARIABLE,
     SINGLETON_PATTERN,
-    CONST_SUGGESTION
+    CONST_SUGGESTION,
+    CAN_BE_CONST,
+    CAN_BE_CONSTEXPR
 };
 
 struct LintIssue {
@@ -94,6 +96,8 @@ inline std::string check_type_to_string(CheckType type) {
         case CheckType::GLOBAL_VARIABLE: return "global_variable";
         case CheckType::SINGLETON_PATTERN: return "singleton_pattern";
         case CheckType::CONST_SUGGESTION: return "const_suggestion";
+        case CheckType::CAN_BE_CONST: return "can_be_const";
+        case CheckType::CAN_BE_CONSTEXPR: return "can_be_constexpr";
         default: return "unknown";
     }
 }
@@ -123,6 +127,8 @@ inline CheckType string_to_check_type(const std::string& str) {
     if (str == "global_variable") return CheckType::GLOBAL_VARIABLE;
     if (str == "singleton_pattern") return CheckType::SINGLETON_PATTERN;
     if (str == "const_suggestion") return CheckType::CONST_SUGGESTION;
+    if (str == "can_be_const") return CheckType::CAN_BE_CONST;
+    if (str == "can_be_constexpr") return CheckType::CAN_BE_CONSTEXPR;
     return CheckType::INIT_UNINITIALIZED;  // default
 }
 
