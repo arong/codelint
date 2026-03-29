@@ -5,7 +5,7 @@ Codelint is a C++ static analysis tool using LLVM LibTooling to detect code issu
 ## Project Overview
 
 - **Language**: C++ (C++26/C++23/C++20)
-- **Build System**: CMake  
+- **Build System**: CMake
 - **Dependencies**: LLVM/Clang 18.1, CLI11, RapidJSON
 - **Namespace**: `codelint::lint`
 - **Checkers**: init, const, global, singleton
@@ -150,7 +150,7 @@ cd build
 ### Linkage Order (Critical - Never Change)
 CMakeLists.txt lines 92-98:
 ```cmake
-target_link_libraries(codelint PRIVATE 
+target_link_libraries(codelint PRIVATE
     ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1  # FIRST
     ${LLVM_LIBRARY_DIR}/libclang.so
     ${LLVM_LIBRARY_DIR}/libLLVM.so

@@ -1,2 +1,1 @@
-The following argument was not expected: tests/test_find_global.cpp
-Run with --help for more information.
+

@@ -14,17 +14,17 @@ public:
     ~InitChecker() = default;
 
     LintResult check(const std::string& filepath) override;
-    
+
     std::string name() const override { return "init"; }
-    std::string description() const override { 
-        return "Check variable initialization style"; 
+    std::string description() const override {
+        return "Check variable initialization style";
     }
     std::vector<CheckType> provides() const override {
-        return {CheckType::INIT_UNINITIALIZED, 
-                CheckType::INIT_EQUALS_SYNTAX, 
+        return {CheckType::INIT_UNINITIALIZED,
+                CheckType::INIT_EQUALS_SYNTAX,
                 CheckType::INIT_UNSIGNED_SUFFIX};
     }
-    
+
     bool can_fix() const override { return true; }
     bool apply_fixes(const std::string& filepath,
                      const std::vector<LintIssue>& issues,

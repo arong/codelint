@@ -14,15 +14,15 @@ public:
     ~GlobalChecker() = default;
 
     LintResult check(const std::string& filepath) override;
-    
+
     std::string name() const override { return "global"; }
-    std::string description() const override { 
-        return "Detect global variables"; 
+    std::string description() const override {
+        return "Detect global variables";
     }
     std::vector<CheckType> provides() const override {
         return {CheckType::GLOBAL_VARIABLE};
     }
-    
+
     bool can_fix() const override { return false; }
 
     bool VisitVarDecl(clang::VarDecl *VD);

@@ -34,16 +34,16 @@ run_test() {
     local name="$1"
     local src_file="$2"
     local expected_file="$3"
-    
+
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
     echo "Test $TEST_COUNT: $name"
     echo "------------------------------------------"
-    
+
     # Run codelint with --fix
     local output_file=$(mktemp)
     "$CODELINT" lint "$src_file" --only=init --fix > "$output_file" 2>/dev/null || true
-    
+
     # Compare with expected
     if diff -q "$expected_file" "$output_file" > /dev/null 2>&1; then
         echo "PASS: $name"
@@ -55,7 +55,7 @@ run_test() {
         diff "$expected_file" "$output_file" | head -20 || true
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
-    
+
     rm -f "$output_file"
     echo ""
 }
@@ -65,12 +65,12 @@ run_json_test() {
     local src_file="$2"
     local expected_count="$3"
     local issue_type="$4"
-    
+
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
     echo "Test $TEST_COUNT: $name (JSON)"
     echo "------------------------------------------"
-    
+
     local output=$( "$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" --output-json 2>/dev/null | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -78,7 +78,7 @@ issues = data.get('issues', [])
 count = len([i for i in issues if i.get('type') == '$issue_type'])
 print(count)
 " 2>/dev/null || echo "0")
-    
+
     if [ "$output" = "$expected_count" ]; then
         echo "PASS: $name - Found $output $issue_type issues (expected $expected_count)"
         PASS_COUNT=$((PASS_COUNT + 1))

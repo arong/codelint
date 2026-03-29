@@ -88,7 +88,7 @@ LintResult InitChecker::check(const std::string& filepath) {
 void InitChecker::runOnAST(clang::ASTContext *Context) {
     Context_ = Context;
     clang::TranslationUnitDecl *TU = Context->getTranslationUnitDecl();
-    
+
     for (clang::Decl *D : TU->decls()) {
         if (clang::VarDecl *VD = clang::dyn_cast<clang::VarDecl>(D)) {
             VisitVarDecl(VD);
@@ -144,14 +144,14 @@ bool InitChecker::VisitVarDecl(clang::VarDecl *VD) {
         checkUninitialized(VD);
     } else {
         bool is_brace_init = clang::isa<clang::InitListExpr>(init);
-        
+
         clang::Expr *ignoredInit = init->IgnoreImplicit();
         clang::CXXConstructExpr *constructExpr = clang::dyn_cast<clang::CXXConstructExpr>(ignoredInit);
-        
+
         bool is_implicit_construct = constructExpr &&
                                      !clang::isa<clang::InitListExpr>(init) &&
                                      constructExpr->getNumArgs() == 0;
-        
+
         if (is_implicit_construct) {
             checkUninitialized(VD);
         } else if (!is_brace_init && VD->getInitStyle() == clang::VarDecl::CInit) {
@@ -205,9 +205,9 @@ void InitChecker::checkUninitialized(clang::VarDecl *VD) {
 
     clang::SourceRange typeRange(VD->getBeginLoc(), VD->getLocation());
     std::string type_str = clang::Lexer::getSourceText(
-        clang::CharSourceRange::getTokenRange(typeRange), 
+        clang::CharSourceRange::getTokenRange(typeRange),
         SM, Context_->getLangOpts()).str();
-    
+
     size_t name_pos = type_str.find(name);
     if (name_pos != std::string::npos) {
         type_str = type_str.substr(0, name_pos);
@@ -219,12 +219,12 @@ void InitChecker::checkUninitialized(clang::VarDecl *VD) {
     std::string full_decl = clang::Lexer::getSourceText(
         clang::CharSourceRange::getTokenRange(VD->getSourceRange()),
         SM, Context_->getLangOpts()).str();
-    
+
     size_t semi_pos = full_decl.find(';');
     if (semi_pos != std::string::npos) {
         full_decl = full_decl.substr(0, semi_pos);
     }
-    
+
     std::string suggestion;
     if (type->isArrayType()) {
         suggestion = full_decl + "{};";
@@ -262,9 +262,9 @@ void InitChecker::checkEqualsInit(clang::VarDecl *VD) {
 
     clang::SourceRange typeRange(VD->getBeginLoc(), VD->getLocation());
     std::string type_str = clang::Lexer::getSourceText(
-        clang::CharSourceRange::getTokenRange(typeRange), 
+        clang::CharSourceRange::getTokenRange(typeRange),
         SM, Context_->getLangOpts()).str();
-    
+
     size_t name_pos = type_str.find(name);
     if (name_pos != std::string::npos) {
         type_str = type_str.substr(0, name_pos);
@@ -278,7 +278,7 @@ void InitChecker::checkEqualsInit(clang::VarDecl *VD) {
     if (init) {
         clang::Expr *ignoredInit = init->IgnoreImplicit();
         clang::CXXConstructExpr *constructExpr = clang::dyn_cast<clang::CXXConstructExpr>(ignoredInit);
-        
+
         if (constructExpr && constructExpr->getNumArgs() > 0) {
             std::stringstream args_ss;
             bool first = true;
@@ -338,9 +338,9 @@ void InitChecker::checkFieldUninitialized(clang::FieldDecl *FD) {
 
     clang::SourceRange typeRange(FD->getBeginLoc(), FD->getLocation());
     std::string type_str = clang::Lexer::getSourceText(
-        clang::CharSourceRange::getTokenRange(typeRange), 
+        clang::CharSourceRange::getTokenRange(typeRange),
         SM, Context_->getLangOpts()).str();
-    
+
     size_t name_pos = type_str.find(name);
     if (name_pos != std::string::npos) {
         type_str = type_str.substr(0, name_pos);
@@ -404,13 +404,13 @@ bool InitChecker::shouldSkipAutoDeclaration(clang::VarDecl *VD) {
     if (type->isUndeducedAutoType()) {
         return true;
     }
-    
+
     clang::SourceRange range = VD->getSourceRange();
     clang::SourceManager &SM = Context_->getSourceManager();
     clang::LangOptions langOpts;
     llvm::StringRef text = clang::Lexer::getSourceText(
         clang::CharSourceRange::getTokenRange(range), SM, langOpts);
-    
+
     if (text.starts_with("auto ")) {
         return true;
     }
@@ -539,7 +539,7 @@ bool InitChecker::hasUnsignedSuffix(const std::string& value) const {
 bool InitChecker::shouldSkipLambdaParameter(clang::VarDecl *VD) {
     clang::ParmVarDecl *PVD = clang::dyn_cast<clang::ParmVarDecl>(VD);
     if (!PVD) return false;
-    
+
     clang::DynTypedNodeList parents = Context_->getParents(*PVD);
     for (const auto &parent : parents) {
         if (parent.get<clang::LambdaExpr>()) {
@@ -561,10 +561,10 @@ bool InitChecker::shouldSkipLambdaParameter(clang::VarDecl *VD) {
 bool InitChecker::shouldSkipCatchVariableCopy(clang::VarDecl *VD) {
     clang::Expr *init = VD->getInit();
     if (!init) return false;
-    
+
     clang::Expr *ignored = init->IgnoreImplicit();
     clang::CXXConstructExpr *constructExpr = clang::dyn_cast<clang::CXXConstructExpr>(ignored);
-    
+
     if (constructExpr && constructExpr->getNumArgs() == 1) {
         clang::Expr *arg = constructExpr->getArg(0)->IgnoreImplicit();
         clang::DeclRefExpr *DRE = clang::dyn_cast<clang::DeclRefExpr>(arg);
@@ -575,16 +575,16 @@ bool InitChecker::shouldSkipCatchVariableCopy(clang::VarDecl *VD) {
             }
         }
     }
-    
+
     clang::DeclRefExpr *DRE = clang::dyn_cast<clang::DeclRefExpr>(ignored);
     if (!DRE) return false;
-    
+
     clang::ValueDecl *VD_ref = DRE->getDecl();
     if (!VD_ref) return false;
-    
+
     clang::VarDecl *referencedVar = clang::dyn_cast<clang::VarDecl>(VD_ref);
     if (!referencedVar) return false;
-    
+
     return referencedVar->isExceptionVariable();
 }
 
@@ -599,7 +599,7 @@ bool InitChecker::apply_fixes(const std::string& filepath,
     }
 
     std::vector<LintIssue> sorted_issues = issues;
-    std::sort(sorted_issues.begin(), sorted_issues.end(), 
+    std::sort(sorted_issues.begin(), sorted_issues.end(),
               [](const LintIssue& a, const LintIssue& b) { return a.line > b.line; });
 
     for (const auto& issue : sorted_issues) {
@@ -616,7 +616,7 @@ bool InitChecker::apply_fixes(const std::string& filepath,
                        (lines[idx][name_end] == ' ' || lines[idx][name_end] == '\t')) {
                     name_end++;
                 }
-                
+
                 if (name_end < lines[idx].length()) {
                     char next_char = lines[idx][name_end];
                     if (next_char == ';') {
@@ -648,14 +648,14 @@ bool InitChecker::apply_fixes(const std::string& filepath,
         } else if (issue.type == CheckType::INIT_EQUALS_SYNTAX) {
             size_t pos = lines[idx].find("=");
             size_t paren_pos = lines[idx].find("(");
-            
+
             size_t replace_pos = (pos != std::string::npos) ? pos : paren_pos;
-            
+
             size_t comment_pos = lines[idx].find("//");
             if (comment_pos == std::string::npos || comment_pos > replace_pos) {
                 if (!issue.suggestion.empty()) {
                     size_t indent_end = lines[idx].find_first_not_of(" \t");
-                    std::string indent = (indent_end != std::string::npos) ? 
+                    std::string indent = (indent_end != std::string::npos) ?
                                          lines[idx].substr(0, indent_end) : "";
                     lines[idx] = indent + issue.suggestion;
                 }

@@ -92,7 +92,7 @@ if(STATIC_LINKING)
 else()
     # Link libclang-cpp first (C++ API), then libclang (C API)
     # Use LINK_PRIVATE to avoid symbol export issues
-    target_link_libraries(codelint PRIVATE 
+    target_link_libraries(codelint PRIVATE
         ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
         ${LLVM_LIBRARY_DIR}/libclang.so
         ${LLVM_LIBRARY_DIR}/libLLVM.so

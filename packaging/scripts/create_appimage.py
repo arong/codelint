@@ -22,7 +22,7 @@ from pathlib import Path
 def get_version():
     """Get version from git tags or return 'dev'"""
     try:
-        result = subprocess.run(['git', 'describe', '--tags'], 
+        result = subprocess.run(['git', 'describe', '--tags'],
                               capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -30,25 +30,25 @@ def get_version():
 
 def create_appdir(binary_path="build/codelint", appdir_path="packaging/AppDir"):
     """Create AppDir structure for codelint AppImage"""
-    
+
     # Ensure binary exists
     if not os.path.exists(binary_path):
         print(f"Error: {binary_path} not found. Please build the project first.")
         sys.exit(1)
-    
+
     # Create directories
     os.makedirs(f"{appdir_path}/usr/bin", exist_ok=True)
     os.makedirs(f"{appdir_path}/usr/lib", exist_ok=True)
-    
+
     # Copy the binary
     print("Copying binary...")
     shutil.copy2(binary_path, f"{appdir_path}/usr/bin/codelint")
-    
+
     # Get library dependencies using ldd
     print("Analyzing library dependencies...")
     result = subprocess.run(["ldd", binary_path], capture_output=True, text=True)
     libs = []
-    
+
     for line in result.stdout.split('\n'):
         if "=>" in line and not "not found" in line and "/lib/" in line:
             parts = line.strip().split()
@@ -56,17 +56,17 @@ def create_appdir(binary_path="build/codelint", appdir_path="packaging/AppDir"):
                 lib_path = parts[2]
                 if os.path.exists(lib_path):
                     libs.append(lib_path)
-    
+
     # Libraries to skip (system libraries that should be on all Linux systems)
     skip_patterns = [
-        'libc.so', 'libm.so', 'libdl.so', 'libpthread.so', 
+        'libc.so', 'libm.so', 'libdl.so', 'libpthread.so',
         'ld-linux', '/lib64/ld-linux'
     ]
-    
+
     copied_libs = set()
     for lib in libs:
         lib_name = os.path.basename(lib)
-        
+
         # Skip system libraries
         skip = False
         for skip_pattern in skip_patterns:
@@ -75,13 +75,13 @@ def create_appdir(binary_path="build/codelint", appdir_path="packaging/AppDir"):
                 break
         if skip:
             continue
-            
+
         # Copy library
         if lib not in copied_libs:
             print(f"Copying: {lib_name}")
             shutil.copy2(lib, f"{appdir_path}/usr/lib/{lib_name}")
             copied_libs.add(lib)
-    
+
     # Create AppRun script
     print("Creating AppRun...")
     apprun_content = '''#!/bin/bash
@@ -92,7 +92,7 @@ exec "${APPDIR}/usr/bin/codelint" "$@"
     with open(f"{appdir_path}/AppRun", 'w') as f:
         f.write(apprun_content)
     os.chmod(f"{appdir_path}/AppRun", 0o755)
-    
+
     # Create desktop file
     print("Creating desktop file...")
     desktop_content = '''[Desktop Entry]
@@ -105,7 +105,7 @@ Comment=C++ code analysis tool
 '''
     with open(f"{appdir_path}/codelint.desktop", 'w') as f:
         f.write(desktop_content)
-    
+
     # Create icon
     print("Creating icon...")
     icon_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
@@ -116,7 +116,7 @@ Comment=C++ code analysis tool
 '''
     with open(f"{appdir_path}/codelint.svg", 'w') as f:
         f.write(icon_content)
-    
+
     # Create README
     print("Creating README...")
     readme_content = '''# codelint - C++ Code Analysis Tool
@@ -157,7 +157,7 @@ Find singletons:
 '''
     with open(f"{appdir_path}/README.md", 'w') as f:
         f.write(readme_content)
-    
+
     print(f"✅ AppDir created successfully at {appdir_path}")
     return appdir_path
 
@@ -167,16 +167,16 @@ def create_appimage(appdir_path, output_dir="."):
     arch = subprocess.check_output(["uname", "-m"]).decode().strip()
     appimage_name = f"codelint-{version}-{arch}.AppImage"
     appimage_path = os.path.join(output_dir, appimage_name)
-    
+
     print(f"Creating AppImage: {appimage_path}")
-    
+
     # Use appimagetool from tools directory
     appimagetool_path = "packaging/tools/appimagetool"
     if not os.path.exists(appimagetool_path):
         print(f"Error: {appimagetool_path} not found!")
         print("Please download appimagetool to packaging/tools/")
         sys.exit(1)
-    
+
     # Run appimagetool with --appimage-extract-and-run to avoid FUSE dependency
     try:
         subprocess.run([
@@ -194,13 +194,13 @@ def create_appimage(appdir_path, output_dir="."):
 def main():
     """Main function to create AppImage"""
     print("🚀 Creating codelint AppImage...")
-    
+
     # Step 1: Create AppDir
     appdir = create_appdir()
-    
+
     # Step 2: Create AppImage
     appimage = create_appimage(appdir)
-    
+
     if appimage:
         size_mb = os.path.getsize(appimage) / (1024 * 1024)
         print(f"\n🎉 AppImage created successfully!")

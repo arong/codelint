@@ -17,7 +17,7 @@ public:
     ~ConstChecker() = default;
 
     LintResult check(const std::string& filepath) override;
-    
+
     std::string name() const override { return "const"; }
     std::string description() const override {
         return "Detect variables that could be const";
@@ -25,7 +25,7 @@ public:
     std::vector<CheckType> provides() const override {
         return {CheckType::CONST_SUGGESTION};
     }
-    
+
     bool can_fix() const override { return true; }
     bool apply_fixes(const std::string& filepath,
                      const std::vector<LintIssue>& issues,

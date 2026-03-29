@@ -14,15 +14,15 @@ public:
     ~SingletonChecker() = default;
 
     LintResult check(const std::string& filepath) override;
-    
+
     std::string name() const override { return "singleton"; }
-    std::string description() const override { 
-        return "Detect Meyer's Singleton pattern (static local variable in function returning reference)"; 
+    std::string description() const override {
+        return "Detect Meyer's Singleton pattern (static local variable in function returning reference)";
     }
     std::vector<CheckType> provides() const override {
         return {CheckType::SINGLETON_PATTERN};
     }
-    
+
     bool can_fix() const override { return false; }
 
     bool VisitFunctionDecl(clang::FunctionDecl *FD);

@@ -47,7 +47,7 @@ struct LintResult {
     int info_count = 0;
     int hint_count = 0;
     int fixed_count = 0;
-    
+
     void add_issue(const LintIssue& issue) {
         issues.push_back(issue);
         switch (issue.severity) {
@@ -57,7 +57,7 @@ struct LintResult {
             case Severity::HINT: ++hint_count; break;
         }
     }
-    
+
     void merge(const LintResult& other) {
         issues.insert(issues.end(), other.issues.begin(), other.issues.end());
         error_count += other.error_count;
@@ -66,7 +66,7 @@ struct LintResult {
         hint_count += other.hint_count;
         fixed_count += other.fixed_count;
     }
-    
+
     int total_count() const {
         return error_count + warning_count + info_count + hint_count;
     }

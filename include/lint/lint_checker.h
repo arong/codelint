@@ -11,18 +11,18 @@ namespace lint {
 class LintChecker {
 public:
     virtual ~LintChecker() = default;
-    
+
     virtual LintResult check(const std::string& filepath) = 0;
-    
+
     virtual std::string name() const = 0;
     virtual std::string description() const = 0;
     virtual std::vector<CheckType> provides() const = 0;
-    
+
     virtual bool can_fix() const { return false; }
-    virtual bool apply_fixes(const std::string& filepath, 
+    virtual bool apply_fixes(const std::string& filepath,
                             const std::vector<LintIssue>& issues,
-                            std::string& modified_content) { 
-        return false; 
+                            std::string& modified_content) {
+        return false;
     }
 };
 

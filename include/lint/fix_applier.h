@@ -11,11 +11,11 @@ namespace lint {
 
 /**
  * FixApplier applies automatic fixes to source code using clang::tooling::Replacements.
- * 
+ *
  * Handles fixable LintIssues by:
  * - INIT_UNINITIALIZED: Insert "{}" after variable name
  * - INIT_EQUALS_SYNTAX: Replace "= value" with "{value}"
- * 
+ *
  * Correctly handles:
  * - Array dimensions (inserts {} after [N] not before)
  * - Multiple variables on same line
@@ -34,7 +34,7 @@ public:
 
     /**
      * Apply fixes to a source file.
-     * 
+     *
      * @param issues List of lint issues to fix (only fixable ones are processed)
      * @param original_content The original source code content
      * @param modified_content Output parameter for the fixed content
