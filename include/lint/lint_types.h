@@ -85,6 +85,7 @@ struct LintConfig {
     bool output_json = false;
     Severity min_severity = Severity::INFO;
     std::string path = ".";
+    std::string scope = "all";
 };
 
 // Utility functions

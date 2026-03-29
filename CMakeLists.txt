@@ -61,6 +61,7 @@ add_executable(codelint
   src/fix_applier.cpp
   src/lint/lint_runner.cpp
   src/lint/lint_action.cpp
+  src/lint/git_scope.cpp
   src/lint_visitor.cpp
   src/lint/checkers/init_checker.cpp
   src/lint/checkers/const_checker.cpp

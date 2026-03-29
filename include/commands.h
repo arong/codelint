@@ -9,6 +9,7 @@ struct GlobalOptions {
   bool output_json = false;
   bool fix = false;
   bool inplace = false;
+  std::string scope = "all";
 };
 
 extern GlobalOptions g_opts;

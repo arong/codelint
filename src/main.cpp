@@ -21,6 +21,9 @@ int main(int argc, char** argv) {
   app.add_option("-p,--path", g_opts.path,
                  "Path to compile_commands.json directory");
   app.add_flag("--output-json", g_opts.output_json, "Output format as JSON");
+  app.add_option("--scope", g_opts.scope,
+                 "Filter analysis scope (all, modified, commit:<hash>, merge-base)")
+      ->default_val("all");
 
   CLI::App* lint_cmd = app.add_subcommand("lint", "Run lint checks on C++ code");
   lint_cmd->add_option("files", g_lint_config.files,
