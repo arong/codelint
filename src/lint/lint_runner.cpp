@@ -41,26 +41,18 @@ void LintRunner::init_checkers() {
 LintResult LintRunner::run(const std::vector<std::string>& files) {
     LintResult result;
     
-    std::cerr << "Debug: run() called with " << files.size() << " files" << std::endl;
-    std::cerr << "Debug: " << checkers_.size() << " checkers initialized" << std::endl;
-    
     std::vector<std::string> file_list = files;
     if (file_list.empty()) {
         file_list = get_files_from_compile_commands(config_.path);
-        std::cerr << "Debug: Loaded " << file_list.size() << " files from compile_commands.json" << std::endl;
     }
     
     for (const auto& filepath : file_list) {
-        std::cerr << "Debug: Processing file: " << filepath << std::endl;
         if (!should_check_file(filepath)) {
-            std::cerr << "Debug: Skipping file (should_check_file returned false)" << std::endl;
             continue;
         }
         
         for (const auto& checker : checkers_) {
-            std::cerr << "Debug: Running checker: " << checker->name() << std::endl;
             LintResult checker_result = checker->check(filepath);
-            std::cerr << "Debug: Checker found " << checker_result.issues.size() << " issues" << std::endl;
             result.merge(checker_result);
         }
     }

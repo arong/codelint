@@ -13,3 +13,4 @@ packaging/AppDir/
 !packaging/tools/appimagetool
 codelint-dev-x86_64.AppImage
 .cache
+.sisyphus

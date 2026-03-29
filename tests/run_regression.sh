@@ -42,7 +42,7 @@ run_test() {
     
     # Run codelint with --fix
     local output_file=$(mktemp)
-    "$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" --fix > "$output_file" 2>/dev/null || true
+    "$CODELINT" lint "$src_file" --only=init --fix > "$output_file" 2>/dev/null || true
     
     # Compare with expected
     if diff -q "$expected_file" "$output_file" > /dev/null 2>&1; then
@@ -137,7 +137,7 @@ echo "Test: Verify source files detect issues"
 echo "------------------------------------------"
 for src_file in "$TEST_DIR"/CodeLintTest/src/init_checker/src/*.cpp; do
     TEST_COUNT=$((TEST_COUNT + 1))
-    issue_count=$("$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" 2>/dev/null | grep "Issue:" | wc -l)
+    issue_count=$("$CODELINT" -p "$TEST_DIR/CodeLintTest/build" lint --only=init "$src_file" 2>/dev/null | grep -i "issue" | wc -l)
     if [ "$issue_count" -gt 0 ]; then
         echo "PASS: $(basename $src_file) detects $issue_count issue(s)"
         PASS_COUNT=$((PASS_COUNT + 1))

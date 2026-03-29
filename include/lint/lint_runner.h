@@ -25,6 +25,8 @@ public:
     
     int apply_fixes(const LintResult& result);
     
+    const std::vector<std::unique_ptr<LintChecker>>& checkers() const { return checkers_; }
+    
 private:
     LintConfig config_;
     std::vector<std::unique_ptr<LintChecker>> checkers_;

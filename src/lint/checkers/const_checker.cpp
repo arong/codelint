@@ -304,16 +304,6 @@ void ConstChecker::analyzeAndReport() {
 bool ConstChecker::apply_fixes(const std::string& filepath,
                                const std::vector<LintIssue>& issues,
                                std::string& modified_content) {
-    std::ifstream file(filepath);
-    if (!file.is_open()) {
-        return false;
-    }
-
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    modified_content = buffer.str();
-    file.close();
-
     std::vector<std::string> lines;
     std::stringstream ss(modified_content);
     std::string line;

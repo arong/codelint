@@ -81,27 +81,23 @@ target_compile_definitions(codelint PRIVATE
 )
 
 # ========== Linkage ==========
-# Workaround for Ubuntu/Debian LLVM packaging
-# Use libclang-cpp which contains all clang libraries
+# We need both libclang (C API for init_checker) and libclang-cpp (C++ API for other checkers)
+# Use -Wl,--no-as-needed to ensure both are linked, but link libclang-cpp FIRST
+# to have its LLVM command-line options registered first
 if(STATIC_LINKING)
     set(LLVM_LINK_FLAGS "-static")
     separate_arguments(LLVM_LINK_FLAGS_LIST UNIX_COMMAND "${LLVM_LINK_FLAGS}")
     target_link_libraries(codelint PRIVATE ${llvm_libs} ${LLVM_LINK_FLAGS_LIST})
 else()
-    # Filter out clang components from llvm_libs (we use libclang-cpp instead)
-    set(filtered_llvm_libs "")
-    foreach(lib ${llvm_libs})
-        if(NOT lib MATCHES "^LLVMclang")
-            list(APPEND filtered_llvm_libs ${lib})
-        endif()
-    endforeach()
-    
-    # Use libclang-cpp shared library and filtered LLVM components
+    # Link libclang-cpp first (C++ API), then libclang (C API)
+    # Use LINK_PRIVATE to avoid symbol export issues
     target_link_libraries(codelint PRIVATE 
         ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
         ${LLVM_LIBRARY_DIR}/libclang.so
-        ${filtered_llvm_libs}
+        ${LLVM_LIBRARY_DIR}/libLLVM.so
     )
+    # Suppress LLVM command-line option duplication warning
+    target_compile_options(codelint PRIVATE -DLLVM_ENABLE_DUMP=0)
 endif()
 
 # ========== Install ==========

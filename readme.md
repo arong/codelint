@@ -1,63 +1,143 @@
 # Codelint - C++ Code Analysis Tool
 
-Codelint 是一个 C++ 代码分析工具，用于检查代码中的常见问题并自动修复。
+Codelint 是一个基于 LLVM LibTooling 的 C++ 代码静态分析工具，用于检查代码中的常见问题并提供自动修复建议。
 
 ## 功能特性
 
-### 1. `find_global` - 查找全局变量
-查找项目中的所有全局变量并输出其位置、类型和初始化值。
+### 1. `check_init` - 变量初始化检查
 
-```bash
-./codelint find_global <file_or_directory>
-```
+检查变量初始化风格，推荐现代 C++ 最佳实践：
 
-### 2. `find_singleton` - 查找单例模式
-检测代码中的 Meyer's Singleton 实现。
+#### 检测项
 
-```bash
-./codelint find_singleton <file_or_directory>
-```
+| 问题类型 | 说明 | 示例修复 |
+|---------|------|---------|
+| **未初始化变量** | 变量声明时未显式初始化 | `int c;` → `int c{};` |
+| **`=` 初始化转 `{}`** | 建议使用统一初始化语法 | `int a = 5;` → `int a{5};` |
+| **无符号整型后缀** | unsigned 类型建议添加 `U` 后缀 | `unsigned int b = 42;` → `unsigned int b{42U};` |
+| **const 建议** | 变量未被修改，建议添加 `const` | `int x{42};` → `const int x{42};` |
+| **constexpr 建议** | 编译期常量，建议使用 `constexpr` | `const int x{42};` → `constexpr int x{42};` |
 
-### 3. `check_init` - 检查变量初始化
-检查变量初始化相关问题：
-- **未初始化变量**: `int c;` → `int c{};`
-- **`=` 初始化转 `{}`**: `int a = 5;` → `int a{5};`
-- **无符号整型后缀**: `unsigned int b = 42;` → `unsigned int b{42U};`
+#### 智能跳过规则
+
+以下情况会自动跳过，避免误报：
+
+- **auto 声明** - 类型推导需要保留 `=` 语法
+- **for 循环变量** - `for (int i = 0; ...)` 等循环变量
+- **union 成员** - union 成员初始化有特殊语义
+- **enum class 无零值** - 枚举类型没有零值成员时跳过
+- **extern 声明** - 外部链接声明不修改
+- **异常变量** - `catch (const auto& e)` 中的异常变量
 
 ```bash
 ./codelint check_init <file> [--fix]
 ```
 
-### 4. `lint` - 综合代码检查
-整合多个检查器进行全面的代码质量检查。
+### 2. `find_global` - 全局变量检测
+
+查找项目中的所有全局变量，帮助识别潜在的状态管理问题：
+
+```bash
+./codelint find_global <file_or_directory>
+```
+
+**输出内容**：
+- 变量名称、类型
+- 所在文件、行号、列号
+- 初始化值（如有）
+
+### 3. `find_singleton` - 单例模式检测
+
+检测代码中的 Meyer's Singleton 实现（返回静态局部变量引用的函数）：
+
+```bash
+./codelint find_singleton <file_or_directory>
+```
+
+**检测模式**：
+```cpp
+// 会检测到的模式
+static T& instance() {
+    static T inst{...};  // Meyer's Singleton
+    return inst;
+}
+```
+
+### 4. `check_const` - const 正确性检查
+
+检测可以被声明为 `const` 或 `constexpr` 的变量：
+
+```bash
+./codelint check_const <file> [--fix]
+```
+
+**功能**：
+- 分析变量生命周期内的修改情况
+- 建议添加 `const` 或 `constexpr` 限定符
+- 使用 CFG（控制流图）进行精确的数据流分析
+
+### 5. `lint` - 综合代码检查
+
+整合所有检查器进行全面的代码质量检查：
 
 ```bash
 ./codelint lint <file_or_directory> [options]
 ```
 
 **lint 选项：**
-- `--only=<checker>` - 只运行指定的检查器 (init, const, global, singleton)
-- `--exclude=<checker>` - 排除指定的检查器
-- `--fix` - 自动修复发现的问题
-- `--severity=<level>` - 按严重程度过滤 (error, warning, info)
-- `--output-json` - 以 JSON 格式输出结果
+
+| 选项 | 说明 |
+|------|------|
+| `--only=<checker>` | 只运行指定检查器 (init, const, global, singleton) |
+| `--exclude=<checker>` | 排除指定检查器 |
+| `--fix` | 自动修复发现的问题（仅支持 init 和 const） |
+| `--severity=<level>` | 按严重程度过滤 (error, warning, hint, info) |
+| `--output-json` | 以 JSON 格式输出结果 |
 
 ## 输出格式
 
-### 文本输出
-包含关键信息：变量/函数/类的名称、类型、所在行、文件的绝对路径。
+### 文本输出（默认）
+
+```
+/path/to/file.cpp:10:5: warning: Variable should use '{}' syntax for initialization [init]
+  int a = 5;
+      ^
+  suggestion: int a{5};
+```
 
 ### JSON 输出
-添加 `--output-json` 全局标志，以 JSON 格式输出，方便与其他工具集成：
+
+添加 `--output-json` 标志以 JSON 格式输出，方便与 CI/CD 或其他工具集成：
 
 ```bash
 ./codelint --output-json check_init tests/test.cpp
 ./codelint --output-json lint src/
 ```
 
+**JSON 格式示例**：
+```json
+{
+  "issues": [
+    {
+      "type": "INIT_EQUALS_SYNTAX",
+      "severity": "warning",
+      "checker": "init",
+      "name": "a",
+      "type_str": "int",
+      "file": "/path/to/file.cpp",
+      "line": 10,
+      "column": 5,
+      "description": "Variable should use '{}' syntax for initialization",
+      "suggestion": "int a{5};",
+      "fixable": true
+    }
+  ]
+}
+```
+
 ## 回归测试
 
-项目包含完整的回归测试套件，确保功能不回退：
+项目包含完整的回归测试套件，确保功能稳定性：
 
 ```bash
 bash tests/run_regression_tests.sh
@@ -65,21 +145,46 @@ bash tests/run_regression_tests.sh
 
 ## 快速开始
 
+### 构建项目
+
 ```bash
-# 构建项目
+# 安装依赖（Ubuntu/Debian）
+sudo apt install llvm-dev libclang-dev clang
+
+# 构建
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j4
-
-# 运行检查
-./codelint -p tests/CodeLintTest/build check_init
-./codelint -p tests/CodeLintTest/build find_global
-./codelint -p tests/CodeLintTest/build lint
-
-# 运行回归测试
-cd ..
-bash tests/run_regression_tests.sh
+make -j$(nproc)
 ```
+
+### 使用示例
+
+```bash
+# 检查单个文件
+./codelint check_init src/main.cpp
+
+# 检查并自动修复
+./codelint check_init src/main.cpp --fix
+
+# 检查整个目录
+./codelint lint src/
+
+# 只运行特定检查器
+./codelint lint src/ --only=init --only=const
+
+# 排除某些检查器
+./codelint lint src/ --exclude=global
+
+# JSON 输出，用于 CI 集成
+./codelint --output-json lint src/ --severity=warning
+```
+
+## 技术架构
+
+- **基于 LLVM LibTooling** - 使用 Clang AST 进行精确的语法分析
+- **AST Visitor 模式** - 使用 `RecursiveASTVisitor` 遍历语法树
+- **CFG 数据流分析** - 使用控制流图分析变量的生命周期和修改情况
+- **模块化设计** - 检查器可独立运行或组合使用
 
 ## 打包发布
 
