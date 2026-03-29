@@ -2,16 +2,18 @@
 
 #include "lint_checker.h"
 #include "lint_types.h"
+#include "git_scope.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <optional>
 
 namespace codelint {
 namespace lint {
 
 class LintRunner {
 public:
-    explicit LintRunner(const LintConfig& config);
+    explicit LintRunner(const LintConfig& config, const std::optional<GitScope>& scope = std::nullopt);
 
     static LintConfig load_config(const std::string& config_path);
 
@@ -29,6 +31,7 @@ public:
 
 private:
     LintConfig config_;
+    std::optional<GitScope> scope_;
     std::vector<std::unique_ptr<LintChecker>> checkers_;
 
     void init_checkers();

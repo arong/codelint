@@ -2,8 +2,10 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <optional>
 
 #include "commands.h"
+#include "lint/git_scope.h"
 
 #ifndef CODELINT_VERSION
 #define CODELINT_VERSION "1.0.0"
@@ -11,6 +13,7 @@
 
 GlobalOptions g_opts;
 codelint::lint::LintConfig g_lint_config;
+std::optional<codelint::lint::GitScope> g_scope;
 
 int main(int argc, char** argv) {
   CLI::App app{"codelint - C++ code analysis tool"};
@@ -63,6 +66,14 @@ int main(int argc, char** argv) {
     std::cout << "Built with LLVM LibTooling\n";
     std::cout << "Target: C++14 (AUTOSAR 2014)" << std::endl;
     return 0;
+  }
+
+  if (!g_opts.scope.empty() && g_opts.scope != "all") {
+    g_scope = codelint::lint::GitScope::parse(g_opts.scope);
+    if (!g_scope.has_value()) {
+      std::cerr << "Error: Invalid scope '" << g_opts.scope << "'" << std::endl;
+      return 1;
+    }
   }
 
   if (app.got_subcommand("lint")) {
