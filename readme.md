@@ -63,37 +63,6 @@ static T& instance() {
 }
 ```
 
-### 4. `check_const` - const 正确性检查
-
-检测可以被声明为 `const` 或 `constexpr` 的变量：
-
-```bash
-./codelint check_const <file> [--fix]
-```
-
-**功能**：
-- 分析变量生命周期内的修改情况
-- 建议添加 `const` 或 `constexpr` 限定符
-- 使用 CFG（控制流图）进行精确的数据流分析
-
-### 5. `lint` - 综合代码检查
-
-整合所有检查器进行全面的代码质量检查：
-
-```bash
-./codelint lint <file_or_directory> [options]
-```
-
-**lint 选项：**
-
-| 选项 | 说明 |
-|------|------|
-| `--only=<checker>` | 只运行指定检查器 (init, const, global, singleton) |
-| `--exclude=<checker>` | 排除指定检查器 |
-| `--fix` | 自动修复发现的问题（仅支持 init 和 const） |
-| `--severity=<level>` | 按严重程度过滤 (error, warning, hint, info) |
-| `--output-json` | 以 JSON 格式输出结果 |
-
 ## 输出格式
 
 ### 文本输出（默认）
@@ -111,7 +80,8 @@ static T& instance() {
 
 ```bash
 ./codelint --output-json check_init tests/test.cpp
-./codelint --output-json lint src/
+./codelint --output-json find_global src/
+./codelint --output-json find_singleton src/
 ```
 
 **JSON 格式示例**：
@@ -167,16 +137,16 @@ make -j$(nproc)
 ./codelint check_init src/main.cpp --fix
 
 # 检查整个目录
-./codelint lint src/
+./codelint check_init src/
 
-# 只运行特定检查器
-./codelint lint src/ --only=init --only=const
+# 检查全局变量
+./codelint find_global src/
 
-# 排除某些检查器
-./codelint lint src/ --exclude=global
+# 检查单例模式
+./codelint find_singleton src/
 
 # JSON 输出，用于 CI 集成
-./codelint --output-json lint src/ --severity=warning
+./codelint --output-json check_init src/
 ```
 
 ## 增量分析 (--scope)
@@ -185,26 +155,26 @@ make -j$(nproc)
 
 ```bash
 # 检查未提交的更改（工作目录）
-codelint lint src/ --scope modified
+codelint check_init src/ --scope modified
 
 # 检查已暂存的更改（git add 但未提交）
-codelint lint src/ --scope staged
+codelint find_global src/ --scope staged
 
 # 检查特定提交
-codelint lint src/ --scope commit:HEAD
+codelint find_singleton src/ --scope commit:HEAD
 
 # 检查 PR 与 main 的差异
-codelint lint src/ --scope pr:main
+codelint check_init src/ --scope pr:main
 
 # 检查两个分支之间的差异
-codelint lint src/ --scope diff:main...feature
+codelint find_global src/ --scope diff:main...feature
 ```
 
 **功能：**
 
 - **文件级过滤**：只编译和检查修改过的文件（更快）
 - **行级过滤**：只在修改的行上报告问题（更精确）
-- **支持所有检查器**：init, const, global, singleton
+- **支持所有检查器**：check_init, find_global, find_singleton
 
 ## 技术架构
 
