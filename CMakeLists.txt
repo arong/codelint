@@ -64,7 +64,10 @@ message(STATUS "Found libgit2 ${libgit2_VERSION}")
 # ========== Executable Definition ==========
 add_executable(codelint
   src/main.cpp
-  src/commands.cpp
+  src/commands/cmd_utils.cpp
+  src/commands/cmd_check_init.cpp
+  src/commands/cmd_find_global.cpp
+  src/commands/cmd_find_singleton.cpp
   src/lint.cpp
   src/lint_checker.cpp
   src/issue_reporter.cpp
