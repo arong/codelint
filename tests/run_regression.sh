@@ -58,7 +58,7 @@ run_test() {
     rm -f "$output_file"
 }
 
-echo "Running lint --only=init tests..."
+echo "Running check_init tests..."
 echo ""
 
 # Test 1-4: Fixed file comparison
@@ -112,7 +112,7 @@ echo "------------------------------------------"
 # Only test init_check.cpp and integer.cpp (work on macOS)
 for src_file in "$TEST_DIR"/CodeLintTest/src/init_checker/src/{init_check,integer}.cpp; do
     TEST_COUNT=$((TEST_COUNT + 1))
-    output=$("$CODELINT" lint "$src_file" --only=init 2>&1)
+    output=$("$CODELINT" check_init "$src_file" 2>&1)
     compile_error=$(echo "$output" | grep -c "fatal error" 2>/dev/null || echo "0")
     compile_error=${compile_error//[^0-9]/}
     if [ "$compile_error" -gt 0 ]; then

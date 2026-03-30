@@ -3,6 +3,7 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <vector>
 
 #include "commands.h"
 #include "lint/git_scope.h"
@@ -12,62 +13,50 @@
 #endif
 
 GlobalOptions g_opts;
-codelint::lint::LintConfig g_lint_config;
 std::optional<codelint::lint::GitScope> g_scope;
 
 int main(int argc, char** argv) {
   CLI::App app{"codelint - C++ code analysis tool"};
 
-  bool show_version = false;
-  app.add_flag("--version", show_version, "Show version information");
-
-  app.add_option("-p,--path", g_opts.path,
-                 "Path to compile_commands.json directory");
-  app.add_flag("--output-json", g_opts.output_json, "Output format as JSON");
-
-  // Scope option controls incremental analysis.
-  // When scope != "all", only reports issues on modified lines (line-level filtering)
-  // and only compiles/analyzes modified files (file-level filtering).
+  // Global options
+  app.add_flag("--version", g_opts.show_version, "Show version information with LLVM details");
+  app.add_option("-p,--path", g_opts.path, "Path to compile_commands.json directory");
+  app.add_flag("--output-json", g_opts.output_json, "Output in JSON format")
+      ->description("Output issues in JSON format for CI/CD integration");
   app.add_option("--scope", g_opts.scope,
-      "Filter analysis to only check modified code (default: all). "
-      "Modes:\n"
-      "  all                   - Check all files (full analysis) (default)\n"
-      "  modified              - Check uncommitted changes (working directory)\n"
-      "  staged                - Check staged changes (git add, not committed)\n"
-      "  commit:<HASH>         - Check changes in a specific commit\n"
-      "  merge-base            - Check diff vs merge-base (for PRs)\n"
-      "  pr:<branch>           - Check PR diff vs specified branch\n"
-      "  diff:<a>...<b>        - Check diff between two branches\n"
-      "\n"
+      "Control incremental analysis (default: all)\n"
       "Examples:\n"
-      "  codelint lint src/                # Check everything (default)\n"
-      "  codelint lint src/ --scope modified   # Only modified files/lines\n"
-      "  codelint lint src/ --scope staged     # Only git add changes\n"
-      "  codelint lint src/ --scope pr:develop # PR to develop branch\n"
-      "  codelint lint src/ --scope diff:main...feature  # Diff between branches")
+      "  --scope modified      # Only modified files/lines\n"
+      "  --scope staged        # Only git-add changes\n"
+      "  --scope pr:develop    # PR difference vs develop")
       ->default_val("all");
 
-  CLI::App* lint_cmd = app.add_subcommand("lint", "Run lint checks on C++ code");
-  lint_cmd->add_option("files", g_lint_config.files,
-                       "Source files to check")
-      ->expected(0, std::numeric_limits<size_t>::max());
-  lint_cmd->add_option("--only", g_lint_config.only_checkers,
-                       "Only run specific checkers (comma-separated)");
-  lint_cmd->add_option("--exclude", g_lint_config.exclude_patterns,
-                       "Exclude checkers (comma-separated)");
-  lint_cmd->add_flag("--fix", g_lint_config.auto_fix,
-                     "Automatically apply fixes where possible");
-  lint_cmd->add_flag("--inplace", g_lint_config.inplace,
-                     "Modify files in-place (requires --fix)");
-  lint_cmd->add_option("--severity", g_lint_config.min_severity,
-                       "Minimum severity to report (error, warning, info, hint)")
-      ->transform(CLI::CheckedTransformer(
-          std::map<std::string, codelint::lint::Severity>{
-              {"error", codelint::lint::Severity::ERROR},
-              {"warning", codelint::lint::Severity::WARNING},
-              {"info", codelint::lint::Severity::INFO},
-              {"hint", codelint::lint::Severity::HINT}},
-          CLI::ignore_case));
+  // Define subcommand options structs locally
+  CheckInitOptions check_init_opts;
+  FindGlobalOptions find_global_opts;
+  FindSingletonOptions find_singleton_opts;
+
+  // check_init subcommand - with fix and suppress options
+  CLI::App* check_init_cmd = app.add_subcommand("check_init", "Check variable initialization styles");
+  check_init_cmd->add_option("files", check_init_opts.files, "Source files to analyze")
+      ->expected(0, std::numeric_limits<size_t>::max())
+      ->description("C++ source files or directories to analyze");
+  check_init_cmd->add_flag("--fix", check_init_opts.fix, "Apply automatic fixes where possible");
+  check_init_cmd->add_flag("--inplace", check_init_opts.inplace, "Modify files in-place (use with --fix)");
+  check_init_cmd->add_flag("--suppress-constant", check_init_opts.suppress_constant,
+                           "Skip const/constexpr suggestions (for regression tests)");
+
+  // find_global subcommand - detection only, no fix options
+  CLI::App* find_global_cmd = app.add_subcommand("find_global", "Find global variables in codebase");
+  find_global_cmd->add_option("path", find_global_opts.path, "Source file or directory to scan")
+      ->required()
+      ->description("File or directory path containing code to analyze for global variables");
+
+  // find_singleton subcommand - detection only, no fix options
+  CLI::App* find_singleton_cmd = app.add_subcommand("find_singleton", "Find singleton patterns in codebase");
+  find_singleton_cmd->add_option("path", find_singleton_opts.path, "Source file or directory to scan")
+      ->required()
+      ->description("File or directory path containing code to analyze for singleton patterns");
 
   if (argc == 1) {
     std::cout << app.help() << std::endl;
@@ -80,13 +69,19 @@ int main(int argc, char** argv) {
     return app.exit(e);
   }
 
-  if (show_version) {
+  // Handle version flag
+  if (g_opts.show_version) {
     std::cout << "codelint version " << CODELINT_VERSION << "\n";
+#ifdef LLVM_VERSION_STRING
+    std::cout << "Built with LLVM " << LLVM_VERSION_STRING << "\n";
+#else
     std::cout << "Built with LLVM LibTooling\n";
+#endif
     std::cout << "Target: C++14 (AUTOSAR 2014)" << std::endl;
     return 0;
   }
 
+  // Initialize GitScope if scope is set
   if (!g_opts.scope.empty() && g_opts.scope != "all") {
     g_scope = codelint::lint::GitScope::parse(g_opts.scope);
     if (!g_scope.has_value()) {
@@ -99,8 +94,13 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (app.got_subcommand("lint")) {
-    lint();
+  // Execute appropriate subcommand
+  if (app.got_subcommand(check_init_cmd)) {
+    return check_init(g_opts, check_init_opts);
+  } else if (app.got_subcommand(find_global_cmd)) {
+    return find_global(g_opts, find_global_opts);
+  } else if (app.got_subcommand(find_singleton_cmd)) {
+    return find_singleton(g_opts, find_singleton_opts);
   }
 
   return 0;

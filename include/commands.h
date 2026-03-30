@@ -2,6 +2,7 @@
 
 #include <string>
 #include <optional>
+#include <vector>
 
 #include "lint/lint_types.h"
 #include "lint/git_scope.h"
@@ -9,8 +10,7 @@
 struct GlobalOptions {
   std::string path;
   bool output_json = false;
-  bool fix = false;
-  bool inplace = false;
+  bool show_version = false;
   std::string scope = "all";
 };
 
@@ -18,6 +18,8 @@ struct GlobalOptions {
 struct CheckInitOptions {
   std::vector<std::string> files;
   bool fix = false;
+  bool inplace = false;
+  bool suppress_constant = false;
 };
 
 // Options for find_global command
@@ -31,10 +33,8 @@ struct FindSingletonOptions {
 };
 
 extern GlobalOptions g_opts;
-extern codelint::lint::LintConfig g_lint_config;
 extern std::optional<codelint::lint::GitScope> g_scope;
 
-void lint();
 int check_init(const GlobalOptions& opts, const CheckInitOptions& init_opts);
 int find_global(const GlobalOptions& opts, const FindGlobalOptions& global_opts);
 int find_singleton(const GlobalOptions& opts, const FindSingletonOptions& singleton_opts);

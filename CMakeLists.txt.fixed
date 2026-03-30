@@ -1,8 +1,0 @@
-# Cross-platform library linking
-    if(APPLE)
-        target_link_libraries(codelint PRIVATE
-            ${LLVM_LIBRARY_DIR}/libclang-cpp.dylib
-            ${LLVM_LIBRARY_DIR}/libclang.dylib
-            ${LLVM_LIBRARY_DIR}/libLLVM.dylib
-        )
-    else()
