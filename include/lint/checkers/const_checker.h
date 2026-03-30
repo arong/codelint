@@ -4,16 +4,18 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "lint/issue_reporter.h"
+#include "lint/git_scope.h"
 
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 
 namespace codelint {
 namespace lint {
 
 class ConstChecker : public LintChecker, public clang::RecursiveASTVisitor<ConstChecker> {
 public:
-    ConstChecker() = default;
+    explicit ConstChecker(const std::optional<GitScope>& scope = std::nullopt);
     ~ConstChecker() = default;
 
     LintResult check(const std::string& filepath) override;
@@ -40,6 +42,7 @@ private:
     clang::ASTContext *Context_ = nullptr;
     IssueReporter Reporter_;
     LintResult Result_;
+    std::optional<GitScope> scope_;
 
     struct VarInfo {
         std::string name;
@@ -65,6 +68,7 @@ private:
     std::string makeConstSuggestion(const VarInfo& info) const;
     void analyzeAndReport();
     std::string getVarKey(clang::VarDecl *VD) const;
+    bool shouldSkipUnmodifiedLine(clang::SourceLocation loc) const;
 };
 
 }  // namespace lint

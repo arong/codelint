@@ -4,13 +4,15 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "lint/issue_reporter.h"
+#include "lint/git_scope.h"
+#include <optional>
 
 namespace codelint {
 namespace lint {
 
 class InitChecker : public LintChecker, public clang::RecursiveASTVisitor<InitChecker> {
 public:
-    InitChecker() = default;
+    explicit InitChecker(const std::optional<GitScope>& scope = std::nullopt);
     ~InitChecker() = default;
 
     LintResult check(const std::string& filepath) override;
@@ -38,6 +40,7 @@ private:
     clang::ASTContext *Context_ = nullptr;
     IssueReporter Reporter_;
     LintResult Result_;
+    std::optional<GitScope> scope_;
 
     void checkUninitialized(clang::VarDecl *VD);
     void checkEqualsInit(clang::VarDecl *VD);
@@ -60,6 +63,7 @@ private:
     bool hasDigitValue(const std::string& value) const;
     bool hasUnsignedSuffix(const std::string& value) const;
     bool isMainFile(clang::Decl *D) const;
+    bool shouldSkipUnmodifiedLine(clang::SourceLocation loc) const;
 };
 
 }  // namespace lint

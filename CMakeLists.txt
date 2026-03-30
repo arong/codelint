@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(codelint VERSION 1.0.0 LANGUAGES CXX)
+project(codelint VERSION 1.0.0 LANGUAGES C CXX)
 
 # ========== C++ Standard Detection (C++26/C++23 with C++20 fallback) ==========
 include(CheckCXXCompilerFlag)
@@ -50,11 +50,21 @@ llvm_map_components_to_libnames(llvm_libs
 # ========== Project Configuration ==========
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/rapidjson/include)
+# Use system rapidjson from brew
+find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson/document.h HINTS /opt/homebrew/include)
+if(RAPIDJSON_INCLUDE_DIR)
+    message(STATUS "Found RapidJSON at: ${RAPIDJSON_INCLUDE_DIR}")
+    include_directories(${RAPIDJSON_INCLUDE_DIR})
+endif()
+
+# ========== libgit2 Configuration ==========
+find_package(libgit2 REQUIRED)
+message(STATUS "Found libgit2 ${libgit2_VERSION}")
 
 # ========== Executable Definition ==========
 add_executable(codelint
   src/main.cpp
+  src/commands.cpp
   src/lint.cpp
   src/lint_checker.cpp
   src/issue_reporter.cpp
@@ -72,7 +82,6 @@ add_executable(codelint
 target_include_directories(codelint PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/rapidjson/include
 )
 
 # ========== Version Definitions ==========
@@ -90,13 +99,21 @@ if(STATIC_LINKING)
     separate_arguments(LLVM_LINK_FLAGS_LIST UNIX_COMMAND "${LLVM_LINK_FLAGS}")
     target_link_libraries(codelint PRIVATE ${llvm_libs} ${LLVM_LINK_FLAGS_LIST})
 else()
-    # Link libclang-cpp first (C++ API), then libclang (C API)
-    # Use LINK_PRIVATE to avoid symbol export issues
+    # Cross-platform library linking
+    if(APPLE)
     target_link_libraries(codelint PRIVATE
-        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
-        ${LLVM_LIBRARY_DIR}/libclang.so
-        ${LLVM_LIBRARY_DIR}/libLLVM.so
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.dylib
+        ${LLVM_LIBRARY_DIR}/libclang.dylib
+        ${LLVM_LIBRARY_DIR}/libLLVM.dylib
+        libgit2::libgit2package
     )
+    else()
+        target_link_libraries(codelint PRIVATE
+            ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
+            ${LLVM_LIBRARY_DIR}/libclang.so
+            ${LLVM_LIBRARY_DIR}/libLLVM.so
+        )
+    endif()
     # Suppress LLVM command-line option duplication warning
     target_compile_options(codelint PRIVATE -DLLVM_ENABLE_DUMP=0)
 endif()

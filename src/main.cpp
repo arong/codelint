@@ -24,8 +24,27 @@ int main(int argc, char** argv) {
   app.add_option("-p,--path", g_opts.path,
                  "Path to compile_commands.json directory");
   app.add_flag("--output-json", g_opts.output_json, "Output format as JSON");
+
+  // Scope option controls incremental analysis.
+  // When scope != "all", only reports issues on modified lines (line-level filtering)
+  // and only compiles/analyzes modified files (file-level filtering).
   app.add_option("--scope", g_opts.scope,
-                 "Filter analysis scope (all, modified, commit:<hash>, merge-base)")
+      "Filter analysis to only check modified code (default: all). "
+      "Modes:\n"
+      "  all                   - Check all files (full analysis) (default)\n"
+      "  modified              - Check uncommitted changes (working directory)\n"
+      "  staged                - Check staged changes (git add, not committed)\n"
+      "  commit:<HASH>         - Check changes in a specific commit\n"
+      "  merge-base            - Check diff vs merge-base (for PRs)\n"
+      "  pr:<branch>           - Check PR diff vs specified branch\n"
+      "  diff:<a>...<b>        - Check diff between two branches\n"
+      "\n"
+      "Examples:\n"
+      "  codelint lint src/                # Check everything (default)\n"
+      "  codelint lint src/ --scope modified   # Only modified files/lines\n"
+      "  codelint lint src/ --scope staged     # Only git add changes\n"
+      "  codelint lint src/ --scope pr:develop # PR to develop branch\n"
+      "  codelint lint src/ --scope diff:main...feature  # Diff between branches")
       ->default_val("all");
 
   CLI::App* lint_cmd = app.add_subcommand("lint", "Run lint checks on C++ code");
@@ -72,6 +91,10 @@ int main(int argc, char** argv) {
     g_scope = codelint::lint::GitScope::parse(g_opts.scope);
     if (!g_scope.has_value()) {
       std::cerr << "Error: Invalid scope '" << g_opts.scope << "'" << std::endl;
+      return 1;
+    }
+    if (g_scope->has_error()) {
+      std::cerr << "Error: " << g_scope->error() << std::endl;
       return 1;
     }
   }

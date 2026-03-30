@@ -179,6 +179,33 @@ make -j$(nproc)
 ./codelint --output-json lint src/ --severity=warning
 ```
 
+## 增量分析 (--scope)
+
+只检查修改的代码，而不是整个代码库：
+
+```bash
+# 检查未提交的更改（工作目录）
+codelint lint src/ --scope modified
+
+# 检查已暂存的更改（git add 但未提交）
+codelint lint src/ --scope staged
+
+# 检查特定提交
+codelint lint src/ --scope commit:HEAD
+
+# 检查 PR 与 main 的差异
+codelint lint src/ --scope pr:main
+
+# 检查两个分支之间的差异
+codelint lint src/ --scope diff:main...feature
+```
+
+**功能：**
+
+- **文件级过滤**：只编译和检查修改过的文件（更快）
+- **行级过滤**：只在修改的行上报告问题（更精确）
+- **支持所有检查器**：init, const, global, singleton
+
 ## 技术架构
 
 - **基于 LLVM LibTooling** - 使用 Clang AST 进行精确的语法分析

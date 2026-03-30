@@ -1,9 +1,11 @@
 #pragma once
 
 #include "lint_types.h"
+#include "git_scope.h"
 #include <memory>
 #include <vector>
 #include <string>
+#include <optional>
 
 namespace codelint {
 namespace lint {
@@ -20,16 +22,17 @@ public:
 
     virtual bool can_fix() const { return false; }
     virtual bool apply_fixes(const std::string& filepath,
-                            const std::vector<LintIssue>& issues,
-                            std::string& modified_content) {
+                             const std::vector<LintIssue>& issues,
+                             std::string& modified_content) {
         return false;
     }
 };
 
 class CheckerFactory {
 public:
-    static std::unique_ptr<LintChecker> create(const std::string& name);
-    static std::vector<std::unique_ptr<LintChecker>> create_all();
+    static std::unique_ptr<LintChecker> create(const std::string& name,
+                                               const std::optional<GitScope>& scope = std::nullopt);
+    static std::vector<std::unique_ptr<LintChecker>> create_all(const std::optional<GitScope>& scope = std::nullopt);
     static std::vector<std::string> available_checkers();
 };
 

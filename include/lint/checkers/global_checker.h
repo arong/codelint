@@ -4,13 +4,15 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "lint/issue_reporter.h"
+#include "lint/git_scope.h"
+#include <optional>
 
 namespace codelint {
 namespace lint {
 
 class GlobalChecker : public LintChecker, public clang::RecursiveASTVisitor<GlobalChecker> {
 public:
-    GlobalChecker() = default;
+    explicit GlobalChecker(const std::optional<GitScope>& scope = std::nullopt);
     ~GlobalChecker() = default;
 
     LintResult check(const std::string& filepath) override;
@@ -32,11 +34,13 @@ private:
     clang::ASTContext *Context_ = nullptr;
     IssueReporter Reporter_;
     LintResult Result_;
+    std::optional<GitScope> scope_;
 
     bool isGlobalVariable(clang::VarDecl *VD) const;
     bool isInSystemHeader(clang::VarDecl *VD) const;
     bool isExternDeclaration(clang::VarDecl *VD) const;
     void reportGlobalVariable(clang::VarDecl *VD);
+    bool shouldSkipUnmodifiedLine(clang::SourceLocation loc) const;
 };
 
 }  // namespace lint

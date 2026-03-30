@@ -56,6 +56,9 @@ struct LintResult {
             case Severity::INFO: ++info_count; break;
             case Severity::HINT: ++hint_count; break;
         }
+        if (issue.fixable) {
+            ++fixed_count;
+        }
     }
 
     void merge(const LintResult& other) {
