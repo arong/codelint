@@ -39,7 +39,7 @@ run_test() {
     echo "------------------------------------------"
 
     local output_file=$(mktemp)
-    "$CODELINT" lint "$src_file" --only=init --fix 2>/dev/null | \
+    "$CODELINT" check_init "$src_file" --fix 2>/dev/null | \
         grep -v "^Running\|^===\|^$\|^/Users.*:" > "$output_file" || true
     first_line=$(head -n 1 "$output_file")
     if [ -z "$first_line" ]; then
@@ -86,7 +86,7 @@ echo "Test: Verify fixed files report 0 issues"
 echo "------------------------------------------"
 for fixed_file in "$TEST_DIR"/CodeLintTest/src/init_checker/fixed/*.cpp; do
     TEST_COUNT=$((TEST_COUNT + 1))
-    output=$("$CODELINT" lint "$fixed_file" --only=init 2>&1)
+    output=$("$CODELINT" check_init "$fixed_file" 2>&1)
     compile_error=$(echo "$output" | grep -c "fatal error" 2>/dev/null || echo "0")
     compile_error=${compile_error//[^0-9]/}
     if [ "$compile_error" -gt 0 ]; then
