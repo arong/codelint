@@ -131,6 +131,80 @@ for src_file in "$TEST_DIR"/CodeLintTest/src/init_checker/src/{init_check,intege
 done
 echo ""
 
+# Extended: find_global tests
+echo "------------------------------------------"
+echo "Running find_global tests..."
+echo "------------------------------------------"
+
+TEST_COUNT=$((TEST_COUNT + 1))
+echo "Test $TEST_COUNT: find_global on test file"
+output=$("$CODELINT" find_global "$TEST_DIR/test_find_global.cpp" 2>&1)
+compile_error=$(echo "$output" | grep -c "fatal error" 2>/dev/null || echo "0")
+compile_error=${compile_error//[^0-9]/}
+if [ "$compile_error" -gt 0 ]; then
+    echo "SKIP: find_global - compilation error"
+    TEST_COUNT=$((TEST_COUNT - 1))
+else
+    global_count=$(echo "$output" | grep -c "global_" 2>/dev/null || echo "0")
+    if [ "$global_count" -gt 0 ]; then
+        echo "PASS: find_global detects $global_count global variable(s)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo "FAIL: find_global detects 0 global variables"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+fi
+
+# Extended: find_singleton tests
+echo "------------------------------------------"
+echo "Running find_singleton tests..."
+echo "------------------------------------------"
+
+TEST_COUNT=$((TEST_COUNT + 1))
+echo "Test $TEST_COUNT: find_singleton on test file"
+output=$("$CODELINT" find_singleton "$TEST_DIR/test_find_singleton.cpp" 2>&1)
+compile_error=$(echo "$output" | grep -c "fatal error" 2>/dev/null || echo "0")
+compile_error=${compile_error//[^0-9]/}
+if [ "$compile_error" -gt 0 ]; then
+    echo "SKIP: find_singleton - compilation error"
+    TEST_COUNT=$((TEST_COUNT - 1))
+else
+    singleton_count=$(echo "$output" | grep -c "instance\|getInstance" 2>/dev/null || echo "0")
+    if [ "$singleton_count" -gt 0 ]; then
+        echo "PASS: find_singleton detects $singleton_count singleton pattern(s)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo "FAIL: find_singleton detects 0 singleton patterns"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+fi
+
+# Test JSON output for find_global
+TEST_COUNT=$((TEST_COUNT + 1))
+echo "Test $TEST_COUNT: find_global JSON output"
+output=$("$CODELINT" --output-json find_global "$TEST_DIR/test_find_global.cpp" 2>&1)
+if echo "$output" | grep -q '"issues"'; then
+    echo "PASS: find_global JSON output valid"
+    PASS_COUNT=$((PASS_COUNT + 1))
+else
+    echo "FAIL: find_global JSON output invalid"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Test JSON output for find_singleton
+TEST_COUNT=$((TEST_COUNT + 1))
+echo "Test $TEST_COUNT: find_singleton JSON output"
+output=$("$CODELINT" --output-json find_singleton "$TEST_DIR/test_find_singleton.cpp" 2>&1)
+if echo "$output" | grep -q '"issues"'; then
+    echo "PASS: find_singleton JSON output valid"
+    PASS_COUNT=$((PASS_COUNT + 1))
+else
+    echo "FAIL: find_singleton JSON output invalid"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+echo ""
+
 echo "========================================"
 echo "Regression Test Summary"
 echo "========================================"

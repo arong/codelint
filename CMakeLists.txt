@@ -20,6 +20,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ========== Build Options ==========
 option(STATIC_LINKING "Build with static linking for release" OFF)
+option(COVERAGE "Enable code coverage (use: cmake -DCOVERAGE=ON .. && make coverage)" OFF)
+
+# ========== Coverage Configuration ==========
+if(COVERAGE)
+    message(STATUS "Coverage enabled")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 --coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+endif()
 
 # ========== LLVM/Clang Configuration (Portable) ==========
 find_package(LLVM REQUIRED CONFIG)
@@ -123,3 +132,54 @@ endif()
 
 # ========== Install ==========
 install(TARGETS codelint DESTINATION bin)
+
+# ========== GoogleTest Setup ==========
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.14.0
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Enable testing
+enable_testing()
+
+# Test executables
+add_executable(commands_test tests/commands_test.cpp)
+target_link_libraries(commands_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(commands_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_compile_definitions(commands_test PRIVATE TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_test(NAME commands_test COMMAND commands_test)
+
+add_executable(edge_cases_test tests/edge_cases_test.cpp)
+target_link_libraries(edge_cases_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(edge_cases_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_test(NAME edge_cases_test COMMAND edge_cases_test)
+
+add_executable(integration_test tests/integration_test.cpp)
+target_link_libraries(integration_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(integration_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_test(NAME integration_test COMMAND integration_test)
