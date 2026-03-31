@@ -1,0 +1,39 @@
+# Test File Protection Rules
+
+## 🚫 PROTECTED DIRECTORIES (DO NOT MODIFY)
+
+The following directories contain test fixtures that define expected behavior:
+
+- `tests/CodeLintTest/src/init_checker/src/` - Source test files
+- `tests/CodeLintTest/src/init_checker/fixed/` - Expected output files
+- `tests/CodeLintTest/build/` - Build artifacts
+
+## ⚠️ AI ASSISTANTS - READ THIS FIRST
+
+**These files are GOLDEN FILES. They define correctness.**
+
+### NEVER:
+- Modify files in protected directories
+- "Fix" test files to make tests pass
+- Change expected outputs
+- Skip failing tests
+
+### ALWAYS:
+- Fix the CODE when tests fail
+- Ask the user before updating baselines
+- Document test changes in commit messages
+
+### EXCEPTION:
+You MAY:
+- Add NEW test files (e.g., `tests/commands_test.cpp`)
+- Modify test scripts (`tests/run_regression.sh`)
+- Update test infrastructure (CMakeLists.txt)
+
+## Enforcement
+
+Pre-commit hook protects these files by:
+- Running unit tests (GoogleTest)
+- Running basic functionality checks
+- Excluding protected directory tests
+
+**REMEMBER**: Changing tests to pass = hiding bugs
