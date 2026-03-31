@@ -89,3 +89,80 @@ Before making ANY change, AI should verify:
 - [ ] Do I need to update baselines? → Ask the user first
 
 **REMEMBER**: Tests define correctness. Changing tests to pass = hiding bugs.
+
+---
+
+## AI Development Branch Rules (CRITICAL)
+
+### 🎯 AI Can ONLY Work on `develop` Branch
+
+**This is a STRICT requirement enforced by git hooks.**
+
+### Branch Permissions
+
+| Branch | AI Status | Reason |
+|--------|-----------|--------|
+| `develop` | ✅ **ALLOWED** | Designated AI development branch |
+| `main` | ❌ **BLOCKED** | Production - humans only |
+| `master` | ❌ **BLOCKED** | Production - humans only |
+| `production` | ❌ **BLOCKED** | Production - humans only |
+| `feature/*` | ⚠️ **WARNED** | Should use develop instead |
+
+### Enforcement
+
+The `commit-msg` hook enforces this rule:
+
+**When you commit on `develop`:**
+```
+✓ All tests passed. Commit proceeding.
+```
+
+**When you try to commit on `main`:**
+```
+╔════════════════════════════════════════╗
+║  🚫 BLOCKED: AI cannot commit to main  ║
+╚════════════════════════════════════════╝
+```
+
+### Required Workflow
+
+AI assistants MUST:
+
+1. **Always checkout develop first:**
+   ```bash
+   git checkout develop
+   git pull origin develop
+   ```
+
+2. **Make all commits on develop:**
+   ```bash
+   git commit -m "feat: add new functionality"
+   ```
+
+3. **Push to develop:**
+   ```bash
+   git push origin develop
+   ```
+
+4. **Let humans handle PRs:**
+   - Humans review develop branch
+   - Humans create PR: develop → main
+   - Humans merge after approval
+
+### Why This Rule?
+
+1. **Isolation** - AI work separate from production
+2. **Review** - All AI code gets human review
+3. **Stability** - main branch always stable
+4. **Traceability** - Clear development path
+
+### Exceptions
+
+**None for AI.** This rule is absolute.
+
+For humans with emergency needs:
+```bash
+git commit --no-verify -m "emergency fix"
+```
+
+---
