@@ -1,1 +1,21 @@
+#include <map>
+#include <string>
+#include <vector>
 
+void test_all_types() {
+int a{};
+  int b{5};
+  unsigned int c{10U};
+  double d{3.14};
+  bool e{true};
+  char f{'x'};
+
+  std::string str{"hello"};
+  std::vector<int> vec{1, 2, 3};
+  std::map<int, int> m{{1, 2}};
+}
+
+int main() {
+  test_all_types();
+  return 0;
+}
