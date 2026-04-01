@@ -106,7 +106,7 @@ Before making ANY change, AI should verify:
 | `main` | ❌ **BLOCKED** | Production - humans only |
 | `master` | ❌ **BLOCKED** | Production - humans only |
 | `production` | ❌ **BLOCKED** | Production - humans only |
-| `feature/*` | ⚠️ **WARNED** | Should use develop instead |
+| `feature/*` | ❌ **BLOCKED** | Should use develop instead |
 
 ### Enforcement
 

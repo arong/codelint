@@ -163,10 +163,10 @@ int run_checker_command(
         for (size_t i = 0; i < all_issues.size(); ++i) {
             const auto& issue = all_issues[i];
             std::cout << "    {\n";
-            std::cout << "      \"type\": \"" << check_type_to_string(issue.type) << "\",\n";
-            std::cout << "      \"severity\": \"" << severity_to_string(issue.severity) << "\",\n";
-            std::cout << "      \"checker\": \"" << issue.checker_name << "\",\n";
-            std::cout << "      \"name\": \"" << issue.name << "\",\n";
+            std::cout << R"(      "type": ")" << check_type_to_string(issue.type) << "\",\n";
+            std::cout << R"(      "severity": ")" << severity_to_string(issue.severity) << "\",\n";
+            std::cout << R"(      "checker": ")" << issue.checker_name << "\",\n";
+            std::cout << R"(      "name": ")" << issue.name << "\",\n";
             std::cout << "      \"type_str\": \"" << issue.type_str << "\",\n";
             std::cout << "      \"file\": \"" << issue.file << "\",\n";
             std::cout << "      \"line\": " << issue.line << ",\n";
