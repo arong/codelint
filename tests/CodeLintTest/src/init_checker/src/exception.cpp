@@ -1,6 +1,3 @@
-// Test file for exception handling - Bug #2 verification
-// The catch variable should NOT be reported as uninitialized
-// because it's initialized by the catch clause itself
 
 #include <stdexcept>
 #include <string>

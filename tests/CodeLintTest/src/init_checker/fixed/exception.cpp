@@ -68,7 +68,7 @@ void test_catch_used() {
         throw std::string("error message");
     } catch (const std::string& msg) {
         // msg is initialized - should NOT be flagged
-        std::string copy = msg;  // copy the catch variable
+        std::string copy{msg};  // copy the catch variable
         std::cout << copy << std::endl;
     }
 }
