@@ -3,13 +3,9 @@ project(codelint VERSION 1.0.0 LANGUAGES C CXX)
 
 # ========== C++ Standard Detection (C++26/C++23 with C++20 fallback) ==========
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++26" COMPILER_SUPPORTS_CXX26)
 check_cxx_compiler_flag("-std=c++23" COMPILER_SUPPORTS_CXX23)
 
-if(COMPILER_SUPPORTS_CXX26)
-    set(CMAKE_CXX_STANDARD 26)
-    message(STATUS "Using C++26")
-elseif(COMPILER_SUPPORTS_CXX23)
+if(COMPILER_SUPPORTS_CXX23)
     set(CMAKE_CXX_STANDARD 23)
     message(STATUS "Using C++23")
 else()

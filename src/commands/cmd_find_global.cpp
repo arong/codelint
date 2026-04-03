@@ -18,13 +18,9 @@ int find_global(const GlobalOptions& opts, const FindGlobalOptions& global_opts)
   }
 
   return run_checker_command<GlobalChecker>(
-      global_opts.path,
-      opts.output_json,
-      scope,
-      "global variable",
+      global_opts.path, opts.output_json, scope, "global variable",
       [](const std::optional<GitScope>& s) { return GlobalChecker(s); },
       [](const LintIssue& issue) {
         std::cout << "  " << issue.name << " : " << issue.type_str << "\n";
-      }
-  );
+      });
 }

@@ -19,10 +19,13 @@ public:
 // LintVisitor stub - will be implemented in later task
 class LintVisitor {
 public:
-  explicit LintVisitor(clang::ASTContext& Context) : Context_(Context) {}
+  explicit LintVisitor(clang::ASTContext& Context) : Context_(Context) {
+  }
   ~LintVisitor() = default;
 
-  bool TraverseDecl(clang::Decl* D) { return true; }
+  bool TraverseDecl(clang::Decl* D) {
+    return true;
+  }
 
 private:
   clang::ASTContext& Context_;
@@ -47,9 +50,8 @@ void LintConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
 
 LintAction::~LintAction() = default;
 
-std::unique_ptr<clang::ASTConsumer>
-LintAction::CreateASTConsumer(clang::CompilerInstance& CI,
-                              llvm::StringRef InFile) {
+std::unique_ptr<clang::ASTConsumer> LintAction::CreateASTConsumer(clang::CompilerInstance& CI,
+                                                                  llvm::StringRef InFile) {
   current_filename_ = InFile.str();
   return std::make_unique<LintConsumer>(CI.getASTContext());
 }
@@ -61,5 +63,5 @@ bool LintAction::BeginSourceFileAction(clang::CompilerInstance& CI) {
 void LintAction::EndSourceFileAction() {
 }
 
-}  // namespace lint
-}  // namespace codelint
+} // namespace lint
+} // namespace codelint

@@ -1,43 +1,46 @@
 #pragma once
 
+#include "git_scope.h"
 #include "lint_checker.h"
 #include "lint_types.h"
-#include "git_scope.h"
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include <optional>
+#include <sstream>
 
 namespace codelint {
 namespace lint {
 
 class LintRunner {
 public:
-    explicit LintRunner(const LintConfig& config, const std::optional<GitScope>& scope = std::nullopt);
+  explicit LintRunner(const LintConfig& config,
+                      const std::optional<GitScope>& scope = std::nullopt);
 
-    static LintConfig load_config(const std::string& config_path);
+  static LintConfig load_config(const std::string& config_path);
 
-    LintResult run(const std::vector<std::string>& files);
+  LintResult run(const std::vector<std::string>& files);
 
-    LintResult run_checkers(const std::vector<std::string>& files,
-                           const std::vector<std::string>& checker_names);
+  LintResult run_checkers(const std::vector<std::string>& files,
+                          const std::vector<std::string>& checker_names);
 
-    void print_human(const LintResult& result, std::ostream& os = std::cout) const;
-    void print_json(const LintResult& result, std::ostream& os = std::cout) const;
+  void print_human(const LintResult& result, std::ostream& os = std::cout) const;
+  void print_json(const LintResult& result, std::ostream& os = std::cout) const;
 
-    int apply_fixes(const LintResult& result);
+  int apply_fixes(const LintResult& result);
 
-    const std::vector<std::unique_ptr<LintChecker>>& checkers() const { return checkers_; }
+  const std::vector<std::unique_ptr<LintChecker>>& checkers() const {
+    return checkers_;
+  }
 
 private:
-    LintConfig config_;
-    std::optional<GitScope> scope_;
-    std::vector<std::unique_ptr<LintChecker>> checkers_;
+  LintConfig config_;
+  std::optional<GitScope> scope_;
+  std::vector<std::unique_ptr<LintChecker>> checkers_;
 
-    void init_checkers();
-    bool should_check_file(const std::string& filepath) const;
-    std::vector<std::string> get_files_from_compile_commands(const std::string& path) const;
+  void init_checkers();
+  bool should_check_file(const std::string& filepath) const;
+  std::vector<std::string> get_files_from_compile_commands(const std::string& path) const;
 };
 
-}  // namespace lint
-}  // namespace codelint
+} // namespace lint
+} // namespace codelint

@@ -39,8 +39,7 @@ run_test() {
     echo "------------------------------------------"
 
     local output_file=$(mktemp)
-    "$CODELINT" check_init "$src_file" --fix 2>/dev/null | \
-        grep -v "^Running\|^===\|^$\|^/Users.*:" > "$output_file" || true
+    "$CODELINT" check_init "$src_file" --fix 2>/dev/null > "$output_file" || true
     first_line=$(head -n 1 "$output_file")
     if [ -z "$first_line" ]; then
         tail -n +2 "$output_file" > "${output_file}.tmp" && mv "${output_file}.tmp" "$output_file"

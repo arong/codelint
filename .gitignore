@@ -14,3 +14,4 @@ packaging/AppDir/
 codelint-dev-x86_64.AppImage
 .cache
 .sisyphus
+.idea/

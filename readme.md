@@ -115,16 +115,54 @@ bash tests/run_regression_tests.sh
 
 ## 快速开始
 
+### 环境要求
+
+**macOS (Homebrew)**:
+```bash
+# 安装 LLVM 和 libgit2
+brew install llvm@21 libgit2
+```
+
+**Ubuntu/Debian**:
+```bash
+# 安装 LLVM 和 libgit2 开发库
+sudo apt install llvm-dev libclang-dev clang libgit2-dev
+```
+
+**Arch Linux**:
+```bash
+sudo pacman -S llvm libs git
+```
+
 ### 构建项目
 
+**macOS**:
 ```bash
-# 安装依赖（Ubuntu/Debian）
-sudo apt install llvm-dev libclang-dev clang
+# 创建构建目录并配置（必须指定 LLVM_DIR）
+cmake -B build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
 
-# 构建
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+# 构建项目
+cmake --build build -j$(sysctl -n hw.ncpu)
+```
+
+**Linux**:
+```bash
+# 创建构建目录并配置
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+# 构建项目
+cmake --build build -j$(nproc)
+```
+
+**注意**：macOS 上必须通过 `-DLLVM_DIR` 指定 LLVM 配置路径，否则 CMake 无法找到 Homebrew 安装的 LLVM。
+
+### 运行测试
+
+```bash
+cd build
+ctest --output-on-failure
 ```
 
 ### 使用示例
@@ -199,3 +237,4 @@ python3 packaging/scripts/create_appimage.py
 ## 许可证
 
 MIT License
+Test

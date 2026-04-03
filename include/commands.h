@@ -1,11 +1,11 @@
 #pragma once
 
-#include <string>
 #include <optional>
+#include <string>
 #include <vector>
 
-#include "lint/lint_types.h"
 #include "lint/git_scope.h"
+#include "lint/lint_types.h"
 
 struct GlobalOptions {
   std::string path;
@@ -41,4 +41,5 @@ int find_singleton(const GlobalOptions& opts, const FindSingletonOptions& single
 
 // Utility functions
 void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output);
-bool apply_fixes_to_file(const std::string& filepath, const std::vector<codelint::lint::LintIssue>& fixes);
+bool apply_fixes_to_file(const std::string& filepath,
+                         const std::vector<codelint::lint::LintIssue>& fixes);

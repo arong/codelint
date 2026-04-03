@@ -7,7 +7,7 @@ namespace codelint {
 namespace lint {
 class GlobalChecker;
 }
-}  // namespace codelint
+} // namespace codelint
 
 /**
  * Find global variables in the specified path.

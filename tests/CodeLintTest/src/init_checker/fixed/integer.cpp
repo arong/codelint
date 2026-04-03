@@ -1,7 +1,7 @@
 #include <cstdint>
 
-int global1;
-unsigned global2;
+int global1{};
+unsigned global2{};
 
 int global3{1};
 unsigned global4{2U};

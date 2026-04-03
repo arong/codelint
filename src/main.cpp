@@ -24,11 +24,11 @@ int main(int argc, char** argv) {
   app.add_flag("--output-json", g_opts.output_json, "Output in JSON format")
       ->description("Output issues in JSON format for CI/CD integration");
   app.add_option("--scope", g_opts.scope,
-      "Control incremental analysis (default: all)\n"
-      "Examples:\n"
-      "  --scope modified      # Only modified files/lines\n"
-      "  --scope staged        # Only git-add changes\n"
-      "  --scope pr:develop    # PR difference vs develop")
+                 "Control incremental analysis (default: all)\n"
+                 "Examples:\n"
+                 "  --scope modified      # Only modified files/lines\n"
+                 "  --scope staged        # Only git-add changes\n"
+                 "  --scope pr:develop    # PR difference vs develop")
       ->default_val("all");
 
   // Define subcommand options structs locally
@@ -37,24 +37,29 @@ int main(int argc, char** argv) {
   FindSingletonOptions find_singleton_opts;
 
   // check_init subcommand - with fix and suppress options
-  CLI::App* check_init_cmd = app.add_subcommand("check_init", "Check variable initialization styles");
+  CLI::App* check_init_cmd =
+      app.add_subcommand("check_init", "Check variable initialization styles");
   check_init_cmd->add_option("files", check_init_opts.files, "Source files to analyze")
       ->expected(0, static_cast<int>(std::numeric_limits<size_t>::max()))
       ->description("C++ source files or directories to analyze");
   check_init_cmd->add_flag("--fix", check_init_opts.fix, "Apply automatic fixes where possible");
-  check_init_cmd->add_flag("--inplace", check_init_opts.inplace, "Modify files in-place (use with --fix)");
+  check_init_cmd->add_flag("--inplace", check_init_opts.inplace,
+                           "Modify files in-place (use with --fix)");
   check_init_cmd->add_flag("--suppress-constant", check_init_opts.suppress_constant,
                            "Skip const/constexpr suggestions (for regression tests)");
 
   // find_global subcommand - detection only, no fix options
-  CLI::App* find_global_cmd = app.add_subcommand("find_global", "Find global variables in codebase");
+  CLI::App* find_global_cmd =
+      app.add_subcommand("find_global", "Find global variables in codebase");
   find_global_cmd->add_option("path", find_global_opts.path, "Source file or directory to scan")
       ->required()
       ->description("File or directory path containing code to analyze for global variables");
 
   // find_singleton subcommand - detection only, no fix options
-  CLI::App* find_singleton_cmd = app.add_subcommand("find_singleton", "Find singleton patterns in codebase");
-  find_singleton_cmd->add_option("path", find_singleton_opts.path, "Source file or directory to scan")
+  CLI::App* find_singleton_cmd =
+      app.add_subcommand("find_singleton", "Find singleton patterns in codebase");
+  find_singleton_cmd
+      ->add_option("path", find_singleton_opts.path, "Source file or directory to scan")
       ->required()
       ->description("File or directory path containing code to analyze for singleton patterns");
 

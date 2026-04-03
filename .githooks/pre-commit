@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "🔍 Running whitespace checks..."
+
+# Check 1: Trailing whitespace (exclude .sisyphus and build)
+if grep -r '[[:blank:]]$' \
+    --include='*.cpp' \
+    --include='*.h' \
+    --include='*.txt' \
+    --include='*.md' \
+    --include='*.sh' \
+    --include='*.py' \
+    . 2>/dev/null | grep -v -E '(\.git/|build/|\.sisyphus/)'; then
+    echo "❌ Error: Found trailing whitespace!"
+    echo "Please fix and try again."
+    exit 1
+fi
+echo "✅ No trailing whitespace"
+
+# Check 2: Missing trailing newline (exclude .sisyphus and build)
+errors=0
+while IFS= read -r -d '' file; do
+    last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
+    if [ "$last" != "0a" ] && [ -s "$file" ]; then
+        echo "❌ Missing trailing newline: $file"
+        errors=$((errors + 1))
+    fi
+done < <(find . -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.py' \) ! -path './.git/*' ! -path './build/*' ! -path './.sisyphus/*' -print0)
+
+if [ $errors -ne 0 ]; then
+    echo "❌ Error: $errors file(s) missing trailing newline"
+    exit 1
+fi
+echo "✅ All files have trailing newlines"
+
+echo "✨ Whitespace check passed!"

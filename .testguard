@@ -37,3 +37,4 @@ Pre-commit hook protects these files by:
 - Excluding protected directory tests
 
 **REMEMBER**: Changing tests to pass = hiding bugs
+# Test file for develop branch
