@@ -37,34 +37,35 @@ long double ld1{};
 bool b1{};
 
 // 4. STRING TYPES
-const char * str1{};
+const char* str1{};
 std::string str2;
 
 // 5. POINTER TYPES
-int * ptr1{};
-const int * ptr2{};
-int ** ptr3{};
-void * void_ptr{};
+int* ptr1{};
+const int* ptr2{};
+int** ptr3{};
+void* void_ptr{};
 
 // 6. STRUCTURES
 struct CStruct {
-int x{};
-double y{};
+  int x{};
+  double y{};
 };
 CStruct cs1;
 struct CPPStruct {
-int a{};
-std::string b{};
-float c{};
+  int a{};
+  std::string b{};
+  float c{};
 };
 CPPStruct cpps1;
 
 // 7. CLASSES
 class TestClass {
- public:
-int value{};
-std::string name{};
-  TestClass() : value(0) {}
+public:
+  int value{};
+  std::string name{};
+  TestClass() : value(0) {
+  }
 };
 TestClass tc1;
 
@@ -108,20 +109,20 @@ int static_global1{};
 
 // 14. FUNCTIONS - LOCAL VARIABLES
 void test_function1() {
-int local1{};
-int local2{};
-double local3{};
-char local4{};
-bool local5{};
+  int local1{};
+  int local2{};
+  double local3{};
+  char local4{};
+  bool local5{};
   int local6{10};
   int local7{20};
   std::string local8("hello");
 }
 
 void test_function2() {
-float f_local{};
-long lng_local{};
-short sh_local{};
+  float f_local{};
+  long lng_local{};
+  short sh_local{};
 }
 
 void test_function3() {
@@ -134,10 +135,10 @@ void test_function3() {
 
 // 15. COMPLEX SCENARIOS
 struct ComplexStruct {
-int x{};
-double y{};
-std::string z{};
-int * ptr{};
+  int x{};
+  double y{};
+  std::string z{};
+  int* ptr{};
 };
 void complex_test() {
   ComplexStruct cs;
@@ -193,58 +194,61 @@ char32_t char32_1{};
 
 // 22. UNION
 union UnionType {
-int i{};
-double d{};
-char c{};
+  int i{};
+  double d{};
+  char c{};
 };
 UnionType ut1;
 
 // 23. NESTED STRUCTURES
 struct Outer {
   struct Inner {
-int x{};
-int y{};
-struct Inner inner{};
-int outer_val{};
-} outer1;
+    int x{};
+    int y{};
+    struct Inner inner{};
+    int outer_val{};
+  } outer1;
 
-// 24. VIRTUAL FUNCTIONS
-class BaseClass {
- public:
-  virtual void foo() {}
-int base_val{};
-};
-class DerivedClass : public BaseClass {
- public:
-  void foo() override {}
-int derived_val{};
-};
-DerivedClass dc1;
+  // 24. VIRTUAL FUNCTIONS
+  class BaseClass {
+  public:
+    virtual void foo() {
+    }
+    int base_val{};
+  };
+  class DerivedClass : public BaseClass {
+  public:
+    void foo() override {
+    }
+    int derived_val{};
+  };
+  DerivedClass dc1;
 
-// 25. ARRAY OF POINTERS
-int *[10] ptr_array1{};
-const char *[5] str_ptr_array{};
+  // 25. ARRAY OF POINTERS
+  int* [10] ptr_array1{};
+  const char* [5] str_ptr_array{};
 
-// 26. STRUCT WITH UNION
-struct StructWithUnion {
-int tag{};
-  union {
-int ival{};
-double dval{};
-char * sval{};
-union (unnamed union at /home/aronic/playground/cmdtools/cndy/tests/init_check_src.cpp:231:3) u{};
-} swu1;
+  // 26. STRUCT WITH UNION
+  struct StructWithUnion {
+    int tag{};
+    union {
+      int ival{};
+      double dval{};
+      char* sval{};
+      union(unnamed union at / home / aronic / playground / cmdtools / cndy / tests /
+            init_check_src.cpp : 231 : 3) u{};
+    } swu1;
 
-// 27. Template Instantiations
-std::vector<std::string> vec_str1;
-std::map<std::string, int> map_str_int1;
+    // 27. Template Instantiations
+    std::vector<std::string> vec_str1;
+    std::map<std::string, int> map_str_int1;
 
-// 28. Pointer to Member
-class ClassForMemberPtr {
- public:
-int member{};
-};
-int ClassForMemberPtr::* pmem{nullptr};
+    // 28. Pointer to Member
+    class ClassForMemberPtr {
+    public:
+      int member{};
+    };
+    int ClassForMemberPtr::* pmem{nullptr};
 
-// 29. Multiple Variables on One Line
-int x3{};
+    // 29. Multiple Variables on One Line
+    int x3{};

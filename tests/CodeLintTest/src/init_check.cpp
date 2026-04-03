@@ -56,10 +56,11 @@ CStruct cs1;
 
 // 7. CLASSES
 class TestClass {
- public:
+public:
   int value;
   std::string name;
-  TestClass() : value(0) {}
+  TestClass() : value(0) {
+  }
 };
 TestClass tc1;
 
@@ -204,13 +205,15 @@ struct Outer {
 
 // 24. VIRTUAL FUNCTIONS
 class BaseClass {
- public:
-  virtual void foo() {}
+public:
+  virtual void foo() {
+  }
   int base_val;
 };
 class DerivedClass : public BaseClass {
- public:
-  void foo() override {}
+public:
+  void foo() override {
+  }
   int derived_val;
 };
 DerivedClass dc1;
@@ -231,7 +234,7 @@ struct StructWithUnion {
 
 // 28. Pointer to Member
 class ClassForMemberPtr {
- public:
+public:
   int member;
 };
 int ClassForMemberPtr::* pmem = nullptr;

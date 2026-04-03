@@ -18,13 +18,7 @@ int find_singleton(const GlobalOptions& opts, const FindSingletonOptions& single
   }
 
   return run_checker_command<SingletonChecker>(
-      singleton_opts.path,
-      opts.output_json,
-      scope,
-      "singleton pattern",
+      singleton_opts.path, opts.output_json, scope, "singleton pattern",
       [](const std::optional<GitScope>& s) { return SingletonChecker(s); },
-      [](const LintIssue& issue) {
-        std::cout << "  " << issue.suggestion << "\n";
-      }
-  );
+      [](const LintIssue& issue) { std::cout << "  " << issue.suggestion << "\n"; });
 }

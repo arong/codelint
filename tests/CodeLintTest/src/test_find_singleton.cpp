@@ -2,70 +2,82 @@
 
 // Test 1: Classic Meyer's singleton
 class Singleton {
- public:
+public:
   static Singleton& instance() {
     static Singleton inst;
     return inst;
   }
 
-  void doSomething() { std::cout << "Singleton doing something" << std::endl; }
+  void doSomething() {
+    std::cout << "Singleton doing something" << std::endl;
+  }
 
- private:
-  Singleton() {}
+private:
+  Singleton() {
+  }
   Singleton(const Singleton&) = delete;
   Singleton& operator=(const Singleton&) = delete;
 };
 
 // Test 2: Singleton with getInstance() naming
 class Manager {
- public:
+public:
   static Manager& getInstance() {
     static Manager mgr;
     return mgr;
   }
 
-  void manage() { std::cout << "Manager managing" << std::endl; }
+  void manage() {
+    std::cout << "Manager managing" << std::endl;
+  }
 
- private:
-  Manager() {}
+private:
+  Manager() {
+  }
 };
 
 // Test 3: Singleton in a namespace
 namespace MyApp {
 class Config {
- public:
+public:
   static Config& instance() {
     static Config cfg;
     return cfg;
   }
 
- private:
-  Config() {}
+private:
+  Config() {
+  }
 };
-}  // namespace MyApp
+} // namespace MyApp
 
 // Test 4: Non-singleton static local variable (should NOT be detected)
 class Helper {
- public:
+public:
   static int getValue() {
-    static int value = 100;  // Not a singleton
+    static int value = 100; // Not a singleton
     return value;
   }
 };
 
 // Test 5: Static method without local static (should NOT be detected)
 class Calculator {
- public:
-  static int add(int a, int b) { return a + b; }
+public:
+  static int add(int a, int b) {
+    return a + b;
+  }
 };
 
 // Test 6: Singleton returning value type (should NOT be detected)
 class Factory {
- public:
-  static Factory create() { return Factory(); }
+public:
+  static Factory create() {
+    return Factory();
+  }
 
- private:
-  Factory() {}
+private:
+  Factory() {
+  }
 };
 
 int main() {

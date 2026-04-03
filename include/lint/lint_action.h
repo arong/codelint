@@ -3,9 +3,9 @@
 #include <memory>
 #include <string>
 
-#include <clang/Frontend/FrontendAction.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/FrontendAction.h>
 #include <llvm/Support/Compiler.h>
 
 namespace codelint {
@@ -36,9 +36,8 @@ public:
   ~LintAction() override;
 
   // 创建 ASTConsumer 实例
-  std::unique_ptr<clang::ASTConsumer>
-  CreateASTConsumer(clang::CompilerInstance& CI,
-                    llvm::StringRef InFile) override;
+  std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance& CI,
+                                                        llvm::StringRef InFile) override;
 
   // Begin source file action (returns true to continue processing)
   bool BeginSourceFileAction(clang::CompilerInstance& CI) override;
@@ -50,5 +49,5 @@ private:
   std::string current_filename_;
 };
 
-}  // namespace lint
-}  // namespace codelint
+} // namespace lint
+} // namespace codelint

@@ -26,7 +26,7 @@ std::vector<int> global_vector;
 std::string global_string = "test";
 
 void local_function() {
-  int local_var = 10;  // Should not be detected
+  int local_var = 10; // Should not be detected
 }
 
 int main() {
