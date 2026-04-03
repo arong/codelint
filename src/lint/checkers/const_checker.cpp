@@ -229,12 +229,12 @@ bool ConstChecker::isInSystemHeader(clang::Decl *D) const {
         return true;
     }
 
-    const clang::FileEntry *fileEntry = SM.getFileEntryForID(fileID);
-    if (!fileEntry) {
+    auto fileEntryRef = SM.getFileEntryRefForID(fileID);
+    if (!fileEntryRef) {
         return true;
     }
 
-    std::string filename = fileEntry->getName().str();
+    std::string filename = fileEntryRef->getName().str();
     return filename.find("/usr/include/") == 0 ||
            filename.find("/usr/lib/") == 0 ||
            filename.find("/usr/local/include/") == 0 ||
