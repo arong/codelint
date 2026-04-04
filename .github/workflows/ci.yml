@@ -23,7 +23,8 @@ jobs:
           apt-get install -y --no-install-recommends \
             build-essential cmake git python3 wget \
             llvm-18-dev clang-18 \
-            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev
+            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
+            libgit2-dev
       
       - name: Configure CMake
         run: |
