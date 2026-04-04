@@ -33,7 +33,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            build-essential cmake git wget lsb-release software-properties-common gnupg \
+            build-essential cmake make git wget lsb-release software-properties-common gnupg \
             libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
             git curl zip unzip ca-certificates pkg-config
           
@@ -62,7 +62,7 @@ jobs:
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
       
       - name: Build project
         run: cmake --build build -j$(nproc)
