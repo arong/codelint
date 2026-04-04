@@ -21,8 +21,11 @@ int main(int argc, char** argv) {
   // Global options
   app.add_flag("--version", g_opts.show_version, "Show version information with LLVM details");
   app.add_option("-p,--path", g_opts.path, "Path to compile_commands.json directory");
-  app.add_flag("--output-json", g_opts.output_json, "Output in JSON format")
-      ->description("Output issues in JSON format for CI/CD integration");
+  app.add_flag("--output-json", g_opts.output_json,
+              "Output issues in JSON format (DEPRECATED: use --output-sarif)")
+      ->description("Output in JSON format for CI/CD integration (deprecated, use --output-sarif for SARIF format)");
+  app.add_flag("--output-sarif", g_opts.output_sarif, "Output in SARIF format")
+      ->description("Output issues in SARIF v2.1.0 format (machine-readable, GitHub Code Scanning compatible)");
   app.add_option("--scope", g_opts.scope,
                  "Control incremental analysis (default: all)\n"
                  "Examples:\n"
@@ -84,6 +87,11 @@ int main(int argc, char** argv) {
 #endif
     std::cout << "Target: C++14 (AUTOSAR 2014)" << std::endl;
     return 0;
+  }
+
+  if (g_opts.output_json && !g_opts.output_sarif) {
+    std::cerr << "Warning: --output-json is deprecated. Use --output-sarif for SARIF v2.1.0 format."
+              << std::endl;
   }
 
   // Initialize GitScope if scope is set

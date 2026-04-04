@@ -179,3 +179,39 @@ target_include_directories(integration_test PRIVATE
 )
 
 add_test(NAME integration_test COMMAND integration_test)
+
+add_executable(backward_compat_test tests/backward_compat_test.cpp)
+target_link_libraries(backward_compat_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(backward_compat_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_executable(text_format_test tests/text_format_test.cpp)
+target_link_libraries(text_format_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(text_format_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_test(NAME text_format_test COMMAND text_format_test)
+
+add_executable(sarif_validation_test tests/sarif_validation_test.cpp)
+target_link_libraries(sarif_validation_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(sarif_validation_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_test(NAME sarif_validation_test COMMAND sarif_validation_test)
+
+add_test(NAME backward_compat_test COMMAND backward_compat_test)

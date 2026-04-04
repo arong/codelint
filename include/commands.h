@@ -10,6 +10,7 @@
 struct GlobalOptions {
   std::string path;
   bool output_json = false;
+  bool output_sarif = false;
   bool show_version = false;
   std::string scope = "all";
 };
@@ -40,6 +41,7 @@ int find_global(const GlobalOptions& opts, const FindGlobalOptions& global_opts)
 int find_singleton(const GlobalOptions& opts, const FindSingletonOptions& singleton_opts);
 
 // Utility functions
-void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output);
+void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output,
+                   bool sarif_output);
 bool apply_fixes_to_file(const std::string& filepath,
                          const std::vector<codelint::lint::LintIssue>& fixes);

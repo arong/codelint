@@ -23,6 +23,7 @@ public:
   void add_issue(const LintIssue& issue);
   void add_issues(const std::vector<LintIssue>& issues);
   void print_json(std::ostream& output_stream = std::cout) const;
+  void print_sarif(std::ostream& output_stream = std::cout) const;
   void print_text(std::ostream& output_stream = std::cout) const;
 
   int error_count() const {

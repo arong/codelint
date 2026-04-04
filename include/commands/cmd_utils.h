@@ -11,9 +11,11 @@
 
 std::vector<std::string> collect_cpp_files(const std::string& path);
 
-void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output);
+void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output,
+                   bool sarif_output = false);
 
-void print_statistics(int files_processed, int issues_found, std::chrono::milliseconds elapsed);
+void print_statistics(int files_processed, int issues_found, std::chrono::milliseconds elapsed,
+                      int error_count, int warning_count, int info_count, int fixable_count);
 
 bool apply_fixes_to_file(const std::string& filepath,
                          const std::vector<codelint::lint::LintIssue>& fixes);

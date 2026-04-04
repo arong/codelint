@@ -11,6 +11,34 @@
 #include "lint/fix_applier.h"
 #include "lint/issue_reporter.h"
 
+namespace {
+
+std::string read_line_from_file(const std::string& filepath, int line_number) {
+  std::ifstream file(filepath);
+  if (!file.is_open()) {
+    return "";
+  }
+
+  std::string line;
+  int current_line = 1;
+  while (std::getline(file, line)) {
+    if (current_line == line_number) {
+      return line;
+    }
+    ++current_line;
+  }
+  return "";
+}
+
+std::string truncate_line(const std::string& line, size_t max_len = 120) {
+  if (line.length() > max_len) {
+    return line.substr(0, max_len) + "...";
+  }
+  return line;
+}
+
+} // namespace
+
 std::vector<std::string> collect_cpp_files(const std::string& path) {
   std::vector<std::string> files;
   std::filesystem::path p(path);
@@ -40,22 +68,37 @@ std::vector<std::string> collect_cpp_files(const std::string& path) {
   return files;
 }
 
-void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output) {
+void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output,
+                    bool sarif_output) {
   codelint::lint::IssueReporter reporter;
   reporter.add_issues(issues);
 
   if (json_output) {
     reporter.print_json();
+  } else if (sarif_output) {
+    reporter.print_sarif();
   } else {
     reporter.print_text();
   }
 }
 
-void print_statistics(int files_processed, int issues_found, std::chrono::milliseconds elapsed) {
-  std::cout << "Statistics:\n";
+void print_statistics(int files_processed, int issues_found,
+                      std::chrono::milliseconds elapsed,
+                      int error_count, int warning_count, int info_count,
+                      int fixable_count) {
+  std::cout << "\nSummary:\n";
   std::cout << "  Files processed: " << files_processed << "\n";
-  std::cout << "  Issues found: " << issues_found << "\n";
-  std::cout << "  Time elapsed: " << elapsed.count() << "ms\n";
+  std::cout << "  Issues: " << issues_found << " ("
+            << "Errors: " << error_count << ", Warnings: " << warning_count << ", Info: " << info_count << ")\n";
+  std::cout << "  Total: " << issues_found << "\n";
+  if (issues_found > 0) {
+    int percentage = (fixable_count * 100) / issues_found;
+    std::cout << "  Fixable: " << fixable_count << " (" << percentage << "%)\n";
+  } else {
+    std::cout << "  Fixable: 0\n";
+  }
+  double seconds = elapsed.count() / 1000.0;
+  std::cout << "  Time: " << seconds << "s\n";
 }
 
 bool apply_fixes_to_file(const std::string& filepath,
@@ -183,6 +226,14 @@ int run_checker_command(
       std::cout << issue.file << ":" << issue.line << ":" << issue.column << ": "
                 << severity_to_string(issue.severity) << ": " << issue.description << " ["
                 << issue.checker_name << "]\n";
+
+      std::string source_line = read_line_from_file(issue.file, issue.line);
+      if (!source_line.empty()) {
+        std::cout << "  | " << issue.line << " | " << truncate_line(source_line) << "\n";
+      } else {
+        std::cout << "  | (source unavailable)\n";
+      }
+
       if (print_issue_extra) {
         print_issue_extra(issue);
       }
@@ -195,7 +246,20 @@ int run_checker_command(
       std::cout << "No " << result_noun << "s found\n";
     }
 
-    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms);
+    // Count severities and fixable issues
+    int error_count = 0, warning_count = 0, info_count = 0, hint_count = 0, fixable_count = 0;
+    for (const auto& issue : all_issues) {
+      switch (issue.severity) {
+        case codelint::lint::Severity::ERROR: ++error_count; break;
+        case codelint::lint::Severity::WARNING: ++warning_count; break;
+        case codelint::lint::Severity::INFO: ++info_count; break;
+        case codelint::lint::Severity::HINT: ++hint_count; break;
+      }
+      if (issue.fixable) ++fixable_count;
+    }
+
+    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms,
+                     error_count, warning_count, info_count, fixable_count);
   }
 
   return 0;
