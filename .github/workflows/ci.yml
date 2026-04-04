@@ -35,7 +35,7 @@ jobs:
           apt-get install -y --no-install-recommends \
             build-essential cmake git wget lsb-release software-properties-common gnupg \
             libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
-            git curl zip unzip ca-certificates
+            git curl zip unzip ca-certificates pkg-config
           
           # Install LLVM 18 from apt.llvm.org
           wget https://apt.llvm.org/llvm.sh
