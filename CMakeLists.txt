@@ -54,9 +54,8 @@ llvm_map_components_to_libnames(llvm_libs
 
 # ========== Project Configuration ==========
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include)
-# Use system rapidjson from brew
-find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson/document.h HINTS /opt/homebrew/include)
+# Use rapidjson from vcpkg (header-only library)
+find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson/document.h)
 if(RAPIDJSON_INCLUDE_DIR)
     message(STATUS "Found RapidJSON at: ${RAPIDJSON_INCLUDE_DIR}")
     include_directories(${RAPIDJSON_INCLUDE_DIR})
@@ -89,7 +88,6 @@ add_executable(codelint
 
 target_include_directories(codelint PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include
 )
 
 # ========== Version Definitions ==========

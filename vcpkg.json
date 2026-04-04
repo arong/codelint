@@ -3,6 +3,8 @@
   "name": "codelint",
   "version": "1.0.0",
   "dependencies": [
-    "libgit2"
+    "libgit2",
+    "cli11",
+    "rapidjson"
   ]
 }
