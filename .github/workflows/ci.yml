@@ -20,6 +20,9 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
+          apt-get install -y software-properties-common
+          add-apt-repository -y universe
+          apt-get update
           apt-get install -y --no-install-recommends \
             build-essential cmake git \
             llvm-18-dev clang-18 \
