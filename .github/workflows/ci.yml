@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    container: llvm/llvm:18
+    container: ubuntu:22.04
     
     steps:
       - name: Checkout code
@@ -21,7 +21,9 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            git \
+            build-essential cmake git \
+            llvm-18-dev clang-18 \
+            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
             libgit2-dev
       
       - name: Configure CMake
