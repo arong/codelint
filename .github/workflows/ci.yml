@@ -20,10 +20,15 @@ jobs:
         with:
           fetch-depth: 0  # Required for git diff
       
+      - name: Install git for vcpkg
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git
+      
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitHash: 'a34c873a9717a888f58dc05268dea15592c2f0ff'
+          vcpkgGitCommitId: 'a34c873a9717a888f58dc05268dea15592c2f0ff'
           vcpkgJsonGlob: '**/vcpkg.json'
       
       - name: Install dependencies
