@@ -11,19 +11,27 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
     
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Required for git diff
       
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitHash: 'a34c873a9717a888f58dc05268dea15592c2f0ff'
+          vcpkgJsonGlob: '**/vcpkg.json'
+      
       - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
             build-essential cmake git wget lsb-release software-properties-common gnupg \
-            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
-            libgit2-dev
+            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev
           
           # Install LLVM 18 from apt.llvm.org
           wget https://apt.llvm.org/llvm.sh
@@ -40,7 +48,8 @@ jobs:
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
       
       - name: Build project
         run: cmake --build build -j$(nproc)
