@@ -1,0 +1,11 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  misc-*,
+  performance-*
+WarningsAsErrors: 'bugprone-*,cert-*,clang-analyzer-*'
+HeaderFilterRegex: ''
+CheckOptions: []

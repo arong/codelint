@@ -215,3 +215,24 @@ target_include_directories(sarif_validation_test PRIVATE
 add_test(NAME sarif_validation_test COMMAND sarif_validation_test)
 
 add_test(NAME backward_compat_test COMMAND backward_compat_test)
+
+# ========== Integrated Test Target ==========
+# This target runs both unit tests (ctest) and regression tests
+# Usage: cmake --build build --target test-all
+add_custom_target(test-all
+    COMMENT "Running all tests (unit tests + regression tests)"
+    COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_BINARY_DIR} --output-on-failure
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/run_regression.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DEPENDS codelint
+)
+
+# Make test-all depend on all test executables being built
+add_dependencies(test-all
+    commands_test
+    edge_cases_test
+    integration_test
+    text_format_test
+    sarif_validation_test
+    backward_compat_test
+)
