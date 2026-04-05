@@ -224,10 +224,11 @@ jobs:
           ls -la artifacts/
       
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: artifacts/*
-          draft: false
-          prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          gh release create v$VERSION \
+            --title "v$VERSION" \
+            --generate-notes \
+            artifacts/*
