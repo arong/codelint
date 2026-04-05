@@ -109,7 +109,7 @@ for fixed_file in "$TEST_DIR"/CodeLintTest/src/init_checker/fixed/*.cpp; do
         echo "SKIP: $(basename $fixed_file) - compilation error"
         TEST_COUNT=$((TEST_COUNT - 1))
     else
-        issue_count=$(echo "$output" | grep -E "warning|error|info|hint" | wc -l | awk '{print $1}')
+        issue_count=$(echo "$output" | grep -E "^[0-9]+:[0-9]+: (warning|error|info|hint):" | wc -l | awk '{print $1}')
         if [ "$issue_count" = "0" ]; then
             echo "PASS: $(basename $fixed_file) reports 0 issues"
             PASS_COUNT=$((PASS_COUNT + 1))
@@ -135,7 +135,7 @@ for src_file in "$TEST_DIR"/CodeLintTest/src/init_checker/src/{init_check,intege
         echo "SKIP: $(basename $src_file) - compilation error"
         TEST_COUNT=$((TEST_COUNT - 1))
     else
-        issue_count=$(echo "$output" | grep -E "warning|error|info|hint" | wc -l | awk '{print $1}')
+        issue_count=$(echo "$output" | grep -E "^[0-9]+:[0-9]+: (warning|error|info|hint):" | wc -l | awk '{print $1}')
         if [ "$issue_count" -gt 0 ]; then
             echo "PASS: $(basename $src_file) detects $issue_count issue(s)"
             PASS_COUNT=$((PASS_COUNT + 1))
@@ -161,7 +161,9 @@ if [ "$compile_error" -gt 0 ]; then
     echo "SKIP: find_global - compilation error"
     TEST_COUNT=$((TEST_COUNT - 1))
 else
-    global_count=$(echo "$output" | grep -c "global_" 2>/dev/null || echo "0")
+    json_output=$("$CODELINT" --output-json find_global "$TEST_DIR/test_find_global.cpp" 2>&1)
+    global_count=$(echo "$json_output" | grep -o '"issues":\[[^]]*\]' | grep -o '{' | wc -l | awk '{print $1}')
+    global_count=${global_count:-0}
     if [ "$global_count" -gt 0 ]; then
         echo "PASS: find_global detects $global_count global variable(s)"
         PASS_COUNT=$((PASS_COUNT + 1))
@@ -185,7 +187,9 @@ if [ "$compile_error" -gt 0 ]; then
     echo "SKIP: find_singleton - compilation error"
     TEST_COUNT=$((TEST_COUNT - 1))
 else
-    singleton_count=$(echo "$output" | grep -c "instance\|getInstance" 2>/dev/null || echo "0")
+    json_output=$("$CODELINT" --output-json find_singleton "$TEST_DIR/test_find_singleton.cpp" 2>&1)
+    singleton_count=$(echo "$json_output" | grep -o '"issues":\[[^]]*\]' | grep -o '{' | wc -l | awk '{print $1}')
+    singleton_count=${singleton_count:-0}
     if [ "$singleton_count" -gt 0 ]; then
         echo "PASS: find_singleton detects $singleton_count singleton pattern(s)"
         PASS_COUNT=$((PASS_COUNT + 1))
@@ -233,7 +237,6 @@ set +e
 
 # TODO: Fix regression tests in a separate task
 # Temporarily return success to test CI pipeline
-exit 0
 
 if [ $FAIL_COUNT -eq 0 ]; then
     echo "✓ All regression tests PASSED!"

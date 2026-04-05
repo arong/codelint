@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <string>
-#include <sstream>
 
 // Edge case tests for command utilities
 class EdgeCasesTest : public ::testing::Test {
@@ -90,7 +89,7 @@ TEST_F(EdgeCasesTest, LongLineTruncationText) {
   EXPECT_TRUE(output.find("...") != std::string::npos) << "Truncation indicator not found";
 
   // Find the source line in output and verify length <= 123 (120 + "...")
-  size_t line_pos = output.find("| 14 |");
+  size_t line_pos = output.find("| 17 |");
   if (line_pos != std::string::npos) {
     std::string source_line =
         output.substr(line_pos + 7); // Skip "| 14 |" (7 chars including space)
