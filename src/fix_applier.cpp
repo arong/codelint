@@ -13,12 +13,12 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
 
   std::vector<LintIssue> fixable_issues;
   for (const auto& issue : issues) {
-    if (issue.fixable && (issue.type == CheckType::INIT_UNINITIALIZED ||
-                          issue.type == CheckType::INIT_EQUALS_SYNTAX ||
-                          issue.type == CheckType::INIT_UNSIGNED_SUFFIX ||
-                          issue.type == CheckType::CONST_SUGGESTION ||
-                          issue.type == CheckType::CAN_BE_CONST ||
-                          issue.type == CheckType::CAN_BE_CONSTEXPR)) {
+    if (issue.fixable &&
+        (issue.type == CheckType::INIT_UNINITIALIZED ||
+         issue.type == CheckType::INIT_EQUALS_SYNTAX ||
+         issue.type == CheckType::INIT_UNSIGNED_SUFFIX ||
+         issue.type == CheckType::CONST_SUGGESTION || issue.type == CheckType::CAN_BE_CONST ||
+         issue.type == CheckType::CAN_BE_CONSTEXPR)) {
       fixable_issues.push_back(issue);
     }
   }
@@ -71,8 +71,7 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
       applied = applyEqualsSyntaxFix(issue, lines, replacement_text, offset, length);
     } else if (issue.type == CheckType::INIT_UNSIGNED_SUFFIX) {
       applied = applyUnsignedSuffixFix(issue, lines, replacement_text, offset, length);
-    } else if (issue.type == CheckType::CONST_SUGGESTION ||
-               issue.type == CheckType::CAN_BE_CONST ||
+    } else if (issue.type == CheckType::CONST_SUGGESTION || issue.type == CheckType::CAN_BE_CONST ||
                issue.type == CheckType::CAN_BE_CONSTEXPR) {
       applied = applyConstSuggestionFix(issue, lines, replacement_text, offset, length);
     }
@@ -325,10 +324,10 @@ bool FixApplier::applyConstSuggestionFix(const LintIssue& issue,
   // Find the type position (search backwards from variable name)
   // First try the full type_str
   size_t type_pos = line.rfind(issue.type_str, var_pos);
-  
+
   // If not found, the type might have different spacing (e.g., "int &" vs "int&")
   // Try finding just the base type without spaces and reference/pointer markers
-   if (type_pos == std::string::npos) {
+  if (type_pos == std::string::npos) {
     std::string base_type = issue.type_str;
     // Remove spaces
     base_type.erase(std::remove(base_type.begin(), base_type.end(), ' '), base_type.end());
@@ -345,7 +344,7 @@ bool FixApplier::applyConstSuggestionFix(const LintIssue& issue,
     // Search for base type in line
     type_pos = line.rfind(base_type, var_pos);
   }
-  
+
   if (type_pos == std::string::npos) {
     return false;
   }
