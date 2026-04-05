@@ -101,9 +101,24 @@ target_compile_definitions(codelint PRIVATE
 # Use -Wl,--no-as-needed to ensure both are linked, but link libclang-cpp FIRST
 # to have its LLVM command-line options registered first
 if(STATIC_LINKING)
-    set(LLVM_LINK_FLAGS "-static")
-    separate_arguments(LLVM_LINK_FLAGS_LIST UNIX_COMMAND "${LLVM_LINK_FLAGS}")
-    target_link_libraries(codelint PRIVATE ${llvm_libs} ${LLVM_LINK_FLAGS_LIST})
+    # Static linking for musl/Alpine
+    message(STATUS "Building with static linking")
+
+    # Add static linking flags
+    set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
+
+    # Link against LLVM static libraries
+    target_link_libraries(codelint PRIVATE
+        ${llvm_libs}
+        ${LLVM_LIBRARY_DIR}/libclang.a
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.a
+        ${LLVM_LIBRARY_DIR}/libLLVM-18.a
+        libgit2::libgit2package
+    )
+
+    # Set static linking properties
+    set_target_properties(codelint PROPERTIES LINK_SEARCH_START_STATIC ON)
+    set_target_properties(codelint PROPERTIES LINK_SEARCH_END_STATIC ON)
 else()
     # Cross-platform library linking
     if(APPLE)
