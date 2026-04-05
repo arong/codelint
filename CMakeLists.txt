@@ -61,6 +61,13 @@ if(RAPIDJSON_INCLUDE_DIR)
     include_directories(${RAPIDJSON_INCLUDE_DIR})
 endif()
 
+# Use CLI11 from Homebrew (header-only library)
+find_path(CLI11_INCLUDE_DIR NAMES CLI/CLI.hpp)
+if(CLI11_INCLUDE_DIR)
+    message(STATUS "Found CLI11 at: ${CLI11_INCLUDE_DIR}")
+    include_directories(${CLI11_INCLUDE_DIR})
+endif()
+
 # ========== libgit2 Configuration ==========
 find_package(libgit2 REQUIRED)
 message(STATUS "Found libgit2 ${libgit2_VERSION}")
@@ -117,7 +124,7 @@ else()
         # Linux: Use LLVM cmake targets (resolved by llvm_map_components_to_libnames)
         target_link_libraries(codelint PRIVATE
             ${llvm_libs}
-            libgit2::libgit2
+            libgit2::libgit2package
         )
     endif()
     # Suppress LLVM command-line option duplication warning
