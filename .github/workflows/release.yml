@@ -8,83 +8,7 @@ on:
     tags: ['v*']
 
 jobs:
-  # Job 1: Static build (Ubuntu 24.04 + vcpkg)
-  static:
-    runs-on: ubuntu-24.04
-    
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Cache vcpkg
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ github.workspace }}/vcpkg
-            ${{ github.workspace }}/vcpkg_installed
-          key: vcpkg-static-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-static-
-      
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential cmake git curl zip unzip tar \
-            pkg-config autoconf automake libtool \
-            python3 ninja-build
-
-      - name: Setup vcpkg
-        run: |
-          if [ ! -d "vcpkg" ]; then
-            git clone https://github.com/Microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
-          fi
-
-      - name: Install vcpkg packages (static)
-        run: |
-          ./vcpkg/vcpkg install --triplet=x64-linux-static
-
-      - name: Configure CMake
-        run: |
-          cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -DVCPKG_TARGET_TRIPLET=x64-linux-static \
-            -DCMAKE_EXE_LINKER_FLAGS="-static"
-
-      - name: Build static binary
-        run: |
-          cmake --build build -j$(nproc)
-
-      - name: Verify static linking
-        run: |
-          echo "=== Binary Info ==="
-          file build/codelint
-          echo "=== Dynamic Dependencies ==="
-          ldd build/codelint 2>&1 || echo "Static or minimal deps"
-          echo "=== Size ==="
-          ls -lh build/codelint
-          echo "=== Version Check ==="
-          ./build/codelint --version
-
-      - name: Package tar.gz
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          tar -czvf codelint-${VERSION}-linux-x86_64-static.tar.gz \
-            -C build codelint
-
-      - name: Upload static artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: static-artifact
-          path: codelint-*.tar.gz
-          retention-days: 5
-
-  # Job 2: AppImage (Ubuntu 22.04 + vcpkg dynamic)
+  # Job 1: AppImage (Ubuntu 22.04 + vcpkg dynamic)
   appimage:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
@@ -117,6 +41,15 @@ jobs:
             git clone https://github.com/Microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
           fi
+          
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 21
+          
+          apt-get install -y --no-install-recommends \
+            llvm-21-dev \
+            clang-21 \
+            libclang-21-dev
       
       - name: Install vcpkg packages
         run: ./vcpkg/vcpkg install
@@ -186,23 +119,16 @@ jobs:
           path: codelint-*.AppImage
           retention-days: 5
 
-  # Job 3: Release
+  # Job 2: Release
   release:
-    needs: [static, appimage]
-    if: always() && (needs.static.result == 'success' || needs.appimage.result == 'success')
+    needs: [appimage]
+    if: always() && needs.appimage.result == 'success'
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download static artifact
-        if: needs.static.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: static-artifact
-          path: artifacts
-      
       - name: Download AppImage artifact
         if: needs.appimage.result == 'success'
         uses: actions/download-artifact@v4

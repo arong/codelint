@@ -112,7 +112,7 @@ if(STATIC_LINKING)
         ${llvm_libs}
         ${LLVM_LIBRARY_DIR}/libclang.a
         ${LLVM_LIBRARY_DIR}/libclang-cpp.a
-        ${LLVM_LIBRARY_DIR}/libLLVM-18.a
+        ${LLVM_LIBRARY_DIR}/libLLVM-21.a
         libgit2::libgit2package
     )
 
@@ -131,10 +131,10 @@ else()
 else()
     # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
     target_link_libraries(codelint PRIVATE
-        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.21
         ${LLVM_LIBRARY_DIR}/libclang.so
         libgit2::libgit2package
-        ${LLVM_LIBRARY_DIR}/libLLVM-18.so
+        ${LLVM_LIBRARY_DIR}/libLLVM-21.so
     )
 endif()
     # Suppress LLVM command-line option duplication warning
