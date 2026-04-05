@@ -199,6 +199,7 @@ jobs:
   # Job 3: Release
   release:
     needs: [musl-static, appimage]
+    if: always() && needs.appimage.result == 'success'
     runs-on: ubuntu-latest
     
     steps:
