@@ -61,13 +61,6 @@ if(RAPIDJSON_INCLUDE_DIR)
     include_directories(${RAPIDJSON_INCLUDE_DIR})
 endif()
 
-# Use CLI11 from Homebrew (header-only library)
-find_path(CLI11_INCLUDE_DIR NAMES CLI/CLI.hpp)
-if(CLI11_INCLUDE_DIR)
-    message(STATUS "Found CLI11 at: ${CLI11_INCLUDE_DIR}")
-    include_directories(${CLI11_INCLUDE_DIR})
-endif()
-
 # ========== libgit2 Configuration ==========
 find_package(libgit2 REQUIRED)
 message(STATUS "Found libgit2 ${libgit2_VERSION}")
@@ -119,7 +112,6 @@ else()
         ${LLVM_LIBRARY_DIR}/libclang.dylib
         ${LLVM_LIBRARY_DIR}/libLLVM.dylib
         libgit2::libgit2package
-        ${LLVM_LIBRARY_DIR}/libLLVM-18.so
     )
 else()
     # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
