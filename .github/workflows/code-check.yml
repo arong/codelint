@@ -1,0 +1,161 @@
+name: Code Check
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: ['*']
+
+jobs:
+  whitespace:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check trailing whitespace
+        run: |
+          echo "🔍 Checking for trailing whitespace..."
+          if grep -r '[[:blank:]]$' \
+              --include='*.cpp' \
+              --include='*.h' \
+              --include='*.txt' \
+              --include='*.md' \
+              --include='*.sh' \
+              --include='*.py' \
+              . 2>/dev/null | grep -v '.git/'; then
+            echo "::error::Found trailing whitespace!"
+            echo "Please run './scripts/format.sh' to fix."
+            exit 1
+          fi
+          echo "✅ No trailing whitespace found"
+      
+      - name: Check trailing newlines
+        run: |
+          echo "🔍 Checking trailing newlines..."
+          
+          find . -type f \( \
+            -name '*.cpp' -o \
+            -name '*.h' -o \
+            -name '*.txt' -o \
+            -name '*.md' -o \
+            -name '*.sh' -o \
+            -name '*.py' \
+            \) \
+            ! -path './build/*' \
+            ! -path './.git/*' \
+            -exec sh -c '
+              errors=0
+              for file; do
+                # Check for multiple trailing newlines
+                last_two=$(tail -c 2 "$file" 2>/dev/null | od -An -tx1 | tr -d " \n")
+                if [ "$last_two" = "0a0a" ]; then
+                  echo "Multiple trailing newlines: $file"
+                  errors=$((errors + 1))
+                  continue
+                fi
+                
+                # Check for missing newline
+                last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d " \n")
+                if [ "$last" != "0a" ]; then
+                  echo "Missing trailing newline: $file"
+                  errors=$((errors + 1))
+                fi
+              done
+              exit $errors
+            ' sh {} +
+          
+          if [ $? -ne 0 ]; then
+            echo "::error::Trailing newline check failed!"
+            echo "Please run './scripts/format.sh' to fix."
+            exit 1
+          fi
+          echo "✅ All files have correct trailing newlines"
+      
+      - name: Summary
+        run: |
+          echo "✨ Whitespace check passed!"
+          echo "📊 Total files checked: $(find . -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.py' \) ! -path './build/*' ! -path './.git/*' | wc -l | tr -d ' ')"
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for git diff
+      
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-
+
+      - name: Install dependencies and vcpkg
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake make git wget lsb-release software-properties-common gnupg \
+            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
+            git curl zip unzip ca-certificates pkg-config
+          
+          # Install LLVM 21 from apt.llvm.org
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 21
+          
+          # Install LLVM 21 development packages
+          apt-get install -y --no-install-recommends \
+            llvm-21-dev \
+            clang-21 \
+            libclang-21-dev
+          
+          # Setup vcpkg
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          fi
+
+      - name: Install vcpkg packages
+        run: ./vcpkg/vcpkg install
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
+      
+
+      - name: Build project
+        run: cmake --build build -j$(nproc)
+      
+      - name: Setup compile_commands.json for regression tests
+        run: |
+          mkdir -p tests/CodeLintTest/build
+          cp build/compile_commands.json tests/CodeLintTest/build/
+      
+      - name: Run all tests
+        run: cmake --build build --target test-all
+      
+      - name: Check code formatting
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | \
+            grep '\.cpp$\|\.hpp$\|\.h$' | \
+            xargs -r clang-format-21 --dry-run --Werror
+      
+      - name: Run clang-tidy
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | \
+            grep '\.cpp$' | \
+            xargs -r clang-tidy-21 -p build --config-file=.clang-tidy
