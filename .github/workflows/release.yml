@@ -34,7 +34,8 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends \
             build-essential cmake git python3 wget file \
-            curl zip unzip ca-certificates pkg-config
+            curl zip unzip ca-certificates pkg-config \
+            lsb-release
           
           # Setup vcpkg
           if [ ! -d "vcpkg" ]; then
