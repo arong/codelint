@@ -106,7 +106,7 @@ void ConstChecker::runOnAST(clang::ASTContext* Context) {
   analyzeAndReport();
 }
 
-std::string ConstChecker::getVarKey(clang::VarDecl* VD) const {
+std::string ConstChecker::getVarKey(const clang::VarDecl* VD) const {
   if (!VD || !Context_) {
     return "";
   }
@@ -177,11 +177,25 @@ bool ConstChecker::VisitBinaryOperator(clang::BinaryOperator* BO) {
 
   lhs = lhs->IgnoreParenImpCasts();
 
+  // Detect array modifications (arr[i] = x)
+  if (auto* ASE = llvm::dyn_cast<clang::ArraySubscriptExpr>(lhs)) {
+    const clang::Expr* base = ASE->getBase()->IgnoreParenImpCasts();
+    if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(base)) {
+      if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+        std::string key = getVarKey(VD);
+        if (!key.empty()) {
+          modified_vars_.insert(key);
+        }
+      }
+    }
+  }
+  
+  // Regular assignment (var = x)
   if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(lhs)) {
     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
-      std::string name = varDecl->getName().str();
-      if (!name.empty()) {
-        modified_vars_.insert(name);
+      std::string key = getVarKey(varDecl);
+      if (!key.empty()) {
+        modified_vars_.insert(key);
       }
     }
   }
@@ -195,7 +209,16 @@ bool ConstChecker::VisitUnaryOperator(clang::UnaryOperator* UO) {
   }
 
   auto opcode = UO->getOpcode();
-  if (opcode != clang::UO_PreInc && opcode != clang::UO_PreDec && opcode != clang::UO_PostInc &&
+  if (opcode == clang::UO_AddrOf) {
+    if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(UO->getSubExpr()->IgnoreParenImpCasts())) {
+      if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+        std::string key = getVarKey(VD);
+        if (!key.empty()) {
+          modified_vars_.insert(key);
+        }
+      }
+    }
+  } else if (opcode != clang::UO_PreInc && opcode != clang::UO_PreDec && opcode != clang::UO_PostInc &&
       opcode != clang::UO_PostDec) {
     return true;
   }
@@ -209,9 +232,9 @@ bool ConstChecker::VisitUnaryOperator(clang::UnaryOperator* UO) {
 
   if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(subExpr)) {
     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
-      std::string name = varDecl->getName().str();
-      if (!name.empty()) {
-        modified_vars_.insert(name);
+      std::string key = getVarKey(varDecl);
+      if (!key.empty()) {
+        modified_vars_.insert(key);
       }
     }
   }
@@ -278,7 +301,7 @@ void ConstChecker::analyzeAndReport() {
     if (info.is_parameter || info.is_member || info.is_global) {
       continue;
     }
-    if (modified_vars_.count(info.name) > 0) {
+    if (modified_vars_.count(key) > 0) {
       continue;
     }
     if (!isBuiltinType(info.type)) {
@@ -330,6 +353,45 @@ bool ConstChecker::apply_fixes(const std::string& filepath, const std::vector<Li
     output << l << "\n";
   }
   modified_content = output.str();
+  return true;
+}
+
+bool ConstChecker::VisitCallExpr(clang::CallExpr* CE) {
+  if (!CE) return true;
+
+  clang::FunctionDecl* FD = CE->getDirectCallee();
+  if (!FD) return true;
+  
+  for (unsigned i = 0; i < CE->getNumArgs(); ++i) {
+    clang::Expr* arg = CE->getArg(i)->IgnoreParenImpCasts();
+    if (i < FD->getNumParams()) {
+      clang::ParmVarDecl* paramDecl = FD->getParamDecl(i);
+      if (!paramDecl) continue;
+      
+      clang::QualType paramType = paramDecl->getType();
+      if (paramType->isPointerType() || paramType->isReferenceType()) {
+        if (auto* UO = llvm::dyn_cast<clang::UnaryOperator>(arg)) {
+          if (UO->getOpcode() == clang::UO_AddrOf) {
+            if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(UO->getSubExpr())) {
+              if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+                std::string key = getVarKey(VD);
+                if (!key.empty()) {
+                  modified_vars_.insert(key);
+                }
+              }
+            }
+          }
+        } else if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(arg)) {
+          if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+            std::string key = getVarKey(VD);
+            if (!key.empty()) {
+              modified_vars_.insert(key);
+            }
+          }
+        }
+      }
+    }
+  }
   return true;
 }
 
