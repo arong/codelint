@@ -64,6 +64,9 @@ jobs:
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
       
+      - name: Debug LLVM libraries
+        run: ls -la /usr/lib/llvm-18/lib/ | grep -E "libclang|libLLVM"
+
       - name: Build project
         run: cmake --build build -j$(nproc)
       

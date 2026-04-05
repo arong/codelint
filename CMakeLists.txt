@@ -121,11 +121,10 @@ else()
         libgit2::libgit2package
     )
 else()
-    # Linux: Use library names and let linker find them in LLVM_LIBRARY_DIR
-    link_directories(${LLVM_LIBRARY_DIR})
+    # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
     target_link_libraries(codelint PRIVATE
-        clang-cpp
-        clang
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
+        ${LLVM_LIBRARY_DIR}/libclang.so.18
         libgit2::libgit2package
     )
 endif()
