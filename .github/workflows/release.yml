@@ -8,10 +8,9 @@ on:
     tags: ['v*']
 
 jobs:
-  # Job 1: musl static build (Alpine 3.20)
-  musl-static:
-    runs-on: ubuntu-latest
-    container: alpine:3.20
+  # Job 1: Static build (Ubuntu 24.04)
+  static:
+    runs-on: ubuntu-24.04
     
     steps:
       - name: Checkout code
@@ -19,62 +18,43 @@ jobs:
       
       - name: Install dependencies
         run: |
-          # Install critical packages first (must succeed)
-          apk add --no-cache \
-            build-base cmake git python3 curl \
-            llvm18-dev llvm18-static \
-            clang18 clang18-static \
-            zlib-static zstd-static \
-            libxml2-dev libxml2-static ncurses-static libedit-static
-          
-          # Try to install libgit2 static packages (may fail)
-          apk add --no-cache libgit2-dev libgit2-static || echo "libgit2-static not available, will build from source"
-      
-      - name: Build libgit2 static (if not available)
-        run: |
-          if [ ! -f /usr/lib/libgit2.a ]; then
-            echo "libgit2-static not found, building from source..."
-            apk add --no-cache curl
-            curl -L https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.1.tar.gz -o libgit2.tar.gz
-            tar xzf libgit2.tar.gz
-            cd libgit2-*
-            cmake -B build -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr
-            cmake --build build -j$(nproc)
-            cmake --install build
-            cd ..
-            rm -rf libgit2-* libgit2.tar.gz
-          fi
-      
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake git \
+            llvm-18-dev libclang-18-dev clang-18 \
+            libgit2-dev \
+            zlib1g-dev libzstd-dev libxml2-dev libedit-dev libncurses-dev \
+            libcurl4-openssl-dev
+
       - name: Configure CMake
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DSTATIC_LINKING=ON \
-            -DCMAKE_EXE_LINKER_FLAGS='-static'
-      
+            -DSTATIC_LINKING=ON
+
       - name: Build static binary
         run: |
           cmake --build build -j$(nproc)
-      
+
       - name: Verify static linking
         run: |
           echo "=== Binary Info ==="
           file build/codelint
-          echo "=== Dynamic Dependencies (should fail for static) ==="
-          ldd build/codelint 2>&1 || echo "✓ Static binary confirmed (no dynamic deps)"
+          echo "=== Dynamic Dependencies ==="
+          ldd build/codelint || echo "Static or minimal deps"
           echo "=== Version Check ==="
           ./build/codelint --version
-      
+
       - name: Package tar.gz
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          tar -czvf codelint-${VERSION}-linux-x86_64-musl.tar.gz \
+          VERSION=\${GITHUB_REF#refs/tags/v}
+          tar -czvf codelint-\${VERSION}-linux-x86_64-static.tar.gz \
             -C build codelint
-      
-      - name: Upload musl artifact
+
+      - name: Upload static artifact
         uses: actions/upload-artifact@v4
         with:
-          name: musl-artifact
+          name: static-artifact
           path: codelint-*.tar.gz
           retention-days: 5
 
@@ -84,7 +64,7 @@ jobs:
     container: ubuntu:22.04
     
     env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_ROOT: \${{ github.workspace }}/vcpkg
     
     steps:
       - name: Checkout code
@@ -94,8 +74,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/vcpkg
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}
+            \${{ github.workspace }}/vcpkg
+          key: vcpkg-\${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             vcpkg-
       
@@ -131,11 +111,11 @@ jobs:
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=\$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
       
       - name: Build binary
         run: |
-          cmake --build build -j$(nproc)
+          cmake --build build -j\$(nproc)
       
       - name: Verify binary
         run: |
@@ -148,15 +128,15 @@ jobs:
       
       - name: Create AppDir structure
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=\${GITHUB_REF#refs/tags/v}
           mkdir -p AppDir/usr/bin
           cp build/codelint AppDir/usr/bin/
           
           # Create AppRun
           cat > AppDir/AppRun << 'EOF'
           #!/bin/bash
-          exe="$(dirname "$(readlink -f "$0")")/usr/bin/codelint"
-          exec "$exe" "$@"
+          exe="\$(dirname "\$(readlink -f "\$0")")/usr/bin/codelint"
+          exec "\$exe" "\$@"
           EOF
           chmod +x AppDir/AppRun
           
@@ -179,18 +159,11 @@ jobs:
             <text x="64" y="110" text-anchor="middle" font-family="sans-serif" font-size="16" fill="white" font-weight="bold">codelint</text>
           </svg>
           EOF
-          
-          # Create AppImage.meta
-          cat > AppDir/codelint.yml << 'EOF'
-          appId: com.codelint.app
-          productName: codelint
-          executable: usr/bin/codelint
-          EOF
       
       - name: Build AppImage
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
+          VERSION=\${GITHUB_REF#refs/tags/v}
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-\${VERSION}-linux-x86_64.AppImage
       
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
@@ -201,19 +174,23 @@ jobs:
 
   # Job 3: Release
   release:
-    needs: [musl-static, appimage]
-    if: always() && needs.appimage.result == 'success'
+    needs: [static, appimage]
+    if: always() && (needs.static.result == 'success' || needs.appimage.result == 'success')
     runs-on: ubuntu-latest
     
     steps:
-      - name: Download musl artifact
-        if: needs.musl-static.result == 'success'
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download static artifact
+        if: needs.static.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: musl-artifact
+          name: static-artifact
           path: artifacts
       
       - name: Download AppImage artifact
+        if: needs.appimage.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: appimage-artifact
@@ -225,10 +202,10 @@ jobs:
       
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          gh release create v$VERSION \
-            --title "v$VERSION" \
-            --generate-notes \
+          VERSION=\${GITHUB_REF#refs/tags/v}
+          gh release create v\$VERSION \\
+            --title "v\$VERSION" \\
+            --generate-notes \\
             artifacts/*
