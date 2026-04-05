@@ -204,6 +204,7 @@ jobs:
     
     steps:
       - name: Download musl artifact
+        if: needs.musl-static.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: musl-artifact
