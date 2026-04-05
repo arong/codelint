@@ -80,11 +80,11 @@ jobs:
         run: |
           git diff --name-only origin/${{ github.base_ref }}...HEAD | \
             grep '\.cpp$\|\.hpp$\|\.h$' | \
-            xargs -r clang-format --dry-run --Werror || true
+            xargs -r clang-format --dry-run --Werror
       
       - name: Run clang-tidy
         if: github.event_name == 'pull_request'
         run: |
           git diff --name-only origin/${{ github.base_ref }}...HEAD | \
             grep '\.cpp$' | \
-            xargs -r clang-tidy -p build --config-file=.clang-tidy || true
+            xargs -r clang-tidy -p build --config-file=.clang-tidy

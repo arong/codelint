@@ -114,10 +114,10 @@ else()
         libgit2::libgit2package
     )
     else()
+        # Linux: Use LLVM cmake targets (resolved by llvm_map_components_to_libnames)
         target_link_libraries(codelint PRIVATE
-            ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
-            ${LLVM_LIBRARY_DIR}/libclang.so
-            ${LLVM_LIBRARY_DIR}/libLLVM.so
+            ${llvm_libs}
+            libgit2::libgit2
         )
     endif()
     # Suppress LLVM command-line option duplication warning
