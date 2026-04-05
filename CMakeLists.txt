@@ -120,13 +120,14 @@ else()
         ${LLVM_LIBRARY_DIR}/libLLVM.dylib
         libgit2::libgit2package
     )
-    else()
-        # Linux: Use LLVM cmake targets (resolved by llvm_map_components_to_libnames)
-        target_link_libraries(codelint PRIVATE
-            ${llvm_libs}
-            libgit2::libgit2package
-        )
-    endif()
+else()
+    # Linux: Use specific shared library paths from llvm-18-dev
+    target_link_libraries(codelint PRIVATE
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18
+        ${LLVM_LIBRARY_DIR}/libclang.so
+        libgit2::libgit2package
+    )
+endif()
     # Suppress LLVM command-line option duplication warning
     target_compile_options(codelint PRIVATE -DLLVM_ENABLE_DUMP=0)
 endif()
