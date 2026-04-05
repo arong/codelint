@@ -27,7 +27,7 @@ public:
     return "Detect variables that could be const";
   }
   std::vector<CheckType> provides() const override {
-    return {CheckType::CONST_SUGGESTION};
+    return {CheckType::CAN_BE_CONSTEXPR, CheckType::CAN_BE_CONST};
   }
 
   bool can_fix() const override {
@@ -39,6 +39,7 @@ public:
   bool VisitVarDecl(clang::VarDecl* VD);
   bool VisitBinaryOperator(clang::BinaryOperator* BO);
   bool VisitUnaryOperator(clang::UnaryOperator* UO);
+  bool VisitCallExpr(clang::CallExpr* CE);
   void runOnAST(clang::ASTContext* Context);
 
 private:
@@ -61,6 +62,7 @@ private:
     bool is_member = false;
     bool is_global = false;
     bool is_modified = false;
+    bool has_const_init = false;
   };
 
   std::unordered_map<std::string, VarInfo> variables_;
@@ -70,7 +72,7 @@ private:
   bool isBuiltinType(const std::string& type) const;
   std::string makeConstSuggestion(const VarInfo& info) const;
   void analyzeAndReport();
-  std::string getVarKey(clang::VarDecl* VD) const;
+  std::string getVarKey(const clang::VarDecl* VD) const;
   bool shouldSkipUnmodifiedLine(clang::SourceLocation loc) const;
 };
 

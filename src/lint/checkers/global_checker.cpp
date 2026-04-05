@@ -58,23 +58,23 @@ LintResult GlobalChecker::check(const std::string& filepath) {
   Result_.hint_count = 0;
   Reporter_.clear();
 
-  std::vector<const char*> cargs = {"codelint",
-                                    "-std=c++17",
-                                    "-x",
-                                    "c++",
-                                    "-I/usr/include/c++/13",
-                                    "-I/usr/include/x86_64-linux-gnu/c++/13",
-                                    "-I/usr/include",
-                                    "-I/usr/local/include"};
+  std::vector<std::string> args = {
+      "-std=c++17", "-x", "c++",
+      "-resource-dir=/Library/Developer/CommandLineTools/usr/lib/clang/21"};
 
-  std::string errorMsg;
-  int argc = static_cast<int>(cargs.size());
-  auto compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
-      argc, cargs.data(), errorMsg, ".");
+#if defined(__APPLE__)
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/lib/clang/21/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/include");
+#else
+  args.push_back("-I/usr/include/c++/13");
+  args.push_back("-I/usr/include/x86_64-linux-gnu/c++/13");
+  args.push_back("-I/usr/include");
+  args.push_back("-I/usr/local/include");
+#endif
 
-  if (!compilations) {
-    return Result_;
-  }
+  auto compilations = std::make_unique<clang::tooling::FixedCompilationDatabase>(".", args);
 
   std::vector<std::string> sources = {filepath};
   clang::tooling::ClangTool tool(*compilations, sources);
@@ -167,8 +167,12 @@ bool GlobalChecker::isInSystemHeader(clang::VarDecl* VD) const {
   }
 
   std::string filename = fileEntryRef->getName().str();
-  return filename.find("/usr/include/") == 0 || filename.find("/usr/lib/") == 0 ||
-         filename.find("/usr/local/include/") == 0 || filename.empty();
+  // Check for system headers on macOS and Linux
+  return filename.find("/usr/include/") != std::string::npos ||
+         filename.find("/usr/lib/") != std::string::npos ||
+         filename.find("/usr/local/include/") != std::string::npos ||
+         filename.find("/Library/Developer/") != std::string::npos ||
+         filename.empty();
 }
 
 bool GlobalChecker::isExternDeclaration(clang::VarDecl* VD) const {

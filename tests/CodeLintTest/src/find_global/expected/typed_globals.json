@@ -1,0 +1,82 @@
+{
+  "issues": [
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_float",
+      "type_str": "float",
+      "file": "/Users/aronic/Documents/codelint-dev/tests/CodeLintTest/src/find_global/src/typed_globals.cpp",
+      "line": 8,
+      "column": 7,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_double",
+      "type_str": "double",
+      "file": "/Users/aronic/Documents/codelint-dev/tests/CodeLintTest/src/find_global/src/typed_globals.cpp",
+      "line": 9,
+      "column": 8,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_char",
+      "type_str": "char",
+      "file": "/Users/aronic/Documents/codelint-dev/tests/CodeLintTest/src/find_global/src/typed_globals.cpp",
+      "line": 10,
+      "column": 6,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_bool",
+      "type_str": "_Bool",
+      "file": "/Users/aronic/Documents/codelint-dev/tests/CodeLintTest/src/find_global/src/typed_globals.cpp",
+      "line": 11,
+      "column": 6,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_vec",
+      "type_str": "std::vector<int>",
+      "file": "/Users/aronic/Documents/codelint-dev/tests/CodeLintTest/src/find_global/src/typed_globals.cpp",
+      "line": 12,
+      "column": 18,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "global_str",
+      "type_str": "std::string",
+      "file": "/Users/aronic/Documents/codelint-dev/tests/CodeLintTest/src/find_global/src/typed_globals.cpp",
+      "line": 13,
+      "column": 13,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    }
+  ]
+}

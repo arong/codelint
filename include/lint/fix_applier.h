@@ -71,6 +71,9 @@ private:
   bool applyUnsignedSuffixFix(const LintIssue& issue, const std::vector<std::string>& lines,
                               std::string& replacement_text, size_t& offset, size_t& length);
 
+  bool applyConstSuggestionFix(const LintIssue& issue, const std::vector<std::string>& lines,
+                               std::string& replacement_text, size_t& offset, size_t& length);
+
   /**
    * Find the position to insert "{}" for a variable, handling arrays.
    * Returns the column position (0-indexed) where {} should be inserted.
