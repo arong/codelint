@@ -77,6 +77,22 @@ run_test "exception.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/src/exception.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/fixed/exception.cpp"
 
+run_test "const_basic.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_basic.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_basic.cpp"
+
+run_test "const_addr.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_addr.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_addr.cpp"
+
+run_test "const_call.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_call.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_call.cpp"
+
+run_test "const_array.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_array.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_array.cpp"
+
 echo ""
 
 # Test 5-8: Verify fixed files report 0 issues
