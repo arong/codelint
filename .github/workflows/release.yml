@@ -22,7 +22,7 @@ jobs:
             llvm18-dev llvm18-static \
             clang18 clang18-static \
             zlib-static zstd-static \
-            libxml2-static ncurses-static libedit-static
+            libxml2-dev libxml2-static ncurses-static libedit-static
           
           # Try to install libgit2 static packages (may fail)
           apk add --no-cache libgit2-dev libgit2-static || echo "libgit2-static not available, will build from source"
@@ -178,7 +178,7 @@ jobs:
       - name: Build AppImage
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
       
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
