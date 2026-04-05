@@ -192,7 +192,7 @@ bool ConstChecker::VisitBinaryOperator(clang::BinaryOperator* BO) {
       }
     }
   }
-  
+
   // Regular assignment (var = x)
   if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(lhs)) {
     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
@@ -322,14 +322,14 @@ std::string ConstChecker::makeConstSuggestion(const VarInfo& info) const {
 void ConstChecker::analyzeAndReport() {
   for (const auto& [key, info] : variables_) {
     if (info.is_constexpr) continue;
-    
+
     if (modified_vars_.count(key) > 0) continue;
     if (info.is_parameter || info.is_member) continue;
     if (info.is_pointer) continue;
-    
+
     bool can_be_constexpr = false;
     bool can_be_const = false;
-    
+
     if (info.is_const) {
       if (info.has_const_init && isBuiltinType(info.type) && !info.is_reference) {
         can_be_constexpr = true;
@@ -341,7 +341,7 @@ void ConstChecker::analyzeAndReport() {
         can_be_constexpr = true;
       }
     }
-    
+
     if (can_be_constexpr || can_be_const) {
       LintIssue issue;
       issue.type = can_be_constexpr ? CheckType::CAN_BE_CONSTEXPR : CheckType::CAN_BE_CONST;
@@ -396,13 +396,13 @@ bool ConstChecker::VisitCallExpr(clang::CallExpr* CE) {
 
   clang::FunctionDecl* FD = CE->getDirectCallee();
   if (!FD) return true;
-  
+
   for (unsigned i = 0; i < CE->getNumArgs(); ++i) {
     clang::Expr* arg = CE->getArg(i)->IgnoreParenImpCasts();
     if (i < FD->getNumParams()) {
       clang::ParmVarDecl* paramDecl = FD->getParamDecl(i);
       if (!paramDecl) continue;
-      
+
       clang::QualType paramType = paramDecl->getType();
       if (paramType->isPointerType() || paramType->isReferenceType()) {
         if (auto* UO = llvm::dyn_cast<clang::UnaryOperator>(arg)) {

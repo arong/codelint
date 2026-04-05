@@ -325,7 +325,7 @@ bool FixApplier::applyConstSuggestionFix(const LintIssue& issue,
   // Find the type position (search backwards from variable name)
   // First try the full type_str
   size_t type_pos = line.rfind(issue.type_str, var_pos);
-  
+
   // If not found, the type might have different spacing (e.g., "int &" vs "int&")
   // Try finding just the base type without spaces and reference/pointer markers
    if (type_pos == std::string::npos) {
@@ -345,7 +345,7 @@ bool FixApplier::applyConstSuggestionFix(const LintIssue& issue,
     // Search for base type in line
     type_pos = line.rfind(base_type, var_pos);
   }
-  
+
   if (type_pos == std::string::npos) {
     return false;
   }
