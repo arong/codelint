@@ -1,0 +1,17 @@
+{
+  "issues": [
+    {
+      "type": "singleton_pattern",
+      "severity": "info",
+      "checker": "singleton",
+      "name": "instance",
+      "type_str": "Settings &",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/namespace_singleton.cpp",
+      "line": 6,
+      "column": 26,
+      "description": "Singleton pattern detected in Settings::instance",
+      "suggestion": "Settings::instance()",
+      "fixable": false
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "issues": [
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "tl_value",
+      "type_str": "double",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_global/src/thread_local_globals.cpp",
+      "line": 1,
+      "column": 21,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    }
+  ]
+}

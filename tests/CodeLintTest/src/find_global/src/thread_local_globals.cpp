@@ -1,0 +1,1 @@
+thread_local double tl_value = 3.14;

@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
                  "Examples:\n"
                  "  --scope modified      # Only modified files/lines\n"
                  "  --scope staged        # Only git-add changes\n"
-                 "  --scope pr:develop    # PR difference vs develop")
+                 "  --scope commit:HEAD   # Check specific commit")
       ->default_val("all");
 
   // Define subcommand options structs locally

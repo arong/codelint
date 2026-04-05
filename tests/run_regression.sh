@@ -57,6 +57,37 @@ run_test() {
     rm -f "$output_file"
 }
 
+run_detection_json_test() {
+    local name="$1"
+    local cmd_type="$2"  # find_global or find_singleton
+    local src_file="$3"
+    local expected_json="$4"
+    
+    TEST_COUNT=$((TEST_COUNT + 1))
+    
+    local output_file=$(mktemp)
+    "$CODELINT" --output-json "$cmd_type" "$src_file" 2>/dev/null > "$output_file"
+    
+    # Path normalization
+    sed -i.tmp "s|$PROJECT_ROOT|<PROJECT_ROOT>|g" "$output_file"
+    sed -i.tmp "s|$PROJECT_ROOT|<PROJECT_ROOT>|g" "$expected_json"
+    
+    # Sort issues by line number for stability
+    jq '.issues |= sort_by(.line)' "$output_file" > "${output_file}.sorted"
+    jq '.issues |= sort_by(.line)' "$expected_json" > "${expected_json}.sorted"
+    
+    if diff -q "${output_file}.sorted" "${expected_json}.sorted" > /dev/null 2>&1; then
+        echo "PASS: $name (JSON)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo "FAIL: $name (JSON)"
+        diff "${output_file}.sorted" "${expected_json}.sorted" | head -30
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+    
+    rm -f "$output_file" "${output_file}.sorted" "${expected_json}.sorted" *.tmp
+}
+
 echo "Running check_init tests..."
 echo ""
 
@@ -76,6 +107,22 @@ run_test "std.cpp" \
 run_test "exception.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/src/exception.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/fixed/exception.cpp"
+
+run_test "const_basic.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_basic.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_basic.cpp"
+
+run_test "const_addr.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_addr.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_addr.cpp"
+
+run_test "const_call.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_call.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_call.cpp"
+
+run_test "const_array.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/src/const_array.cpp" \
+    "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_array.cpp"
 
 echo ""
 
@@ -189,6 +236,96 @@ else
     echo "FAIL: find_global JSON output invalid"
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
+
+# JSON Detection tests for find_global - 10 comprehensive tests
+echo "------------------------------------------"
+echo "Running find_global JSON detection tests..."
+echo "------------------------------------------"
+
+run_detection_json_test "find_global_basic" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/basic_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/basic_globals.json"
+
+run_detection_json_test "find_global_static" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/static_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/static_globals.json"
+
+run_detection_json_test "find_global_thread_local" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/thread_local_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/thread_local_globals.json"
+
+run_detection_json_test "find_global_typed" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/typed_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/typed_globals.json"
+
+run_detection_json_test "find_global_class" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/class_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/class_globals.json"
+
+run_detection_json_test "find_global_extern" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/extern_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/extern_globals.json"
+
+run_detection_json_test "find_global_anon_namespace" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/anon_namespace_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/anon_namespace_globals.json"
+
+run_detection_json_test "find_global_inline" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/inline_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/inline_globals.json"
+
+run_detection_json_test "find_global_template" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/template_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/template_globals.json"
+
+run_detection_json_test "find_global_const" "find_global" \
+    "$TEST_DIR/CodeLintTest/src/find_global/src/const_globals.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_global/expected/const_globals.json"
+
+# JSON Detection tests for find_singleton - 10 comprehensive tests
+echo "------------------------------------------"
+echo "Running find_singleton JSON detection tests..."
+echo "------------------------------------------"
+
+run_detection_json_test "find_singleton_meyers" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/meyers_singleton.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/meyers_singleton.json"
+
+run_detection_json_test "find_singleton_getinstance" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/getinstance_singleton.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/getinstance_singleton.json"
+
+run_detection_json_test "find_singleton_namespace" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/namespace_singleton.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/namespace_singleton.json"
+
+run_detection_json_test "find_singleton_fp_static" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/false_positive_static.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/false_positive_static.json"
+
+run_detection_json_test "find_singleton_fp_value" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/false_positive_value.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/false_positive_value.json"
+
+run_detection_json_test "find_singleton_fp_pointer" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/false_positive_pointer.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/false_positive_pointer.json"
+
+run_detection_json_test "find_singleton_fp_ref" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/false_positive_ref.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/false_positive_ref.json"
+
+run_detection_json_test "find_singleton_const" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/const_singleton.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/const_singleton.json"
+
+run_detection_json_test "find_singleton_thread_local" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/thread_local_singleton.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/thread_local_singleton.json"
+
+run_detection_json_test "find_singleton_crtp" "find_singleton" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/src/crtp_singleton.cpp" \
+    "$TEST_DIR/CodeLintTest/src/find_singleton/expected/crtp_singleton.json"
 
 # Test JSON output for find_singleton
 TEST_COUNT=$((TEST_COUNT + 1))

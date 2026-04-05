@@ -231,6 +231,30 @@ add_test(NAME sarif_validation_test COMMAND sarif_validation_test)
 
 add_test(NAME backward_compat_test COMMAND backward_compat_test)
 
+# Scope complete test - comprehensive Git scope tests
+add_executable(scope_complete_test tests/scope_complete_test.cpp)
+target_link_libraries(scope_complete_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(scope_complete_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+add_test(NAME scope_complete_test COMMAND scope_complete_test)
+
+# Fix test - comprehensive --fix flag tests
+add_executable(fix_test tests/fix_test.cpp)
+target_link_libraries(fix_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(fix_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+add_test(NAME fix_test COMMAND fix_test)
+
 # ========== Integrated Test Target ==========
 # This target runs both unit tests (ctest) and regression tests
 # Usage: cmake --build build --target test-all
@@ -250,4 +274,5 @@ add_dependencies(test-all
     text_format_test
     sarif_validation_test
     backward_compat_test
+    fix_test
 )
