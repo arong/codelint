@@ -1,9 +1,40 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🔍 Running whitespace checks..."
+CLANG_FORMAT="/opt/homebrew/opt/llvm@21/bin/clang-format"
 
-# Check 1: Trailing whitespace (exclude .sisyphus and build)
+echo "🔍 Running pre-commit checks..."
+
+# ========================================
+# Check 1: clang-format C++ files
+# ========================================
+echo "📝 Checking C++ formatting..."
+
+# Get staged C++ files
+STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' || true)
+
+if [[ -n "$STAGED_CPP" ]]; then
+    if [[ ! -x "$CLANG_FORMAT" ]]; then
+        echo "⚠️  Warning: clang-format not found at $CLANG_FORMAT"
+        echo "   Install LLVM or update CLANG_FORMAT path in .githooks/pre-commit"
+    else
+        echo "$STAGED_CPP" | while read -r file; do
+            if [[ -f "$file" ]]; then
+                "$CLANG_FORMAT" -i "$file"
+                git add "$file"
+                echo "   formatted: $file"
+            fi
+        done
+    fi
+else
+    echo "   No C++ files staged"
+fi
+
+# ========================================
+# Check 2: Trailing whitespace
+# ========================================
+echo "📝 Checking trailing whitespace..."
+
 if grep -r '[[:blank:]]$' \
     --include='*.cpp' \
     --include='*.h' \
@@ -18,7 +49,11 @@ if grep -r '[[:blank:]]$' \
 fi
 echo "✅ No trailing whitespace"
 
-# Check 2: Missing trailing newline (exclude .sisyphus and build)
+# ========================================
+# Check 3: Missing trailing newline
+# ========================================
+echo "📝 Checking trailing newlines..."
+
 errors=0
 while IFS= read -r -d '' file; do
     last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
@@ -34,4 +69,4 @@ if [ $errors -ne 0 ]; then
 fi
 echo "✅ All files have trailing newlines"
 
-echo "✨ Whitespace check passed!"
+echo "✨ All pre-commit checks passed!"

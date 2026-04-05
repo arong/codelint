@@ -25,7 +25,8 @@ protected:
   // Run codelint command and capture output
   std::string runCommand(const std::string& cmd) {
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "";
+    if (!pipe)
+      return "";
 
     char buffer[4096];
     std::string output;
@@ -38,89 +39,95 @@ protected:
 };
 
 // Test: File grouping - issues from same file appear together
-  // Expected: File header "=== filename.cpp ===" before issues from that file
-  TEST_F(TextFormatTest, FileGrouping_IssuesFromSameFileAppearTogether) {
-    if (!codelintExists()) {
-      GTEST_SKIP() << "codelint not built";
-    }
-
-    std::string test_file = "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
-    std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
-    std::string output = runCommand(cmd);
-
-    // Check for file grouping pattern: "=== /path/to/file.cpp ===" or similar
-    // The output should group issues by file with a clear header
-    std::regex file_header_pattern(R"(=== .*\.cpp \(\d+ issues\) ===)");
-    bool has_file_header = std::regex_search(output, file_header_pattern);
-
-    EXPECT_TRUE(has_file_header)
-        << "Output should group issues by file with a clear header: === file.cpp (N issues) ===\nOutput:\n"
-        << output.substr(0, 500);
+// Expected: File header "=== filename.cpp ===" before issues from that file
+TEST_F(TextFormatTest, FileGrouping_IssuesFromSameFileAppearTogether) {
+  if (!codelintExists()) {
+    GTEST_SKIP() << "codelint not built";
   }
 
-  // Test: File grouping - multiple files have separate sections
-  // Expected: When checking directory, each file has its own section
-  TEST_F(TextFormatTest, FileGrouping_MultipleFilesHaveSeparateSections) {
-    if (!codelintExists()) {
-      GTEST_SKIP() << "codelint not built";
-    }
+  std::string test_file =
+      "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
+  std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
+  std::string output = runCommand(cmd);
 
-    std::string test_dir = "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src";
-    std::string cmd = codelint_path + " check_init " + test_dir + " 2>/dev/null";
-    std::string output = runCommand(cmd);
+  // Check for file grouping pattern: "=== /path/to/file.cpp ===" or similar
+  // The output should group issues by file with a clear header
+  std::regex file_header_pattern(R"(=== .*\.cpp \(\d+ issues\) ===)");
+  bool has_file_header = std::regex_search(output, file_header_pattern);
 
-    // Count file headers/sections
-    std::regex file_section_pattern(R"(=== .*\.cpp \(\d+ issues\) ===)");
-    auto section_begin = std::sregex_iterator(output.begin(), output.end(), file_section_pattern);
-    auto section_end = std::sregex_iterator();
-    int section_count = std::distance(section_begin, section_end);
+  EXPECT_TRUE(has_file_header) << "Output should group issues by file with a clear header: === "
+                                  "file.cpp (N issues) ===\nOutput:\n"
+                               << output.substr(0, 500);
+}
 
-    // If multiple files are found, should have multiple sections
-    if (output.find(".cpp") != std::string::npos) {
-      EXPECT_GE(section_count, 1) << "Should have file sections for grouping\nOutput:\n" << output.substr(0, 500);
-    }
+// Test: File grouping - multiple files have separate sections
+// Expected: When checking directory, each file has its own section
+TEST_F(TextFormatTest, FileGrouping_MultipleFilesHaveSeparateSections) {
+  if (!codelintExists()) {
+    GTEST_SKIP() << "codelint not built";
   }
 
-  // Test: Source code line display - actual source shown for each issue
-  // Expected: Source line printed with "| line | code" pattern
-  TEST_F(TextFormatTest, SourceDisplay_ActualSourceLineShown) {
-    if (!codelintExists()) {
-      GTEST_SKIP() << "codelint not built";
-    }
+  std::string test_dir = "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src";
+  std::string cmd = codelint_path + " check_init " + test_dir + " 2>/dev/null";
+  std::string output = runCommand(cmd);
 
-    std::string test_file = "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
-    std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
-    std::string output = runCommand(cmd);
+  // Count file headers/sections
+  std::regex file_section_pattern(R"(=== .*\.cpp \(\d+ issues\) ===)");
+  auto section_begin = std::sregex_iterator(output.begin(), output.end(), file_section_pattern);
+  auto section_end = std::sregex_iterator();
+  int section_count = std::distance(section_begin, section_end);
 
-    // Look for source line pattern: "| 14 | char c1 = 0;"
-    std::regex source_line_pattern(R"(\|\s*\d+\s*\|)");
-    bool has_source_line = std::regex_search(output, source_line_pattern);
+  // If multiple files are found, should have multiple sections
+  if (output.find(".cpp") != std::string::npos) {
+    EXPECT_GE(section_count, 1) << "Should have file sections for grouping\nOutput:\n"
+                                << output.substr(0, 500);
+  }
+}
 
-    // Alternative: "Source:" label followed by code
-    bool has_source_label = output.find("Source:") != std::string::npos;
-
-    EXPECT_TRUE(has_source_line || has_source_label)
-        << "Output should show actual source code line for each issue with pattern '| N | code'\nOutput:\n"
-        << output.substr(0, 500);
+// Test: Source code line display - actual source shown for each issue
+// Expected: Source line printed with "| line | code" pattern
+TEST_F(TextFormatTest, SourceDisplay_ActualSourceLineShown) {
+  if (!codelintExists()) {
+    GTEST_SKIP() << "codelint not built";
   }
 
-  // Test: Source display shows line number
-  // Expected: Line number displayed in source context
-  TEST_F(TextFormatTest, SourceDisplay_LineNumberVisible) {
-    if (!codelintExists()) {
-      GTEST_SKIP() << "codelint not built";
-    }
+  std::string test_file =
+      "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
+  std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
+  std::string output = runCommand(cmd);
 
-    std::string test_file = "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
-    std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
-    std::string output = runCommand(cmd);
+  // Look for source line pattern: "| 14 | char c1 = 0;"
+  std::regex source_line_pattern(R"(\|\s*\d+\s*\|)");
+  bool has_source_line = std::regex_search(output, source_line_pattern);
 
-    // Look for line number pattern: "14:6" at start of issue line
-    std::regex line_num_pattern(R"(\d+:\d+:)");
-    bool has_line_number = std::regex_search(output, line_num_pattern);
+  // Alternative: "Source:" label followed by code
+  bool has_source_label = output.find("Source:") != std::string::npos;
 
-    EXPECT_TRUE(has_line_number) << "Output should display line numbers in format 'N:M:'\nOutput:\n" << output.substr(0, 500);
+  EXPECT_TRUE(has_source_line || has_source_label)
+      << "Output should show actual source code line for each issue with pattern '| N | "
+         "code'\nOutput:\n"
+      << output.substr(0, 500);
+}
+
+// Test: Source display shows line number
+// Expected: Line number displayed in source context
+TEST_F(TextFormatTest, SourceDisplay_LineNumberVisible) {
+  if (!codelintExists()) {
+    GTEST_SKIP() << "codelint not built";
   }
+
+  std::string test_file =
+      "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
+  std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
+  std::string output = runCommand(cmd);
+
+  // Look for line number pattern: "14:6" at start of issue line
+  std::regex line_num_pattern(R"(\d+:\d+:)");
+  bool has_line_number = std::regex_search(output, line_num_pattern);
+
+  EXPECT_TRUE(has_line_number) << "Output should display line numbers in format 'N:M:'\nOutput:\n"
+                               << output.substr(0, 500);
+}
 
 // Test: Statistics summary - file count present
 // Expected: "Files: N" or "Files processed: N" in summary
@@ -141,8 +148,7 @@ TEST_F(TextFormatTest, StatisticsSummary_FileCountPresent) {
   std::regex file_pattern(R"(\d+\s+file\(s\))");
   bool has_file_pattern = std::regex_search(output, file_pattern);
 
-  EXPECT_TRUE(has_file_count || has_file_pattern)
-      << "Summary should show file count";
+  EXPECT_TRUE(has_file_count || has_file_pattern) << "Summary should show file count";
 }
 
 // Test: Statistics summary - issue breakdown present
@@ -183,22 +189,25 @@ TEST_F(TextFormatTest, StatisticsSummary_TimeElapsedPresent) {
   EXPECT_TRUE(has_time) << "Summary should show elapsed time";
 }
 
-  // Test: Suggestion highlighting - clearly visible
-  // Expected: "suggestion:" label before fix text
-  TEST_F(TextFormatTest, SuggestionHighlighting_ClearlyVisible) {
-    if (!codelintExists()) {
-      GTEST_SKIP() << "codelint not built";
-    }
-
-    std::string test_file = "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
-    std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
-    std::string output = runCommand(cmd);
-
-    // Check for suggestion label (lowercase, as we're using)
-    bool has_suggestion = output.find("suggestion:") != std::string::npos;
-
-    EXPECT_TRUE(has_suggestion) << "Output should clearly label suggestions with 'suggestion:'\nOutput:\n" << output.substr(0, 500);
+// Test: Suggestion highlighting - clearly visible
+// Expected: "suggestion:" label before fix text
+TEST_F(TextFormatTest, SuggestionHighlighting_ClearlyVisible) {
+  if (!codelintExists()) {
+    GTEST_SKIP() << "codelint not built";
   }
+
+  std::string test_file =
+      "/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/init_check.cpp";
+  std::string cmd = codelint_path + " check_init " + test_file + " 2>/dev/null";
+  std::string output = runCommand(cmd);
+
+  // Check for suggestion label (lowercase, as we're using)
+  bool has_suggestion = output.find("suggestion:") != std::string::npos;
+
+  EXPECT_TRUE(has_suggestion)
+      << "Output should clearly label suggestions with 'suggestion:'\nOutput:\n"
+      << output.substr(0, 500);
+}
 
 // Test: Suggestion contains fix code
 // Expected: Suggestion shows actual code to fix, e.g., "int a{5};"

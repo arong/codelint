@@ -22,10 +22,12 @@ int main(int argc, char** argv) {
   app.add_flag("--version", g_opts.show_version, "Show version information with LLVM details");
   app.add_option("-p,--path", g_opts.path, "Path to compile_commands.json directory");
   app.add_flag("--output-json", g_opts.output_json,
-              "Output issues in JSON format (DEPRECATED: use --output-sarif)")
-      ->description("Output in JSON format for CI/CD integration (deprecated, use --output-sarif for SARIF format)");
+               "Output issues in JSON format (DEPRECATED: use --output-sarif)")
+      ->description("Output in JSON format for CI/CD integration (deprecated, use --output-sarif "
+                    "for SARIF format)");
   app.add_flag("--output-sarif", g_opts.output_sarif, "Output in SARIF format")
-      ->description("Output issues in SARIF v2.1.0 format (machine-readable, GitHub Code Scanning compatible)");
+      ->description("Output issues in SARIF v2.1.0 format (machine-readable, GitHub Code Scanning "
+                    "compatible)");
   app.add_option("--scope", g_opts.scope,
                  "Control incremental analysis (default: all)\n"
                  "Examples:\n"

@@ -25,7 +25,8 @@ protected:
   // Helper to run command and capture output
   std::string runCommand(const std::string& cmd) {
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "";
+    if (!pipe)
+      return "";
 
     char buffer[4096];
     std::string output;

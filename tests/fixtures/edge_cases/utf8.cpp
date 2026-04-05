@@ -11,14 +11,14 @@
 
 class 用户管理器 {
 public:
-    // 中文字符串作为变量名
-    std::string 名称{"默认用户"};
-    int 年龄{25};
+  // 中文字符串作为变量名
+  std::string 名称{"默认用户"};
+  int 年龄{25};
 
-    // 带中文的函数名测试
-    void 获取用户信息() {
-        std::cout << "用户: " << 名称 << std::endl;
-    }
+  // 带中文的函数名测试
+  void 获取用户信息() {
+    std::cout << "用户: " << 名称 << std::endl;
+  }
 };
 
 // 测试特殊字符在字符串中的处理
@@ -28,21 +28,21 @@ const char* chinese_test = "中文测试";
 // 测试韩文
 class 사용자관리자 {
 public:
-    std::string 이름{"사용자"};
+  std::string 이름{"사용자"};
 };
 
 // 测试日文
 class ユーザー管理 {
 public:
-    std::string 名前{"テスト"};
+  std::string 名前{"テスト"};
 };
 
 int main() {
-    用户管理器 mgr;
-    mgr.获取用户信息();
+  用户管理器 mgr;
+  mgr.获取用户信息();
 
-    std::cout << emoji_test << std::endl;
-    std::cout << chinese_test << std::endl;
+  std::cout << emoji_test << std::endl;
+  std::cout << chinese_test << std::endl;
 
-    return 0;
+  return 0;
 }

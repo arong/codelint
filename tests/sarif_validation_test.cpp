@@ -2,8 +2,8 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-#include <string>
 #include <sstream>
+#include <string>
 
 // SARIF validation tests - verify SARIF output format compliance
 // These tests examine the output of the compiled codelint binary with --output-sarif flag
@@ -29,7 +29,8 @@ protected:
   std::string runCodelintSarif(const std::string& target) {
     std::string cmd = codelint_path + " --output-sarif check_init " + target + " 2>/dev/null";
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "";
+    if (!pipe)
+      return "";
 
     char buffer[4096];
     std::string output;
@@ -42,7 +43,8 @@ protected:
 
   // Helper function to validate basic JSON structure
   bool isValidJson(const std::string& json_str) {
-    if (json_str.empty()) return false;
+    if (json_str.empty())
+      return false;
     // Basic check: must start with { or [
     return json_str.find('{') == 0 || json_str.find('[') == 0;
   }
@@ -157,8 +159,7 @@ TEST_F(SarifValidationTest, SarifOutputHasLocations) {
   std::string output = runCodelintSarif(test_file);
 
   ASSERT_FALSE(output.empty());
-  EXPECT_TRUE(contains(output, "\"locations\"") ||
-              contains(output, "\"physicalLocation\"") ||
+  EXPECT_TRUE(contains(output, "\"locations\"") || contains(output, "\"physicalLocation\"") ||
               contains(output, "\"artifactLocation\""));
 }
 

@@ -151,9 +151,9 @@ void IssueReporter::print_sarif(std::ostream& output_stream) const {
   doc.SetObject();
 
   Value schema_val;
-  schema_val.SetString(
-      "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-      doc.GetAllocator());
+  schema_val.SetString("https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/"
+                       "sarif-schema-2.1.0.json",
+                       doc.GetAllocator());
   doc.AddMember("$schema", schema_val, doc.GetAllocator());
 
   Value version_val;
@@ -242,10 +242,13 @@ void IssueReporter::print_sarif(std::ostream& output_stream) const {
       replacement_region.AddMember("startLine", issue.line, doc.GetAllocator());
       replacement_region.AddMember("startColumn", issue.column, doc.GetAllocator());
       replacement_region.AddMember("endLine", issue.line, doc.GetAllocator());
-      replacement_region.AddMember("endColumn", static_cast<int>(issue.column + issue.type_str.length() + issue.name.length() + 5),
-                                   doc.GetAllocator());
+      replacement_region.AddMember(
+          "endColumn",
+          static_cast<int>(issue.column + issue.type_str.length() + issue.name.length() + 5),
+          doc.GetAllocator());
       replacement_regions_array.PushBack(replacement_region, doc.GetAllocator());
-      artifact_change.AddMember("replacementRegions", replacement_regions_array, doc.GetAllocator());
+      artifact_change.AddMember("replacementRegions", replacement_regions_array,
+                                doc.GetAllocator());
 
       Value replacement_val;
       replacement_val.SetString(issue.suggestion.c_str(), doc.GetAllocator());

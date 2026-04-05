@@ -2,8 +2,8 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-#include <string>
 #include <sstream>
+#include <string>
 
 // Edge case tests for command utilities
 class EdgeCasesTest : public ::testing::Test {
@@ -19,7 +19,8 @@ protected:
   // Helper to run command and capture output
   std::string runCommand(const std::string& cmd) {
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "";
+    if (!pipe)
+      return "";
 
     char buffer[4096];
     std::string output;
@@ -90,13 +91,15 @@ TEST_F(EdgeCasesTest, LongLineTruncationText) {
   // Find the source line in output and verify length <= 123 (120 + "...")
   size_t line_pos = output.find("| 14 |");
   if (line_pos != std::string::npos) {
-    std::string source_line = output.substr(line_pos + 7); // Skip "| 14 |" (7 chars including space)
+    std::string source_line =
+        output.substr(line_pos + 7); // Skip "| 14 |" (7 chars including space)
     size_t end_pos = source_line.find('\n');
     if (end_pos != std::string::npos) {
       source_line = source_line.substr(0, end_pos);
     }
     // Source line should be exactly 120 chars + "..." = 123 chars
-    EXPECT_EQ(source_line.length(), 123u) << "Truncated line length incorrect: " << source_line.length();
+    EXPECT_EQ(source_line.length(), 123u)
+        << "Truncated line length incorrect: " << source_line.length();
   }
 }
 

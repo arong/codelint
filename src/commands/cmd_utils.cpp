@@ -69,7 +69,7 @@ std::vector<std::string> collect_cpp_files(const std::string& path) {
 }
 
 void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool json_output,
-                    bool sarif_output) {
+                   bool sarif_output) {
   codelint::lint::IssueReporter reporter;
   reporter.add_issues(issues);
 
@@ -82,14 +82,13 @@ void format_output(const std::vector<codelint::lint::LintIssue>& issues, bool js
   }
 }
 
-void print_statistics(int files_processed, int issues_found,
-                      std::chrono::milliseconds elapsed,
-                      int error_count, int warning_count, int info_count,
-                      int fixable_count) {
+void print_statistics(int files_processed, int issues_found, std::chrono::milliseconds elapsed,
+                      int error_count, int warning_count, int info_count, int fixable_count) {
   std::cout << "\nSummary:\n";
   std::cout << "  Files processed: " << files_processed << "\n";
   std::cout << "  Issues: " << issues_found << " ("
-            << "Errors: " << error_count << ", Warnings: " << warning_count << ", Info: " << info_count << ")\n";
+            << "Errors: " << error_count << ", Warnings: " << warning_count
+            << ", Info: " << info_count << ")\n";
   std::cout << "  Total: " << issues_found << "\n";
   if (issues_found > 0) {
     int percentage = (fixable_count * 100) / issues_found;
@@ -250,16 +249,25 @@ int run_checker_command(
     int error_count = 0, warning_count = 0, info_count = 0, hint_count = 0, fixable_count = 0;
     for (const auto& issue : all_issues) {
       switch (issue.severity) {
-        case codelint::lint::Severity::ERROR: ++error_count; break;
-        case codelint::lint::Severity::WARNING: ++warning_count; break;
-        case codelint::lint::Severity::INFO: ++info_count; break;
-        case codelint::lint::Severity::HINT: ++hint_count; break;
+      case codelint::lint::Severity::ERROR:
+        ++error_count;
+        break;
+      case codelint::lint::Severity::WARNING:
+        ++warning_count;
+        break;
+      case codelint::lint::Severity::INFO:
+        ++info_count;
+        break;
+      case codelint::lint::Severity::HINT:
+        ++hint_count;
+        break;
       }
-      if (issue.fixable) ++fixable_count;
+      if (issue.fixable)
+        ++fixable_count;
     }
 
-    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms,
-                     error_count, warning_count, info_count, fixable_count);
+    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms, error_count,
+                     warning_count, info_count, fixable_count);
   }
 
   return 0;

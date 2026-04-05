@@ -5,8 +5,8 @@
 #include <iostream>
 
 int main() {
-    int a = 1;
-    unsigned int b = 2;
-    int c = 3;
-    return 0;
+  int a = 1;
+  unsigned int b = 2;
+  int c = 3;
+  return 0;
 }

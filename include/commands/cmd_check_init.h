@@ -16,7 +16,8 @@ std::vector<lint::LintIssue> collect_issues(const std::vector<std::string>& path
 
 int apply_fixes(const std::vector<lint::LintIssue>& issues, bool inplace);
 
-int format_output(const std::vector<lint::LintIssue>& issues, bool output_json, bool output_sarif = false);
+int format_output(const std::vector<lint::LintIssue>& issues, bool output_json,
+                  bool output_sarif = false);
 
 } // namespace codelint
 

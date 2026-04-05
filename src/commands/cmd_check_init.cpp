@@ -362,9 +362,8 @@ void format_text_output(const std::vector<LintIssue>& issues, int fixable_count)
   for (const auto& [file, file_issues] : issues_by_file) {
     std::cout << "=== " << file << " (" << file_issues.size() << " issues) ===\n";
     for (const auto& issue : file_issues) {
-      std::cout << issue.line << ":" << issue.column << ": "
-                << severity_to_string(issue.severity) << ": " << issue.description << " ["
-                << issue.checker_name << "]\n";
+      std::cout << issue.line << ":" << issue.column << ": " << severity_to_string(issue.severity)
+                << ": " << issue.description << " [" << issue.checker_name << "]\n";
 
       std::string source_line = read_line_from_file(issue.file, issue.line);
       if (!source_line.empty()) {
@@ -434,7 +433,12 @@ void format_sarif_output(const std::vector<LintIssue>& issues) {
 
   Value schema;
   schema.SetString("$schema", doc.GetAllocator());
-  doc.AddMember(schema, Value("https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json", doc.GetAllocator()).Move(), doc.GetAllocator());
+  doc.AddMember(schema,
+                Value("https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/"
+                      "sarif-schema-2.1.0.json",
+                      doc.GetAllocator())
+                    .Move(),
+                doc.GetAllocator());
 
   Value version;
   version.SetString("version", doc.GetAllocator());
@@ -461,16 +465,23 @@ void format_sarif_output(const std::vector<LintIssue>& issues) {
 
     Value rule_id;
     rule_id.SetString("ruleId", doc.GetAllocator());
-    result.AddMember(rule_id, Value(check_type_to_string(issue.type).c_str(), doc.GetAllocator()).Move(), doc.GetAllocator());
+    result.AddMember(rule_id,
+                     Value(check_type_to_string(issue.type).c_str(), doc.GetAllocator()).Move(),
+                     doc.GetAllocator());
 
     Value level;
     level.SetString("level", doc.GetAllocator());
-    result.AddMember(level, Value(severity_to_string(issue.severity) == "error" ? "error" : "warning", doc.GetAllocator()).Move(), doc.GetAllocator());
+    result.AddMember(level,
+                     Value(severity_to_string(issue.severity) == "error" ? "error" : "warning",
+                           doc.GetAllocator())
+                         .Move(),
+                     doc.GetAllocator());
 
     Value message(kObjectType);
     Value msg_text;
     msg_text.SetString("text", doc.GetAllocator());
-    message.AddMember(msg_text, Value(issue.description.c_str(), doc.GetAllocator()).Move(), doc.GetAllocator());
+    message.AddMember(msg_text, Value(issue.description.c_str(), doc.GetAllocator()).Move(),
+                      doc.GetAllocator());
     result.AddMember("message", message, doc.GetAllocator());
 
     Value locations(kArrayType);
@@ -490,7 +501,8 @@ void format_sarif_output(const std::vector<LintIssue>& issues) {
         i += 2;
       }
     }
-    art_loc.AddMember(uri, Value(encoded_path.c_str(), doc.GetAllocator()).Move(), doc.GetAllocator());
+    art_loc.AddMember(uri, Value(encoded_path.c_str(), doc.GetAllocator()).Move(),
+                      doc.GetAllocator());
     Value uri_base;
     uri_base.SetString("uriBaseId", doc.GetAllocator());
     art_loc.AddMember(uri_base, Value("SRCROOT", doc.GetAllocator()).Move(), doc.GetAllocator());
@@ -514,7 +526,9 @@ void format_sarif_output(const std::vector<LintIssue>& issues) {
       Value fix_desc(kObjectType);
       Value fix_desc_text;
       fix_desc_text.SetString("text", doc.GetAllocator());
-      fix_desc.AddMember(fix_desc_text, Value("Replace with brace initialization", doc.GetAllocator()).Move(), doc.GetAllocator());
+      fix_desc.AddMember(fix_desc_text,
+                         Value("Replace with brace initialization", doc.GetAllocator()).Move(),
+                         doc.GetAllocator());
       fix.AddMember("description", fix_desc, doc.GetAllocator());
 
       Value art_changes(kArrayType);
@@ -532,7 +546,10 @@ void format_sarif_output(const std::vector<LintIssue>& issues) {
       repl_region.AddMember(r_end_line, issue.line, doc.GetAllocator());
       Value r_end_col;
       r_end_col.SetString("endColumn", doc.GetAllocator());
-      repl_region.AddMember(r_end_col, issue.column + (int)issue.name.size() + (issue.type_str.empty() ? 0 : (int)issue.type_str.size() + 1), doc.GetAllocator());
+      repl_region.AddMember(r_end_col,
+                            issue.column + (int)issue.name.size() +
+                                (issue.type_str.empty() ? 0 : (int)issue.type_str.size() + 1),
+                            doc.GetAllocator());
       repl_regions.PushBack(repl_region, doc.GetAllocator());
       Value replacement;
       replacement.SetString(issue.suggestion.c_str(), doc.GetAllocator());
@@ -612,8 +629,8 @@ int check_init(const GlobalOptions& opts, const CheckInitOptions& init_opts) {
 
   int result = codelint::format_output(all_issues, opts.output_json, opts.output_sarif);
   if (!opts.output_json && !opts.output_sarif) {
-    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms,
-                     error_count, warning_count, info_count, fixable_count);
+    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms, error_count,
+                     warning_count, info_count, fixable_count);
   }
   return result;
 }
