@@ -119,6 +119,7 @@ else()
         ${LLVM_LIBRARY_DIR}/libclang.dylib
         ${LLVM_LIBRARY_DIR}/libLLVM.dylib
         libgit2::libgit2package
+        ${LLVM_LIBRARY_DIR}/libLLVM-18.so
     )
 else()
     # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
@@ -126,6 +127,7 @@ else()
         ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
         ${LLVM_LIBRARY_DIR}/libclang.so
         libgit2::libgit2package
+        ${LLVM_LIBRARY_DIR}/libLLVM-18.so
     )
 endif()
     # Suppress LLVM command-line option duplication warning
