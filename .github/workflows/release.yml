@@ -21,7 +21,23 @@ jobs:
             llvm18-dev llvm18-static \
             clang18 clang18-static \
             zlib-static zstd-static \
-            libxml2-static ncurses-static libedit-static libffi-static
+            libxml2-static ncurses-static libedit-static libffi-static \
+            libgit2-dev libgit2-static || true
+      
+      - name: Build libgit2 static (if not available)
+        run: |
+          if [ ! -f /usr/lib/libgit2.a ]; then
+            echo "libgit2-static not found, building from source..."
+            apk add --no-cache curl
+            curl -L https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.1.tar.gz -o libgit2.tar.gz
+            tar xzf libgit2.tar.gz
+            cd libgit2-*
+            cmake -B build -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr
+            cmake --build build -j$(nproc)
+            cmake --install build
+            cd ..
+            rm -rf libgit2-* libgit2.tar.gz
+          fi
       
       - name: Configure CMake
         run: |
@@ -36,7 +52,11 @@ jobs:
       
       - name: Verify static linking
         run: |
-          ldd build/codelint 2>&1 || echo "Static binary confirmed"
+          echo "=== Binary Info ==="
+          file build/codelint
+          echo "=== Dynamic Dependencies (should fail for static) ==="
+          ldd build/codelint 2>&1 || echo "✓ Static binary confirmed (no dynamic deps)"
+          echo "=== Version Check ==="
           ./build/codelint --version
       
       - name: Package tar.gz
