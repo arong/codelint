@@ -200,12 +200,6 @@ codelint find_global src/ --scope staged
 
 # 检查特定提交
 codelint find_singleton src/ --scope commit:HEAD
-
-# 检查 PR 与 main 的差异
-codelint check_init src/ --scope pr:main
-
-# 检查两个分支之间的差异
-codelint find_global src/ --scope diff:main...feature
 ```
 
 **功能：**

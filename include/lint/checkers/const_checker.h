@@ -39,6 +39,7 @@ public:
   bool VisitVarDecl(clang::VarDecl* VD);
   bool VisitBinaryOperator(clang::BinaryOperator* BO);
   bool VisitUnaryOperator(clang::UnaryOperator* UO);
+  bool VisitCallExpr(clang::CallExpr* CE);
   void runOnAST(clang::ASTContext* Context);
 
 private:
@@ -70,7 +71,7 @@ private:
   bool isBuiltinType(const std::string& type) const;
   std::string makeConstSuggestion(const VarInfo& info) const;
   void analyzeAndReport();
-  std::string getVarKey(clang::VarDecl* VD) const;
+  std::string getVarKey(const clang::VarDecl* VD) const;
   bool shouldSkipUnmodifiedLine(clang::SourceLocation loc) const;
 };
 

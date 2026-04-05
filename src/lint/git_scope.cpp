@@ -146,9 +146,35 @@ std::string GitScope::detect_main_branch() const {
 }
 
 bool GitScope::init() {
-  if (mode_ == Mode::ALL) {
-    return true;
-  }
+    if (mode_ == Mode::ALL) {
+        return true;
+    }
+
+    std::string diff_output;
+    bool success = false;
+
+    switch (mode_) {
+        case Mode::MODIFIED:
+            success = run_git_command({"diff", "-U0", "HEAD"}, diff_output);
+            break;
+
+        case Mode::STAGED:
+            success = run_git_command({"diff", "--cached", "-U0"}, diff_output);
+            break;
+
+        case Mode::COMMIT:
+            success = run_git_command({"diff", "-U0", ref_ + "^", ref_}, diff_output);
+            break;
+
+        case Mode::MERGE_BASE: {
+            std::string main_branch = detect_main_branch();
+            if (main_branch.empty()) {
+                error_ = "Could not detect main branch (tried origin/main, origin/master)";
+                return false;
+            }
+            success = run_git_command({"diff", "-U0", main_branch + "...HEAD"}, diff_output);
+            break;
+        }
 
   std::string diff_output;
   bool success = false;
@@ -199,10 +225,20 @@ std::optional<GitScope> GitScope::parse(const std::string& scope_str) {
     return scope;
   }
 
-  if (scope_str == "merge-base") {
-    scope.mode_ = Mode::MERGE_BASE;
-    if (!scope.init()) {
-      return std::nullopt;
+    if (scope_str == "staged") {
+        scope.mode_ = Mode::STAGED;
+        if (!scope.init()) {
+            return std::nullopt;
+        }
+        return scope;
+    }
+
+    if (scope_str == "merge-base") {
+        scope.mode_ = Mode::MERGE_BASE;
+        if (!scope.init()) {
+            return std::nullopt;
+        }
+        return scope;
     }
     return scope;
   }

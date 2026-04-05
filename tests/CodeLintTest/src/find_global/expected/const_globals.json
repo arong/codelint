@@ -1,0 +1,43 @@
+{
+  "issues": [
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "const_int_global",
+      "type_str": "const int",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_global/src/const_globals.cpp",
+      "line": 4,
+      "column": 11,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "const_double_global",
+      "type_str": "const double",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_global/src/const_globals.cpp",
+      "line": 5,
+      "column": 14,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    },
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "constexpr_int_global",
+      "type_str": "const int",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_global/src/const_globals.cpp",
+      "line": 6,
+      "column": 15,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    }
+  ]
+}

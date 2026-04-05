@@ -19,6 +19,7 @@ struct LineRange {
 // Supported scope formats:
 // - "all" → All files in the repository
 // - "modified" → Uncommitted changes (git diff HEAD)
+// - "staged" → Staged changes (git diff --cached)
 // - "commit:HASH" → Changes in a specific commit (e.g., "commit:HEAD", "commit:abc123")
 // - "merge-base" → Changes between merge-base and HEAD (git diff origin/main...HEAD)
 class GitScope {
@@ -50,18 +51,18 @@ public:
   }
 
 private:
-  enum class Mode { ALL, MODIFIED, COMMIT, MERGE_BASE };
+    enum class Mode { ALL, MODIFIED, STAGED, COMMIT, MERGE_BASE };
 
-  Mode mode_;
-  std::string ref_;
-  std::string error_;
-  std::map<std::string, std::vector<LineRange>> file_ranges_;
+    Mode mode_;
+    std::string ref_;
+    std::string error_;
+    std::map<std::string, std::vector<LineRange>> file_ranges_;
 
-  bool run_git_command(const std::vector<std::string>& args, std::string& output);
-  bool parse_diff_output(const std::string& diff_output);
-  static LineRange parse_hunk_header(const std::string& header);
-  std::string detect_main_branch() const;
-  bool init();
+    bool run_git_command(const std::vector<std::string>& args, std::string& output);
+    bool parse_diff_output(const std::string& diff_output);
+    static LineRange parse_hunk_header(const std::string& header);
+    std::string detect_main_branch() const;
+    bool init();
 };
 
 } // namespace lint

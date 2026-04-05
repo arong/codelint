@@ -1,0 +1,17 @@
+{
+  "issues": [
+    {
+      "type": "global_variable",
+      "severity": "info",
+      "checker": "global",
+      "name": "defined_var",
+      "type_str": "int",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_global/src/extern_globals.cpp",
+      "line": 7,
+      "column": 5,
+      "description": "Global variable detected",
+      "suggestion": "Consider using a singleton or dependency injection pattern",
+      "fixable": false
+    }
+  ]
+}
