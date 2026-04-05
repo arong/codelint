@@ -60,23 +60,23 @@ LintResult SingletonChecker::check(const std::string& filepath) {
   Result_.hint_count = 0;
   Reporter_.clear();
 
-  std::vector<const char*> cargs = {"codelint",
-                                    "-std=c++17",
-                                    "-x",
-                                    "c++",
-                                    "-I/usr/include/c++/13",
-                                    "-I/usr/include/x86_64-linux-gnu/c++/13",
-                                    "-I/usr/include",
-                                    "-I/usr/local/include"};
+  std::vector<std::string> args = {
+      "-std=c++17", "-x", "c++",
+      "-resource-dir=/Library/Developer/CommandLineTools/usr/lib/clang/21"};
 
-  std::string errorMsg;
-  int argc = static_cast<int>(cargs.size());
-  auto compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
-      argc, cargs.data(), errorMsg, ".");
+#if defined(__APPLE__)
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/lib/clang/21/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/include");
+#else
+  args.push_back("-I/usr/include/c++/13");
+  args.push_back("-I/usr/include/x86_64-linux-gnu/c++/13");
+  args.push_back("-I/usr/include");
+  args.push_back("-I/usr/local/include");
+#endif
 
-  if (!compilations) {
-    return Result_;
-  }
+  auto compilations = std::make_unique<clang::tooling::FixedCompilationDatabase>(".", args);
 
   std::vector<std::string> sources = {filepath};
   clang::tooling::ClangTool tool(*compilations, sources);
