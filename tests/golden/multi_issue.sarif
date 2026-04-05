@@ -1,0 +1,161 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codelint",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/username/codelint"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "init_uninitialized",
+          "level": "error",
+          "message": {
+            "text": "Variable 'x' is uninitialized"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main.cpp",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 3
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "init_equals_syntax",
+          "level": "warning",
+          "message": {
+            "text": "Variable should use '{}' syntax for initialization"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main.cpp",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "Replace with brace initialization"
+              },
+              "artifactChanges": [
+                {
+                  "replacementRegions": [
+                    {
+                      "startLine": 10,
+                      "startColumn": 5,
+                      "endLine": 10,
+                      "endColumn": 13
+                    }
+                  ],
+                  "replacement": "int a{5};"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "init_unsigned_suffix",
+          "level": "warning",
+          "message": {
+            "text": "Unsigned integer should have 'U' suffix"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/utils.cpp",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 15,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "Add 'U' suffix"
+              },
+              "artifactChanges": [
+                {
+                  "replacementRegions": [
+                    {
+                      "startLine": 15,
+                      "startColumn": 10,
+                      "endLine": 15,
+                      "endColumn": 18
+                    }
+                  ],
+                  "replacement": "unsigned int size{100U};"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "can_be_const",
+          "level": "note",
+          "message": {
+            "text": "Variable can be const"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.cpp",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 3
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "Make variable const"
+              },
+              "artifactChanges": [
+                {
+                  "replacementRegions": [
+                    {
+                      "startLine": 20,
+                      "startColumn": 3,
+                      "endLine": 20,
+                      "endColumn": 25
+                    }
+                  ],
+                  "replacement": "const int max_size{100};"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

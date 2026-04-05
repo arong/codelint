@@ -1,77 +1,66 @@
 name: Build and Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags: ['v*']
 
 jobs:
-  # Job 1: musl static build (Alpine 3.20)
-  musl-static:
+  # Job 1: AppImage (Ubuntu 22.04 + vcpkg dynamic)
+  appimage:
     runs-on: ubuntu-latest
-    container: alpine:3.20
+    container: ubuntu:22.04
+    
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Install dependencies
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-
+      
+      - name: Install dependencies and vcpkg
         run: |
-          apk add --no-cache \
-            build-base cmake git python3 \
-            llvm18-dev llvm18-static \
-            clang18 clang18-static \
-            zlib-static zstd-static \
-            libxml2-static ncurses-static libedit-static libffi-static
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake git python3 wget file \
+            curl zip unzip ca-certificates pkg-config \
+            lsb-release software-properties-common gnupg \
+            patchelf
+          
+          # Setup vcpkg
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          fi
+          
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 21
+          
+          apt-get install -y --no-install-recommends \
+            llvm-21-dev \
+            clang-21 \
+            libclang-21-dev
+      
+      - name: Install vcpkg packages
+        run: ./vcpkg/vcpkg install
       
       - name: Configure CMake
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DSTATIC_LINKING=ON \
-            -DCMAKE_EXE_LINKER_FLAGS='-static'
-      
-      - name: Build static binary
-        run: |
-          cmake --build build -j$(nproc)
-      
-      - name: Verify static linking
-        run: |
-          ldd build/codelint 2>&1 || echo "Static binary confirmed"
-          ./build/codelint --version
-      
-      - name: Package tar.gz
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          tar -czvf codelint-${VERSION}-linux-x86_64-musl.tar.gz \
-            -C build codelint
-      
-      - name: Upload musl artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: musl-artifact
-          path: codelint-*.tar.gz
-          retention-days: 5
-
-  # Job 2: AppImage (Ubuntu 22.04)
-  appimage:
-    runs-on: ubuntu-latest
-    container: ubuntu:22.04
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            build-essential cmake git python3 wget \
-            llvm-18-dev clang-18 \
-            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev
-      
-      - name: Configure CMake
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
       
       - name: Build binary
         run: |
@@ -95,12 +84,13 @@ jobs:
           # Create AppRun
           cat > AppDir/AppRun << 'EOF'
           #!/bin/bash
-          exe="$(dirname "$(readlink -f "$0")")/usr/bin/codelint"
-          exec "$exe" "$@"
+          APPDIR="$(dirname "$(readlink -f "$0")")"
+          export LD_LIBRARY_PATH="${APPDIR}/usr/lib${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
+          exec "${APPDIR}/usr/bin/codelint" "$@"
           EOF
           chmod +x AppDir/AppRun
           
-          # Create AppImage.desktop
+          # Create desktop file
           cat > AppDir/codelint.desktop << 'EOF'
           [Desktop Entry]
           Name=codelint
@@ -111,17 +101,39 @@ jobs:
           Categories=Development;
           EOF
           
-          # Create AppImage.meta
-          cat > AppDir/codelint.yml << 'EOF'
-          appId: com.codelint.app
-          productName: codelint
-          executable: usr/bin/codelint
+          # Create icon
+          cat > AppDir/codelint.svg << 'EOF'
+          <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+            <rect width="128" height="128" fill="#3B82F6" rx="16"/>
+            <text x="64" y="80" text-anchor="middle" font-family="monospace" font-size="48" fill="white" font-weight="bold">C++</text>
+            <text x="64" y="110" text-anchor="middle" font-family="sans-serif" font-size="16" fill="white" font-weight="bold">codelint</text>
+          </svg>
           EOF
+       
+      - name: Collect and bundle dynamic libraries
+        run: |
+          # Create lib directory
+          mkdir -p AppDir/usr/lib
+          
+          # Collect required libraries using ldd
+          ldd build/codelint | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ 2>/dev/null || true
+          
+          # Also copy LLVM libraries that may not show in ldd
+          cp -v /usr/lib/llvm-21/lib/libclang-cpp.so.21.1 AppDir/usr/lib/ 2>/dev/null || true
+          cp -v /usr/lib/llvm-21/lib/libLLVM-21.so AppDir/usr/lib/ 2>/dev/null || true
+          cp -v /usr/lib/llvm-21/lib/libclang.so.21 AppDir/usr/lib/ 2>/dev/null || true
+          cp -v /usr/lib/llvm-21/lib/libLLVM.so.21 AppDir/usr/lib/ 2>/dev/null || true
+          
+          # Set RPATH on binary to use bundled libraries
+          patchelf --set-rpath '$ORIGIN/../lib' AppDir/usr/bin/codelint
+          
+          # Verify libraries were copied
+          ls -la AppDir/usr/lib/
       
       - name: Build AppImage
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          ./appimagetool-x86_64.AppImage AppDir codelint-${VERSION}-linux-x86_64.AppImage
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
       
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
@@ -130,19 +142,18 @@ jobs:
           path: codelint-*.AppImage
           retention-days: 5
 
-  # Job 3: Release
+  # Job 2: Release
   release:
-    needs: [musl-static, appimage]
+    needs: [appimage]
+    if: always() && needs.appimage.result == 'success'
     runs-on: ubuntu-latest
     
     steps:
-      - name: Download musl artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: musl-artifact
-          path: artifacts
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download AppImage artifact
+        if: needs.appimage.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: appimage-artifact
@@ -153,10 +164,11 @@ jobs:
           ls -la artifacts/
       
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: artifacts/*
-          draft: false
-          prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          gh release create v$VERSION \
+            --title "v$VERSION" \
+            --generate-notes \
+            artifacts/*

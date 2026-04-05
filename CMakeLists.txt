@@ -54,9 +54,8 @@ llvm_map_components_to_libnames(llvm_libs
 
 # ========== Project Configuration ==========
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include)
-# Use system rapidjson from brew
-find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson/document.h HINTS /opt/homebrew/include)
+# Use rapidjson from vcpkg (header-only library)
+find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson/document.h)
 if(RAPIDJSON_INCLUDE_DIR)
     message(STATUS "Found RapidJSON at: ${RAPIDJSON_INCLUDE_DIR}")
     include_directories(${RAPIDJSON_INCLUDE_DIR})
@@ -89,7 +88,6 @@ add_executable(codelint
 
 target_include_directories(codelint PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/CLI11/include
 )
 
 # ========== Version Definitions ==========
@@ -103,9 +101,24 @@ target_compile_definitions(codelint PRIVATE
 # Use -Wl,--no-as-needed to ensure both are linked, but link libclang-cpp FIRST
 # to have its LLVM command-line options registered first
 if(STATIC_LINKING)
-    set(LLVM_LINK_FLAGS "-static")
-    separate_arguments(LLVM_LINK_FLAGS_LIST UNIX_COMMAND "${LLVM_LINK_FLAGS}")
-    target_link_libraries(codelint PRIVATE ${llvm_libs} ${LLVM_LINK_FLAGS_LIST})
+    # Static linking for musl/Alpine
+    message(STATUS "Building with static linking")
+
+    # Add static linking flags
+    set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
+
+    # Link against LLVM static libraries
+    target_link_libraries(codelint PRIVATE
+        ${llvm_libs}
+        ${LLVM_LIBRARY_DIR}/libclang.a
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.a
+        ${LLVM_LIBRARY_DIR}/libLLVM-21.a
+        libgit2::libgit2package
+    )
+
+    # Set static linking properties
+    set_target_properties(codelint PROPERTIES LINK_SEARCH_START_STATIC ON)
+    set_target_properties(codelint PROPERTIES LINK_SEARCH_END_STATIC ON)
 else()
     # Cross-platform library linking
     if(APPLE)
@@ -115,13 +128,15 @@ else()
         ${LLVM_LIBRARY_DIR}/libLLVM.dylib
         libgit2::libgit2package
     )
-    else()
-        target_link_libraries(codelint PRIVATE
-            ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
-            ${LLVM_LIBRARY_DIR}/libclang.so
-            ${LLVM_LIBRARY_DIR}/libLLVM.so
-        )
-    endif()
+else()
+    # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
+    target_link_libraries(codelint PRIVATE
+        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.21.1
+        ${LLVM_LIBRARY_DIR}/libclang.so
+        libgit2::libgit2package
+        ${LLVM_LIBRARY_DIR}/libLLVM-21.so
+    )
+endif()
     # Suppress LLVM command-line option duplication warning
     target_compile_options(codelint PRIVATE -DLLVM_ENABLE_DUMP=0)
 endif()
@@ -179,3 +194,60 @@ target_include_directories(integration_test PRIVATE
 )
 
 add_test(NAME integration_test COMMAND integration_test)
+
+add_executable(backward_compat_test tests/backward_compat_test.cpp)
+target_link_libraries(backward_compat_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(backward_compat_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_executable(text_format_test tests/text_format_test.cpp)
+target_link_libraries(text_format_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(text_format_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_test(NAME text_format_test COMMAND text_format_test)
+
+add_executable(sarif_validation_test tests/sarif_validation_test.cpp)
+target_link_libraries(sarif_validation_test PRIVATE
+    gtest_main
+    pthread
+)
+target_include_directories(sarif_validation_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_test(NAME sarif_validation_test COMMAND sarif_validation_test)
+
+add_test(NAME backward_compat_test COMMAND backward_compat_test)
+
+# ========== Integrated Test Target ==========
+# This target runs both unit tests (ctest) and regression tests
+# Usage: cmake --build build --target test-all
+add_custom_target(test-all
+    COMMENT "Running all tests (unit tests + regression tests)"
+    COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_BINARY_DIR} --output-on-failure
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/run_regression.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DEPENDS codelint
+)
+
+# Make test-all depend on all test executables being built
+add_dependencies(test-all
+    commands_test
+    edge_cases_test
+    integration_test
+    text_format_test
+    sarif_validation_test
+    backward_compat_test
+)

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codelint",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/username/codelint"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "init_uninitialized",
+          "level": "warning",
+          "message": {
+            "text": "Variable should use '{}' syntax for initialization"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/path/to/file.cpp",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "Replace with brace initialization"
+              },
+              "artifactChanges": [
+                {
+                  "replacementRegions": [
+                    {
+                      "startLine": 10,
+                      "startColumn": 5,
+                      "endLine": 10,
+                      "endColumn": 12
+                    }
+                  ],
+                  "replacement": "int a{5};"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

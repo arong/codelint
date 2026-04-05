@@ -1,6 +1,7 @@
 #include "commands/cmd_check_init.h"
 
 #include <chrono>
+#include <map>
 
 #include "commands/cmd_utils.h"
 #include "lint/checkers/const_checker.h"
@@ -69,6 +70,30 @@ std::string read_file_content(const std::string& filepath) {
   std::stringstream buffer;
   buffer << file.rdbuf();
   return buffer.str();
+}
+
+std::string read_line_from_file(const std::string& filepath, int line_number) {
+  std::ifstream file(filepath);
+  if (!file.is_open()) {
+    return "";
+  }
+
+  std::string line;
+  int current_line = 1;
+  while (std::getline(file, line)) {
+    if (current_line == line_number) {
+      return line;
+    }
+    ++current_line;
+  }
+  return "";
+}
+
+std::string truncate_line(const std::string& line, size_t max_len = 120) {
+  if (line.length() > max_len) {
+    return line.substr(0, max_len) + "...";
+  }
+  return line;
 }
 
 bool write_file_content(const std::string& filepath, const std::string& content) {
@@ -329,12 +354,27 @@ void format_text_output(const std::vector<LintIssue>& issues, int fixable_count)
     return;
   }
 
+  std::map<std::string, std::vector<LintIssue>> issues_by_file;
   for (const auto& issue : issues) {
-    std::cout << issue.file << ":" << issue.line << ":" << issue.column << ": "
-              << severity_to_string(issue.severity) << ": " << issue.description << " ["
-              << issue.checker_name << "]\n";
-    if (!issue.suggestion.empty()) {
-      std::cout << "  suggestion: " << issue.suggestion << "\n";
+    issues_by_file[issue.file].push_back(issue);
+  }
+
+  for (const auto& [file, file_issues] : issues_by_file) {
+    std::cout << "=== " << file << " (" << file_issues.size() << " issues) ===\n";
+    for (const auto& issue : file_issues) {
+      std::cout << issue.line << ":" << issue.column << ": " << severity_to_string(issue.severity)
+                << ": " << issue.description << " [" << issue.checker_name << "]\n";
+
+      std::string source_line = read_line_from_file(issue.file, issue.line);
+      if (!source_line.empty()) {
+        std::cout << "  | " << issue.line << " | " << truncate_line(source_line) << "\n";
+      } else {
+        std::cout << "  | (source unavailable)\n";
+      }
+
+      if (!issue.suggestion.empty()) {
+        std::cout << "  suggestion: " << issue.suggestion << "\n";
+      }
     }
   }
 
@@ -385,10 +425,161 @@ void format_text_output(const std::vector<LintIssue>& issues, int fixable_count)
 
 namespace codelint {
 
-int format_output(const std::vector<codelint::lint::LintIssue>& issues, bool output_json) {
+void format_sarif_output(const std::vector<LintIssue>& issues) {
+  using namespace rapidjson;
+
+  Document doc;
+  doc.SetObject();
+
+  Value schema;
+  schema.SetString("$schema", doc.GetAllocator());
+  doc.AddMember(schema,
+                Value("https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/"
+                      "sarif-schema-2.1.0.json",
+                      doc.GetAllocator())
+                    .Move(),
+                doc.GetAllocator());
+
+  Value version;
+  version.SetString("version", doc.GetAllocator());
+  doc.AddMember(version, Value("2.1.0", doc.GetAllocator()).Move(), doc.GetAllocator());
+
+  Value runs(kArrayType);
+
+  Value run_obj(kObjectType);
+
+  Value tool(kObjectType);
+  Value driver(kObjectType);
+  Value driver_name;
+  driver_name.SetString("name", doc.GetAllocator());
+  driver.AddMember(driver_name, Value("Codelint", doc.GetAllocator()).Move(), doc.GetAllocator());
+  Value driver_version;
+  driver_version.SetString("version", doc.GetAllocator());
+  driver.AddMember(driver_version, Value("0.1.0", doc.GetAllocator()).Move(), doc.GetAllocator());
+  tool.AddMember("driver", driver, doc.GetAllocator());
+  run_obj.AddMember("tool", tool, doc.GetAllocator());
+
+  Value results(kArrayType);
+  for (const auto& issue : issues) {
+    Value result(kObjectType);
+
+    Value rule_id;
+    rule_id.SetString("ruleId", doc.GetAllocator());
+    result.AddMember(rule_id,
+                     Value(check_type_to_string(issue.type).c_str(), doc.GetAllocator()).Move(),
+                     doc.GetAllocator());
+
+    Value level;
+    level.SetString("level", doc.GetAllocator());
+    result.AddMember(level,
+                     Value(severity_to_string(issue.severity) == "error" ? "error" : "warning",
+                           doc.GetAllocator())
+                         .Move(),
+                     doc.GetAllocator());
+
+    Value message(kObjectType);
+    Value msg_text;
+    msg_text.SetString("text", doc.GetAllocator());
+    message.AddMember(msg_text, Value(issue.description.c_str(), doc.GetAllocator()).Move(),
+                      doc.GetAllocator());
+    result.AddMember("message", message, doc.GetAllocator());
+
+    Value locations(kArrayType);
+    Value location(kObjectType);
+    Value phys_loc(kObjectType);
+    Value art_loc(kObjectType);
+    Value uri;
+    uri.SetString("uri", doc.GetAllocator());
+    std::string encoded_path = issue.file;
+    for (size_t i = 0; i < encoded_path.length(); ++i) {
+      char c = encoded_path[i];
+      if (c == ' ') {
+        encoded_path.replace(i, 1, "%20");
+        i += 2;
+      } else if (c == '"') {
+        encoded_path.replace(i, 1, "%22");
+        i += 2;
+      }
+    }
+    art_loc.AddMember(uri, Value(encoded_path.c_str(), doc.GetAllocator()).Move(),
+                      doc.GetAllocator());
+    Value uri_base;
+    uri_base.SetString("uriBaseId", doc.GetAllocator());
+    art_loc.AddMember(uri_base, Value("SRCROOT", doc.GetAllocator()).Move(), doc.GetAllocator());
+    phys_loc.AddMember("artifactLocation", art_loc, doc.GetAllocator());
+
+    Value region(kObjectType);
+    Value start_line;
+    start_line.SetString("startLine", doc.GetAllocator());
+    region.AddMember(start_line, issue.line, doc.GetAllocator());
+    Value start_col;
+    start_col.SetString("startColumn", doc.GetAllocator());
+    region.AddMember(start_col, issue.column, doc.GetAllocator());
+    phys_loc.AddMember("region", region, doc.GetAllocator());
+    location.AddMember("physicalLocation", phys_loc, doc.GetAllocator());
+    locations.PushBack(location, doc.GetAllocator());
+    result.AddMember("locations", locations, doc.GetAllocator());
+
+    if (issue.fixable) {
+      Value fixes(kArrayType);
+      Value fix(kObjectType);
+      Value fix_desc(kObjectType);
+      Value fix_desc_text;
+      fix_desc_text.SetString("text", doc.GetAllocator());
+      fix_desc.AddMember(fix_desc_text,
+                         Value("Replace with brace initialization", doc.GetAllocator()).Move(),
+                         doc.GetAllocator());
+      fix.AddMember("description", fix_desc, doc.GetAllocator());
+
+      Value art_changes(kArrayType);
+      Value art_change(kObjectType);
+      Value repl_regions(kArrayType);
+      Value repl_region(kObjectType);
+      Value r_start_line;
+      r_start_line.SetString("startLine", doc.GetAllocator());
+      repl_region.AddMember(r_start_line, issue.line, doc.GetAllocator());
+      Value r_start_col;
+      r_start_col.SetString("startColumn", doc.GetAllocator());
+      repl_region.AddMember(r_start_col, issue.column, doc.GetAllocator());
+      Value r_end_line;
+      r_end_line.SetString("endLine", doc.GetAllocator());
+      repl_region.AddMember(r_end_line, issue.line, doc.GetAllocator());
+      Value r_end_col;
+      r_end_col.SetString("endColumn", doc.GetAllocator());
+      repl_region.AddMember(r_end_col,
+                            issue.column + (int)issue.name.size() +
+                                (issue.type_str.empty() ? 0 : (int)issue.type_str.size() + 1),
+                            doc.GetAllocator());
+      repl_regions.PushBack(repl_region, doc.GetAllocator());
+      Value replacement;
+      replacement.SetString(issue.suggestion.c_str(), doc.GetAllocator());
+      art_change.AddMember("replacementRegions", repl_regions, doc.GetAllocator());
+      art_change.AddMember("replacement", replacement, doc.GetAllocator());
+      art_changes.PushBack(art_change, doc.GetAllocator());
+      fix.AddMember("artifactChanges", art_changes, doc.GetAllocator());
+      fixes.PushBack(fix, doc.GetAllocator());
+      result.AddMember("fixes", fixes, doc.GetAllocator());
+    }
+
+    results.PushBack(result, doc.GetAllocator());
+  }
+
+  run_obj.AddMember("results", results, doc.GetAllocator());
+  runs.PushBack(run_obj, doc.GetAllocator());
+  doc.AddMember("runs", runs, doc.GetAllocator());
+
+  StringBuffer buffer;
+  Writer<StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  std::cout << buffer.GetString() << std::endl;
+}
+
+int format_output(const std::vector<LintIssue>& issues, bool output_json, bool output_sarif) {
   int fixable_count = count_fixable(issues);
 
-  if (output_json) {
+  if (output_sarif) {
+    format_sarif_output(issues);
+  } else if (output_json) {
     format_json_output(issues, fixable_count);
   } else {
     format_text_output(issues, fixable_count);
@@ -417,24 +608,29 @@ int check_init(const GlobalOptions& opts, const CheckInitOptions& init_opts) {
   auto end_time = std::chrono::high_resolution_clock::now();
   auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
+  int error_count = 0, warning_count = 0, info_count = 0, hint_count = 0;
+  count_severities(all_issues, error_count, warning_count, info_count, hint_count);
+
+  int fixable_count = count_fixable(all_issues);
+
   if (all_issues.empty() && !init_opts.fix) {
-    int result = codelint::format_output(all_issues, opts.output_json);
-    if (!opts.output_json) {
-      print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms);
+    int result = codelint::format_output(all_issues, opts.output_json, opts.output_sarif);
+    if (!opts.output_json && !opts.output_sarif) {
+      print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms,
+                       error_count, warning_count, info_count, fixable_count);
     }
     return result;
   }
-
-  int fixable_count = count_fixable(all_issues);
 
   if (init_opts.fix && fixable_count > 0) {
     codelint::apply_fixes(all_issues, init_opts.inplace);
     return 0;
   }
 
-  int result = codelint::format_output(all_issues, opts.output_json);
-  if (!opts.output_json) {
-    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms);
+  int result = codelint::format_output(all_issues, opts.output_json, opts.output_sarif);
+  if (!opts.output_json && !opts.output_sarif) {
+    print_statistics(files_processed, static_cast<int>(all_issues.size()), elapsed_ms, error_count,
+                     warning_count, info_count, fixable_count);
   }
   return result;
 }
