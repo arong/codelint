@@ -35,7 +35,8 @@ jobs:
           apt-get install -y --no-install-recommends \
             build-essential cmake git python3 wget file \
             curl zip unzip ca-certificates pkg-config \
-            lsb-release software-properties-common gnupg
+            lsb-release software-properties-common gnupg \
+            patchelf
           
           # Setup vcpkg
           if [ ! -d "vcpkg" ]; then
@@ -83,8 +84,9 @@ jobs:
           # Create AppRun
           cat > AppDir/AppRun << 'EOF'
           #!/bin/bash
-          exe="$(dirname "$(readlink -f "$0")")/usr/bin/codelint"
-          exec "$exe" "$@"
+          APPDIR="$(dirname "$(readlink -f "$0")")"
+          export LD_LIBRARY_PATH="${APPDIR}/usr/lib${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
+          exec "${APPDIR}/usr/bin/codelint" "$@"
           EOF
           chmod +x AppDir/AppRun
           
@@ -107,6 +109,26 @@ jobs:
             <text x="64" y="110" text-anchor="middle" font-family="sans-serif" font-size="16" fill="white" font-weight="bold">codelint</text>
           </svg>
           EOF
+       
+      - name: Collect and bundle dynamic libraries
+        run: |
+          # Create lib directory
+          mkdir -p AppDir/usr/lib
+          
+          # Collect required libraries using ldd
+          ldd build/codelint | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ 2>/dev/null || true
+          
+          # Also copy LLVM libraries that may not show in ldd
+          cp -v /usr/lib/llvm-21/lib/libclang-cpp.so.21.1 AppDir/usr/lib/ 2>/dev/null || true
+          cp -v /usr/lib/llvm-21/lib/libLLVM-21.so AppDir/usr/lib/ 2>/dev/null || true
+          cp -v /usr/lib/llvm-21/lib/libclang.so.21 AppDir/usr/lib/ 2>/dev/null || true
+          cp -v /usr/lib/llvm-21/lib/libLLVM.so.21 AppDir/usr/lib/ 2>/dev/null || true
+          
+          # Set RPATH on binary to use bundled libraries
+          patchelf --set-rpath '$ORIGIN/../lib' AppDir/usr/bin/codelint
+          
+          # Verify libraries were copied
+          ls -la AppDir/usr/lib/
       
       - name: Build AppImage
         run: |
