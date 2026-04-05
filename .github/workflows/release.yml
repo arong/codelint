@@ -16,13 +16,16 @@ jobs:
       
       - name: Install dependencies
         run: |
+          # Install critical packages first (must succeed)
           apk add --no-cache \
-            build-base cmake git python3 \
+            build-base cmake git python3 curl \
             llvm18-dev llvm18-static \
             clang18 clang18-static \
             zlib-static zstd-static \
-            libxml2-static ncurses-static libedit-static libffi-static \
-            libgit2-dev libgit2-static || true
+            libxml2-static ncurses-static libedit-static libffi-static
+          
+          # Try to install libgit2 static packages (may fail)
+          apk add --no-cache libgit2-dev libgit2-static || echo "libgit2-static not available, will build from source"
       
       - name: Build libgit2 static (if not available)
         run: |
@@ -175,7 +178,7 @@ jobs:
       - name: Build AppImage
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          ./appimagetool-x86_64.AppImage AppDir codelint-${VERSION}-linux-x86_64.AppImage
+          ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
       
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
