@@ -93,9 +93,7 @@ LintResult SingletonChecker::check(const std::string& filepath) {
 
 void SingletonChecker::runOnAST(clang::ASTContext* Context) {
   Context_ = Context;
-
-  clang::TranslationUnitDecl* TU = Context->getTranslationUnitDecl();
-  TraverseDecl(TU);
+  TraverseDecl(Context->getTranslationUnitDecl());
 }
 
 bool SingletonChecker::VisitFunctionDecl(clang::FunctionDecl* FD) {
@@ -219,26 +217,39 @@ void SingletonChecker::reportSingletonPattern(clang::FunctionDecl* FD,
   }
 
   clang::QualType returnType = FD->getReturnType();
-  std::string type_str = returnType.getAsString();
+  std::string return_type_str = returnType.getAsString();
+
+  // Get class name if method is part of a class
+  std::string class_name;
+  if (auto* recordDecl = llvm::dyn_cast<clang::RecordDecl>(FD->getParent())) {
+    class_name = recordDecl->getNameAsString();
+  }
 
   clang::SourceLocation loc = FD->getLocation();
   clang::SourceManager& SM = Context_->getSourceManager();
 
   std::string file = SM.getFilename(loc).str();
-  int line = SM.getExpansionLineNumber(loc);
-  int column = SM.getExpansionColumnNumber(loc);
+  int line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  int column = static_cast<int>(SM.getExpansionColumnNumber(loc));
 
   LintIssue issue;
   issue.type = CheckType::SINGLETON_PATTERN;
   issue.severity = Severity::INFO;
   issue.checker_name = "singleton";
   issue.name = funcName;
-  issue.type_str = staticVarName.empty() ? type_str : staticVarName;
+  issue.type_str = return_type_str;
   issue.file = file;
   issue.line = line;
   issue.column = column;
-  issue.description = "Meyer's Singleton pattern detected";
-  issue.suggestion = funcName + "() returns reference to static local '" + staticVarName + "'";
+
+  // Build description and suggestion with class name if available
+  if (!class_name.empty()) {
+    issue.description = "Singleton pattern detected in " + class_name + "::" + funcName;
+    issue.suggestion = class_name + "::" + funcName + "()";
+  } else {
+    issue.description = "Singleton pattern detected";
+    issue.suggestion = funcName + "()";
+  }
   issue.fixable = false;
 
   Reporter_.add_issue(issue);

@@ -114,7 +114,7 @@ std::string ConstChecker::getVarKey(const clang::VarDecl* VD) const {
   clang::SourceManager& SM = Context_->getSourceManager();
   clang::SourceLocation loc = VD->getLocation();
   std::string file = SM.getFilename(loc).str();
-  int line = SM.getExpansionLineNumber(loc);
+  int line = static_cast<int>(SM.getExpansionLineNumber(loc));
   std::string name = VD->getName().str();
 
   return file + ":" + std::to_string(line) + ":" + name;
@@ -160,8 +160,8 @@ bool ConstChecker::VisitVarDecl(clang::VarDecl* VD) {
   clang::SourceManager& SM = Context_->getSourceManager();
   clang::SourceLocation loc = VD->getLocation();
   info.file = SM.getFilename(loc).str();
-  info.line = SM.getExpansionLineNumber(loc);
-  info.column = SM.getExpansionColumnNumber(loc);
+  info.line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  info.column = static_cast<int>(SM.getExpansionColumnNumber(loc));
 
   variables_[key] = info;
 
@@ -223,7 +223,8 @@ bool ConstChecker::VisitUnaryOperator(clang::UnaryOperator* UO) {
       }
     }
     // Handle array element address: &arr[index] (marks the array as modified)
-    else if (auto* ASE = llvm::dyn_cast<clang::ArraySubscriptExpr>(UO->getSubExpr()->IgnoreParenImpCasts())) {
+    else if (auto* ASE = llvm::dyn_cast<clang::ArraySubscriptExpr>(
+                 UO->getSubExpr()->IgnoreParenImpCasts())) {
       const clang::Expr* base = ASE->getBase()->IgnoreParenImpCasts();
       if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(base)) {
         if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
@@ -234,8 +235,8 @@ bool ConstChecker::VisitUnaryOperator(clang::UnaryOperator* UO) {
         }
       }
     }
-  } else if (opcode != clang::UO_PreInc && opcode != clang::UO_PreDec && opcode != clang::UO_PostInc &&
-      opcode != clang::UO_PostDec) {
+  } else if (opcode != clang::UO_PreInc && opcode != clang::UO_PreDec &&
+             opcode != clang::UO_PostInc && opcode != clang::UO_PostDec) {
     return true;
   }
 
@@ -309,7 +310,8 @@ bool ConstChecker::isBuiltinType(const std::string& type) const {
     while (!element_type.empty() && element_type.back() == ' ') {
       element_type.pop_back();
     }
-    return std::find(builtin_types.begin(), builtin_types.end(), element_type) != builtin_types.end();
+    return std::find(builtin_types.begin(), builtin_types.end(), element_type) !=
+           builtin_types.end();
   }
 
   return false;
@@ -321,11 +323,15 @@ std::string ConstChecker::makeConstSuggestion(const VarInfo& info) const {
 
 void ConstChecker::analyzeAndReport() {
   for (const auto& [key, info] : variables_) {
-    if (info.is_constexpr) continue;
+    if (info.is_constexpr)
+      continue;
 
-    if (modified_vars_.count(key) > 0) continue;
-    if (info.is_parameter || info.is_member) continue;
-    if (info.is_pointer) continue;
+    if (modified_vars_.count(key) > 0)
+      continue;
+    if (info.is_parameter || info.is_member)
+      continue;
+    if (info.is_pointer)
+      continue;
 
     bool can_be_constexpr = false;
     bool can_be_const = false;
@@ -352,7 +358,9 @@ void ConstChecker::analyzeAndReport() {
       issue.file = info.file;
       issue.line = info.line;
       issue.column = info.column;
-      issue.description = can_be_constexpr ? "Variable is never modified, consider making it constexpr" : "Variable is never modified, consider making it const";
+      issue.description = can_be_constexpr
+                              ? "Variable is never modified, consider making it constexpr"
+                              : "Variable is never modified, consider making it const";
       issue.suggestion = (can_be_constexpr ? "constexpr " : "const ") + info.type + " " + info.name;
       issue.fixable = true;
       Reporter_.add_issue(issue);
@@ -392,16 +400,19 @@ bool ConstChecker::apply_fixes(const std::string& filepath, const std::vector<Li
 }
 
 bool ConstChecker::VisitCallExpr(clang::CallExpr* CE) {
-  if (!CE) return true;
+  if (!CE)
+    return true;
 
   clang::FunctionDecl* FD = CE->getDirectCallee();
-  if (!FD) return true;
+  if (!FD)
+    return true;
 
   for (unsigned i = 0; i < CE->getNumArgs(); ++i) {
     clang::Expr* arg = CE->getArg(i)->IgnoreParenImpCasts();
     if (i < FD->getNumParams()) {
       clang::ParmVarDecl* paramDecl = FD->getParamDecl(i);
-      if (!paramDecl) continue;
+      if (!paramDecl)
+        continue;
 
       clang::QualType paramType = paramDecl->getType();
       if (paramType->isPointerType() || paramType->isReferenceType()) {

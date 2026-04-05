@@ -19,6 +19,7 @@ struct LineRange {
 // Supported scope formats:
 // - "all" → All files in the repository
 // - "modified" → Uncommitted changes (git diff HEAD)
+// - "staged" → Staged changes (git diff --cached)
 // - "commit:HASH" → Changes in a specific commit (e.g., "commit:HEAD", "commit:abc123")
 // - "merge-base" → Changes between merge-base and HEAD (git diff origin/main...HEAD)
 class GitScope {
@@ -50,7 +51,7 @@ public:
   }
 
 private:
-  enum class Mode { ALL, MODIFIED, COMMIT, MERGE_BASE };
+  enum class Mode { ALL, MODIFIED, STAGED, COMMIT, MERGE_BASE };
 
   Mode mode_;
   std::string ref_;

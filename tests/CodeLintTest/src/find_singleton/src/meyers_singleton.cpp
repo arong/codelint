@@ -1,4 +1,5 @@
-// Test 1: Classic Meyer's Singleton Pattern
+// Test: Classic Meyer's Singleton pattern
+// Expected: 1 singleton detected
 class Database {
 public:
     static Database& instance() {

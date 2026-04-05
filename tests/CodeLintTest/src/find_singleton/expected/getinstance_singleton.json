@@ -1,10 +1,17 @@
 {
   "issues": [
     {
-      "file": "getinstance_singleton.cpp",
-      "line": 4,
-      "message": "Possible singleton pattern detected",
-      "suggestion": "Consider if getInstance() is necessary or if dependency injection would be better"
+      "type": "singleton_pattern",
+      "severity": "info",
+      "checker": "singleton",
+      "name": "getInstance",
+      "type_str": "LogManager &",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/getinstance_singleton.cpp",
+      "line": 5,
+      "column": 24,
+      "description": "Singleton pattern detected in LogManager::getInstance",
+      "suggestion": "LogManager::getInstance()",
+      "fixable": false
     }
   ]
 }

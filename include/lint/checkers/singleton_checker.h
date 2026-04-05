@@ -45,7 +45,6 @@ private:
   bool hasMeyersSingletonPattern(clang::FunctionDecl* FD, std::string& staticVarName) const;
   bool isInSystemHeader(clang::Decl* D) const;
   void reportSingletonPattern(clang::FunctionDecl* FD, const std::string& staticVarName);
-  bool shouldSkipUnmodifiedLine(clang::SourceLocation loc) const;
 };
 
 } // namespace lint

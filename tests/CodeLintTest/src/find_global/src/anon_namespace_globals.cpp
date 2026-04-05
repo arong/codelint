@@ -1,14 +1,12 @@
-// Test file: anon_namespace_globals.cpp
-// Scenario: Anonymous namespace globals
-// Expected: 2 global variables detected
-
+// Test: Variables in anonymous namespace
+// Expected: 2 variables detected
 #include <string>
 
 namespace {
-    int anon_var1 = 10;              // Anonymous namespace var
-    std::string anon_var2 = "test"; // Anonymous namespace string
+    int anon_var1 = 10;
+    std::string anon_var2 = "test";
 }
 
-int main() {
-    return 0;
+void test_function() {
+    int local_var = 42; // Should NOT be detected
 }

@@ -205,8 +205,8 @@ void InitChecker::checkUninitialized(clang::VarDecl* VD) {
   clang::SourceLocation loc = VD->getLocation();
   clang::SourceManager& SM = Context_->getSourceManager();
   std::string file = SM.getFilename(loc).str();
-  int line = SM.getExpansionLineNumber(loc);
-  int column = SM.getExpansionColumnNumber(loc);
+  int line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  int column = static_cast<int>(SM.getExpansionColumnNumber(loc));
 
   clang::SourceRange typeRange(VD->getBeginLoc(), VD->getLocation());
   std::string type_str =
@@ -265,8 +265,8 @@ void InitChecker::checkEqualsInit(clang::VarDecl* VD) {
   clang::SourceLocation loc = VD->getLocation();
   clang::SourceManager& SM = Context_->getSourceManager();
   std::string file = SM.getFilename(loc).str();
-  int line = SM.getExpansionLineNumber(loc);
-  int column = SM.getExpansionColumnNumber(loc);
+  int line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  int column = static_cast<int>(SM.getExpansionColumnNumber(loc));
 
   clang::SourceRange typeRange(VD->getBeginLoc(), VD->getLocation());
   std::string type_str =
@@ -346,8 +346,8 @@ void InitChecker::checkFieldUninitialized(clang::FieldDecl* FD) {
   clang::SourceLocation loc = FD->getLocation();
   clang::SourceManager& SM = Context_->getSourceManager();
   std::string file = SM.getFilename(loc).str();
-  int line = SM.getExpansionLineNumber(loc);
-  int column = SM.getExpansionColumnNumber(loc);
+  int line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  int column = static_cast<int>(SM.getExpansionColumnNumber(loc));
 
   clang::SourceRange typeRange(FD->getBeginLoc(), FD->getLocation());
   std::string type_str =
@@ -422,8 +422,8 @@ void InitChecker::checkUnsignedSuffix(clang::VarDecl* VD) {
     issue.name = name;
     issue.type_str = type_str;
     issue.file = SM.getFilename(loc).str();
-    issue.line = SM.getExpansionLineNumber(loc);
-    issue.column = SM.getExpansionColumnNumber(loc);
+    issue.line = static_cast<int>(SM.getExpansionLineNumber(loc));
+    issue.column = static_cast<int>(SM.getExpansionColumnNumber(loc));
     issue.description = "Unsigned integer should have 'U' or 'UL' suffix";
     issue.suggestion = suggestion;
     issue.fixable = true;

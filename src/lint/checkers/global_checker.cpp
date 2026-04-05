@@ -171,8 +171,7 @@ bool GlobalChecker::isInSystemHeader(clang::VarDecl* VD) const {
   return filename.find("/usr/include/") != std::string::npos ||
          filename.find("/usr/lib/") != std::string::npos ||
          filename.find("/usr/local/include/") != std::string::npos ||
-         filename.find("/Library/Developer/") != std::string::npos ||
-         filename.empty();
+         filename.find("/Library/Developer/") != std::string::npos || filename.empty();
 }
 
 bool GlobalChecker::isExternDeclaration(clang::VarDecl* VD) const {
@@ -206,8 +205,8 @@ void GlobalChecker::reportGlobalVariable(clang::VarDecl* VD) {
   clang::SourceManager& SM = Context_->getSourceManager();
 
   std::string file = SM.getFilename(loc).str();
-  int line = SM.getExpansionLineNumber(loc);
-  int column = SM.getExpansionColumnNumber(loc);
+  int line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  int column = static_cast<int>(SM.getExpansionColumnNumber(loc));
 
   LintIssue issue;
   issue.type = CheckType::GLOBAL_VARIABLE;

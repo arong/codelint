@@ -1,4 +1,5 @@
-// Test 3: Singleton in Namespace
+// Test: Singleton inside namespace
+// Expected: 1 singleton detected
 namespace Config {
     class Settings {
     public:

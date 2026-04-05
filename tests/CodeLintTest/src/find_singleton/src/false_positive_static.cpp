@@ -1,5 +1,26 @@
-// Test 4: False Positive - Static Local Variable (NOT a singleton)
-void helper() {
-    static int counter = 0;  // Not a singleton, return type is not a reference
-    counter++;
+#include <iostream>
+
+// False Positive Test - Static returns value type (not reference)
+class NotSingleton {
+public:
+    static int getValue() {
+        static int value = 100; // This is a static local but NOT a singleton (returns value)
+        return value;
+    }
+};
+
+// Another false positive
+class Helper {
+public:
+    static int compute() {
+        static int computed = 42;
+        return computed;
+    }
+};
+
+int main() {
+    int val1 = NotSingleton::getValue();
+    int val2 = Helper::compute();
+    std::cout << "Values: " << val1 << ", " << val2 << std::endl;
+    return 0;
 }

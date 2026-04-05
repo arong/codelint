@@ -1,4 +1,5 @@
-// Test 2: getInstance Naming Convention Singleton
+// Test: getInstance naming convention
+// Expected: 1 singleton detected
 class LogManager {
 public:
     static LogManager& getInstance() {
