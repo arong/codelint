@@ -5,5 +5,5 @@
 inline int inline_var = 42;
 
 int main() {
-    return 0;
+  return 0;
 }

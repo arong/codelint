@@ -62,20 +62,20 @@ run_detection_json_test() {
     local cmd_type="$2"  # find_global or find_singleton
     local src_file="$3"
     local expected_json="$4"
-    
+
     TEST_COUNT=$((TEST_COUNT + 1))
-    
+
     local output_file=$(mktemp)
     "$CODELINT" --output-json "$cmd_type" "$src_file" 2>/dev/null > "$output_file"
-    
+
     # Path normalization
     sed -i.tmp "s|$PROJECT_ROOT|<PROJECT_ROOT>|g" "$output_file"
     sed -i.tmp "s|$PROJECT_ROOT|<PROJECT_ROOT>|g" "$expected_json"
-    
+
     # Sort issues by line number for stability
     jq '.issues |= sort_by(.line)' "$output_file" > "${output_file}.sorted"
     jq '.issues |= sort_by(.line)' "$expected_json" > "${expected_json}.sorted"
-    
+
     if diff -q "${output_file}.sorted" "${expected_json}.sorted" > /dev/null 2>&1; then
         echo "PASS: $name (JSON)"
         PASS_COUNT=$((PASS_COUNT + 1))
@@ -84,7 +84,7 @@ run_detection_json_test() {
         diff "${output_file}.sorted" "${expected_json}.sorted" | head -30
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
-    
+
     rm -f "$output_file" "${output_file}.sorted" "${expected_json}.sorted" *.tmp
 }
 
@@ -351,11 +351,6 @@ echo "Failed:       $FAIL_COUNT"
 echo ""
 
 set +e
-
-# TODO: Fix regression tests in a separate task
-# Temporarily return success to test CI pipeline
-exit 0
-
 if [ $FAIL_COUNT -eq 0 ]; then
     echo "✓ All regression tests PASSED!"
     exit 0

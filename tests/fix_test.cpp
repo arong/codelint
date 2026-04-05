@@ -118,10 +118,10 @@ TEST_F(FixTest, FixSafetyTest) {
 int main() {
     int properly_initialized{5};  // Already correct
     int another{10};              // Already correct
-    
+
     // Important comment here
     int needs_fix;
-    
+
     return 0;  // Return statement
 }
 )";
@@ -272,12 +272,12 @@ int main() {
     int a;           // Problem 1: uninitialized
     int b = 5;       // Problem 2: should use brace init
     unsigned c = 10; // Problem 3: missing U suffix
-    
+
     const int d = 20; // OK
     int e{30};        // OK
-    
+
     int x = a + b + c + d + e;
-    
+
     return 0;
 }
 )";

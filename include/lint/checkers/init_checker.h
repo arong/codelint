@@ -6,6 +6,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include <optional>
+#include <set>
 
 namespace codelint {
 namespace lint {
@@ -43,6 +44,7 @@ private:
   IssueReporter Reporter_;
   LintResult Result_;
   std::optional<GitScope> scope_;
+  mutable std::set<const clang::RecordDecl*> visited_records_;
 
   void checkUninitialized(clang::VarDecl* VD);
   void checkEqualsInit(clang::VarDecl* VD);

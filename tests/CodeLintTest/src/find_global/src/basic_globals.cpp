@@ -7,5 +7,5 @@ const int global_const = 100;  // Const int global
 unsigned int global_uint = 5U; // Unsigned int with suffix
 
 int main() {
-    return 0;
+  return 0;
 }

@@ -158,10 +158,6 @@ bool GitScope::init() {
     success = run_git_command({"diff", "-U0", "HEAD"}, diff_output);
     break;
 
-  case Mode::STAGED:
-    success = run_git_command({"diff", "--cached", "-U0"}, diff_output);
-    break;
-
   case Mode::COMMIT:
     success = run_git_command({"diff", "-U0", ref_ + "^", ref_}, diff_output);
     break;
@@ -176,69 +172,37 @@ bool GitScope::init() {
     break;
   }
 
-    std::string diff_output;
-    bool success = false;
-
-    switch (mode_) {
-    case Mode::MODIFIED:
-      success = run_git_command({"diff", "-U0", "HEAD"}, diff_output);
-      break;
-
-    case Mode::COMMIT:
-      success = run_git_command({"diff", "-U0", ref_ + "^", ref_}, diff_output);
-      break;
-
-    case Mode::MERGE_BASE: {
-      std::string main_branch = detect_main_branch();
-      if (main_branch.empty()) {
-        error_ = "Could not detect main branch (tried origin/main, origin/master)";
-        return false;
-      }
-      success = run_git_command({"diff", "-U0", main_branch + "...HEAD"}, diff_output);
-      break;
-    }
-
-    case Mode::ALL:
-      break;
-    }
-
-    if (!success) {
-      return false;
-    }
-
-    return parse_diff_output(diff_output);
+  case Mode::ALL:
+    break;
   }
 
-  std::optional<GitScope> GitScope::parse(const std::string& scope_str) {
-    GitScope scope;
+  if (!success) {
+    return false;
+  }
 
-    if (scope_str == "all") {
-      scope.mode_ = Mode::ALL;
-      return scope;
+  return parse_diff_output(diff_output);
+}
+
+std::optional<GitScope> GitScope::parse(const std::string& scope_str) {
+  GitScope scope;
+
+  if (scope_str == "all") {
+    scope.mode_ = Mode::ALL;
+    return scope;
+  }
+
+  if (scope_str == "modified") {
+    scope.mode_ = Mode::MODIFIED;
+    if (!scope.init()) {
+      return std::nullopt;
     }
+    return scope;
+  }
 
-    if (scope_str == "modified") {
-      scope.mode_ = Mode::MODIFIED;
-      if (!scope.init()) {
-        return std::nullopt;
-      }
-      return scope;
-    }
-
-    if (scope_str == "staged") {
-      scope.mode_ = Mode::STAGED;
-      if (!scope.init()) {
-        return std::nullopt;
-      }
-      return scope;
-    }
-
-    if (scope_str == "merge-base") {
-      scope.mode_ = Mode::MERGE_BASE;
-      if (!scope.init()) {
-        return std::nullopt;
-      }
-      return scope;
+  if (scope_str == "merge-base") {
+    scope.mode_ = Mode::MERGE_BASE;
+    if (!scope.init()) {
+      return std::nullopt;
     }
     return scope;
   }

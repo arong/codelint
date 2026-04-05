@@ -2,8 +2,8 @@
 // Scenario: Thread-local global variables
 // Expected: 1 thread_local variable detected
 
-thread_local double tl_value = 3.14;  // Thread-local double
+thread_local double tl_value = 3.14; // Thread-local double
 
 int main() {
-    return 0;
+  return 0;
 }

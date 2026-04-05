@@ -7,7 +7,7 @@
       "name": "inline_var",
       "type_str": "int",
       "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_global/src/inline_globals.cpp",
-      "line": 4,
+      "line": 5,
       "column": 12,
       "description": "Global variable detected",
       "suggestion": "Consider using a singleton or dependency injection pattern",

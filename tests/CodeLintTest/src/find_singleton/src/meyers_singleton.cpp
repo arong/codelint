@@ -2,8 +2,8 @@
 // Expected: 1 singleton detected
 class Database {
 public:
-    static Database& instance() {
-        static Database inst;
-        return inst;
-    }
+  static Database& instance() {
+    static Database inst;
+    return inst;
+  }
 };

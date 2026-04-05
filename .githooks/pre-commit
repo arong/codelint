@@ -6,48 +6,81 @@ CLANG_FORMAT="/opt/homebrew/opt/llvm@21/bin/clang-format"
 echo "🔍 Running pre-commit checks..."
 
 # ========================================
-# Check 1: clang-format C++ files
+# Check 1: clang-format ALL C++ files (not just staged)
 # ========================================
-echo "📝 Checking C++ formatting..."
+echo "📝 Formatting all C++ files with clang-format..."
 
-# Get staged C++ files
-STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' || true)
+# Find ALL C++ files in the repo (not just staged)
+ALL_CPP_FILES=$(find . -type f \( \
+    -name '*.cpp' -o \
+    -name '*.cc' -o \
+    -name '*.cxx' -o \
+    -name '*.h' -o \
+    -name '*.hpp' -o \
+    -name '*.hh' -o \
+    -name '*.hxx' \
+    \) ! -path './.git/*' ! -path './build/*' ! -path './.sisyphus/*' 2>/dev/null || true)
 
-if [[ -n "$STAGED_CPP" ]]; then
+if [[ -n "$ALL_CPP_FILES" ]]; then
     if [[ ! -x "$CLANG_FORMAT" ]]; then
         echo "⚠️  Warning: clang-format not found at $CLANG_FORMAT"
         echo "   Install LLVM or update CLANG_FORMAT path in .githooks/pre-commit"
     else
-        echo "$STAGED_CPP" | while read -r file; do
+        FORMATTED_COUNT=0
+        echo "$ALL_CPP_FILES" | while read -r file; do
             if [[ -f "$file" ]]; then
-                "$CLANG_FORMAT" -i "$file"
-                git add "$file"
-                echo "   formatted: $file"
+                # Check if file needs formatting by comparing with formatted output
+                if ! "$CLANG_FORMAT" --dry-run --Werror "$file" 2>/dev/null > /dev/null; then
+                    "$CLANG_FORMAT" -i "$file"
+                    git add "$file"
+                    echo "   formatted: $file"
+                    FORMATTED_COUNT=$((FORMATTED_COUNT + 1))
+                fi
             fi
         done
+        echo "✅ C++ formatting complete"
     fi
 else
-    echo "   No C++ files staged"
+    echo "   No C++ files found"
 fi
 
 # ========================================
-# Check 2: Trailing whitespace
+# Check 2: Trailing whitespace - AUTO-FIX on ALL files
 # ========================================
-echo "📝 Checking trailing whitespace..."
+echo "📝 Checking and fixing trailing whitespace on all files..."
 
-if grep -r '[[:blank:]]$' \
+# Find and fix all files with trailing whitespace - checks ALL files, not just staged
+FILES_WITH_WHITESPACE=$(grep -r '[[:blank:]]$' \
     --include='*.cpp' \
     --include='*.h' \
     --include='*.txt' \
     --include='*.md' \
     --include='*.sh' \
     --include='*.py' \
-    . 2>/dev/null | grep -v -E '(\.git/|build/|\.sisyphus/)'; then
-    echo "❌ Error: Found trailing whitespace!"
-    echo "Please fix and try again."
-    exit 1
+    --include='*.yml' \
+    --include='*.yaml' \
+    --include='*.json' \
+    --include='*.cmake' \
+    -l . 2>/dev/null | grep -v -E '(\.git/|build/|\.sisyphus/)' || true)
+
+if [[ -n "$FILES_WITH_WHITESPACE" ]]; then
+    echo "   Found trailing whitespace in:"
+    echo "$FILES_WITH_WHITESPACE" | sed 's/^/     - /'
+    echo "   Auto-fixing..."
+    
+    # Remove trailing whitespace from each file
+    echo "$FILES_WITH_WHITESPACE" | while read -r file; do
+        if [[ -f "$file" ]]; then
+            # Use sed to remove trailing whitespace (macOS compatible with -i '')
+            sed -i '' 's/[[:space:]]*$//' "$file"
+            git add "$file"
+            echo "   ✓ fixed: $file"
+        fi
+    done
+    echo "✅ Trailing whitespace auto-fixed"
+else
+    echo "✅ No trailing whitespace found"
 fi
-echo "✅ No trailing whitespace"
 
 # ========================================
 # Check 3: Missing trailing newline

@@ -12,6 +12,7 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
   applied_fix_count_ = 0;
 
   std::vector<LintIssue> fixable_issues;
+
   for (const auto& issue : issues) {
     if (issue.fixable &&
         (issue.type == CheckType::INIT_UNINITIALIZED ||
@@ -113,7 +114,29 @@ bool FixApplier::applyUninitializedFix(const LintIssue& issue,
 
   const std::string& line = lines[line_idx];
 
+  // Find the variable name - need to find the correct occurrence, not one inside a type name
+  // For example, for "double d;", searching for "d" should find the variable, not the 'd' in
+  // "double"
   size_t var_pos = line.find(issue.name);
+  if (var_pos == std::string::npos) {
+    return false;
+  }
+
+  // Verify this is a valid identifier (not part of another word like "double" or "char")
+  // Check that both the character before and after are not valid identifier characters
+  while (var_pos != std::string::npos) {
+    bool valid_start =
+        (var_pos == 0) || (!std::isalnum(line[var_pos - 1]) && line[var_pos - 1] != '_');
+    bool valid_end = (var_pos + issue.name.length() >= line.length()) ||
+                     (!std::isalnum(line[var_pos + issue.name.length()]) &&
+                      line[var_pos + issue.name.length()] != '_');
+
+    if (valid_start && valid_end) {
+      break;
+    }
+    var_pos = line.find(issue.name, var_pos + 1);
+  }
+
   if (var_pos == std::string::npos) {
     return false;
   }

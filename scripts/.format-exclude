@@ -1,0 +1,8 @@
+# Third-party and external files to exclude from formatting
+
+# Test fixtures (should not be modified)
+tests/CodeLintTest/
+
+# Generated files
+*.g.hpp
+*.generated.cpp

@@ -4,10 +4,10 @@
 
 #include <string>
 
-extern int external_var;            // Declaration - should NOT be detected
-extern std::string external_str;    // Declaration - should NOT be detected
-int defined_var = 42;               // Definition - SHOULD be detected
+extern int external_var;         // Declaration - should NOT be detected
+extern std::string external_str; // Declaration - should NOT be detected
+int defined_var = 42;            // Definition - SHOULD be detected
 
 int main() {
-    return 0;
+  return 0;
 }

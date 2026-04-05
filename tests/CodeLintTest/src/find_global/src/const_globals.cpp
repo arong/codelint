@@ -9,5 +9,5 @@ constexpr int constexpr_val = 200;
 const std::string const_str = "const";
 
 int main() {
-    return 0;
+  return 0;
 }

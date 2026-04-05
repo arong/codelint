@@ -4,9 +4,9 @@
 
 #include <string>
 
-static int static_int = 10;                  // Static int global
-static std::string static_str = "test";      // Static std::string global
+static int static_int = 10;             // Static int global
+static std::string static_str = "test"; // Static std::string global
 
 int main() {
-    return 0;
+  return 0;
 }
