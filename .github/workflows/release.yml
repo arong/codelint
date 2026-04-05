@@ -1,4 +1,5 @@
 name: Build and Release
+permissions: contents: write
 
 on:
   push:
