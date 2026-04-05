@@ -7,8 +7,6 @@
 #include "clang/Tooling/CompilationDatabase.h"
 #include "clang/Tooling/Tooling.h"
 
-#include <algorithm>
-#include <fstream>
 #include <sstream>
 
 namespace codelint {
@@ -57,6 +55,7 @@ private:
 };
 
 LintResult ConstChecker::check(const std::string& filepath) {
+
   Result_.issues.clear();
   Result_.error_count = 0;
   Result_.warning_count = 0;
@@ -66,23 +65,23 @@ LintResult ConstChecker::check(const std::string& filepath) {
   variables_.clear();
   modified_vars_.clear();
 
-  std::vector<const char*> cargs = {"codelint",
-                                    "-std=c++17",
-                                    "-x",
-                                    "c++",
-                                    "-I/usr/include/c++/13",
-                                    "-I/usr/include/x86_64-linux-gnu/c++/13",
-                                    "-I/usr/include",
-                                    "-I/usr/local/include"};
+  std::vector<std::string> args = {
+      "-std=c++17", "-x", "c++",
+      "-resource-dir=/Library/Developer/CommandLineTools/usr/lib/clang/21"};
 
-  std::string errorMsg;
-  int argc = static_cast<int>(cargs.size());
-  auto compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
-      argc, cargs.data(), errorMsg, ".");
+#if defined(__APPLE__)
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/lib/clang/21/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/include");
+#else
+  args.push_back("-I/usr/include/c++/13");
+  args.push_back("-I/usr/include/x86_64-linux-gnu/c++/13");
+  args.push_back("-I/usr/include");
+  args.push_back("-I/usr/local/include");
+#endif
 
-  if (!compilations) {
-    return Result_;
-  }
+  auto compilations = std::make_unique<clang::tooling::FixedCompilationDatabase>(".", args);
 
   std::vector<std::string> sources = {filepath};
   clang::tooling::ClangTool tool(*compilations, sources);
@@ -101,12 +100,13 @@ void ConstChecker::runOnAST(clang::ASTContext* Context) {
   Context_ = Context;
 
   clang::TranslationUnitDecl* TU = Context->getTranslationUnitDecl();
+
   TraverseDecl(TU);
 
   analyzeAndReport();
 }
 
-std::string ConstChecker::getVarKey(clang::VarDecl* VD) const {
+std::string ConstChecker::getVarKey(const clang::VarDecl* VD) const {
   if (!VD || !Context_) {
     return "";
   }
@@ -154,6 +154,9 @@ bool ConstChecker::VisitVarDecl(clang::VarDecl* VD) {
   info.is_member = clang::isa<clang::FieldDecl>(VD);
   info.is_global = VD->hasGlobalStorage() && !VD->isLocalVarDecl() && !VD->isStaticLocal();
 
+  // Check if variable has constant initializer
+  info.has_const_init = VD->hasInit() && VD->getInit()->isConstantInitializer(*Context_, false);
+
   clang::SourceManager& SM = Context_->getSourceManager();
   clang::SourceLocation loc = VD->getLocation();
   info.file = SM.getFilename(loc).str();
@@ -177,11 +180,25 @@ bool ConstChecker::VisitBinaryOperator(clang::BinaryOperator* BO) {
 
   lhs = lhs->IgnoreParenImpCasts();
 
+  // Detect array modifications (arr[i] = x)
+  if (auto* ASE = llvm::dyn_cast<clang::ArraySubscriptExpr>(lhs)) {
+    const clang::Expr* base = ASE->getBase()->IgnoreParenImpCasts();
+    if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(base)) {
+      if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+        std::string key = getVarKey(VD);
+        if (!key.empty()) {
+          modified_vars_.insert(key);
+        }
+      }
+    }
+  }
+
+  // Regular assignment (var = x)
   if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(lhs)) {
     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
-      std::string name = varDecl->getName().str();
-      if (!name.empty()) {
-        modified_vars_.insert(name);
+      std::string key = getVarKey(varDecl);
+      if (!key.empty()) {
+        modified_vars_.insert(key);
       }
     }
   }
@@ -195,7 +212,29 @@ bool ConstChecker::VisitUnaryOperator(clang::UnaryOperator* UO) {
   }
 
   auto opcode = UO->getOpcode();
-  if (opcode != clang::UO_PreInc && opcode != clang::UO_PreDec && opcode != clang::UO_PostInc &&
+  if (opcode == clang::UO_AddrOf) {
+    // Handle direct variable address: &var
+    if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(UO->getSubExpr()->IgnoreParenImpCasts())) {
+      if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+        std::string key = getVarKey(VD);
+        if (!key.empty()) {
+          modified_vars_.insert(key);
+        }
+      }
+    }
+    // Handle array element address: &arr[index] (marks the array as modified)
+    else if (auto* ASE = llvm::dyn_cast<clang::ArraySubscriptExpr>(UO->getSubExpr()->IgnoreParenImpCasts())) {
+      const clang::Expr* base = ASE->getBase()->IgnoreParenImpCasts();
+      if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(base)) {
+        if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+          std::string key = getVarKey(VD);
+          if (!key.empty()) {
+            modified_vars_.insert(key);
+          }
+        }
+      }
+    }
+  } else if (opcode != clang::UO_PreInc && opcode != clang::UO_PreDec && opcode != clang::UO_PostInc &&
       opcode != clang::UO_PostDec) {
     return true;
   }
@@ -209,9 +248,9 @@ bool ConstChecker::VisitUnaryOperator(clang::UnaryOperator* UO) {
 
   if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(subExpr)) {
     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
-      std::string name = varDecl->getName().str();
-      if (!name.empty()) {
-        modified_vars_.insert(name);
+      std::string key = getVarKey(varDecl);
+      if (!key.empty()) {
+        modified_vars_.insert(key);
       }
     }
   }
@@ -260,7 +299,20 @@ bool ConstChecker::isBuiltinType(const std::string& type) const {
     clean_type.pop_back();
   }
 
-  return std::find(builtin_types.begin(), builtin_types.end(), clean_type) != builtin_types.end();
+  if (std::find(builtin_types.begin(), builtin_types.end(), clean_type) != builtin_types.end()) {
+    return true;
+  }
+
+  size_t bracket_pos = clean_type.find('[');
+  if (bracket_pos != std::string::npos) {
+    std::string element_type = clean_type.substr(0, bracket_pos);
+    while (!element_type.empty() && element_type.back() == ' ') {
+      element_type.pop_back();
+    }
+    return std::find(builtin_types.begin(), builtin_types.end(), element_type) != builtin_types.end();
+  }
+
+  return false;
 }
 
 std::string ConstChecker::makeConstSuggestion(const VarInfo& info) const {
@@ -269,36 +321,42 @@ std::string ConstChecker::makeConstSuggestion(const VarInfo& info) const {
 
 void ConstChecker::analyzeAndReport() {
   for (const auto& [key, info] : variables_) {
-    if (info.is_const || info.is_constexpr) {
-      continue;
-    }
-    if (info.is_reference || info.is_pointer) {
-      continue;
-    }
-    if (info.is_parameter || info.is_member || info.is_global) {
-      continue;
-    }
-    if (modified_vars_.count(info.name) > 0) {
-      continue;
-    }
-    if (!isBuiltinType(info.type)) {
-      continue;
+    if (info.is_constexpr) continue;
+
+    if (modified_vars_.count(key) > 0) continue;
+    if (info.is_parameter || info.is_member) continue;
+    if (info.is_pointer) continue;
+
+    bool can_be_constexpr = false;
+    bool can_be_const = false;
+
+    if (info.is_const) {
+      if (info.has_const_init && isBuiltinType(info.type) && !info.is_reference) {
+        can_be_constexpr = true;
+      }
+    } else {
+      if (info.is_reference) {
+        can_be_const = true;
+      } else if (isBuiltinType(info.type) && info.has_const_init) {
+        can_be_constexpr = true;
+      }
     }
 
-    LintIssue issue;
-    issue.type = CheckType::CONST_SUGGESTION;
-    issue.severity = Severity::HINT;
-    issue.checker_name = "const";
-    issue.name = info.name;
-    issue.type_str = info.type;
-    issue.file = info.file;
-    issue.line = info.line;
-    issue.column = info.column;
-    issue.description = "Variable is never modified, consider making it const";
-    issue.suggestion = makeConstSuggestion(info);
-    issue.fixable = true;
-
-    Reporter_.add_issue(issue);
+    if (can_be_constexpr || can_be_const) {
+      LintIssue issue;
+      issue.type = can_be_constexpr ? CheckType::CAN_BE_CONSTEXPR : CheckType::CAN_BE_CONST;
+      issue.severity = Severity::HINT;
+      issue.checker_name = "const";
+      issue.name = info.name;
+      issue.type_str = info.type;
+      issue.file = info.file;
+      issue.line = info.line;
+      issue.column = info.column;
+      issue.description = can_be_constexpr ? "Variable is never modified, consider making it constexpr" : "Variable is never modified, consider making it const";
+      issue.suggestion = (can_be_constexpr ? "constexpr " : "const ") + info.type + " " + info.name;
+      issue.fixable = true;
+      Reporter_.add_issue(issue);
+    }
   }
 }
 
@@ -330,6 +388,45 @@ bool ConstChecker::apply_fixes(const std::string& filepath, const std::vector<Li
     output << l << "\n";
   }
   modified_content = output.str();
+  return true;
+}
+
+bool ConstChecker::VisitCallExpr(clang::CallExpr* CE) {
+  if (!CE) return true;
+
+  clang::FunctionDecl* FD = CE->getDirectCallee();
+  if (!FD) return true;
+
+  for (unsigned i = 0; i < CE->getNumArgs(); ++i) {
+    clang::Expr* arg = CE->getArg(i)->IgnoreParenImpCasts();
+    if (i < FD->getNumParams()) {
+      clang::ParmVarDecl* paramDecl = FD->getParamDecl(i);
+      if (!paramDecl) continue;
+
+      clang::QualType paramType = paramDecl->getType();
+      if (paramType->isPointerType() || paramType->isReferenceType()) {
+        if (auto* UO = llvm::dyn_cast<clang::UnaryOperator>(arg)) {
+          if (UO->getOpcode() == clang::UO_AddrOf) {
+            if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(UO->getSubExpr())) {
+              if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+                std::string key = getVarKey(VD);
+                if (!key.empty()) {
+                  modified_vars_.insert(key);
+                }
+              }
+            }
+          }
+        } else if (auto* DRE = llvm::dyn_cast<clang::DeclRefExpr>(arg)) {
+          if (auto* VD = llvm::dyn_cast<clang::VarDecl>(DRE->getDecl())) {
+            std::string key = getVarKey(VD);
+            if (!key.empty()) {
+              modified_vars_.insert(key);
+            }
+          }
+        }
+      }
+    }
+  }
   return true;
 }
 

@@ -15,7 +15,10 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
   for (const auto& issue : issues) {
     if (issue.fixable && (issue.type == CheckType::INIT_UNINITIALIZED ||
                           issue.type == CheckType::INIT_EQUALS_SYNTAX ||
-                          issue.type == CheckType::INIT_UNSIGNED_SUFFIX)) {
+                          issue.type == CheckType::INIT_UNSIGNED_SUFFIX ||
+                          issue.type == CheckType::CONST_SUGGESTION ||
+                          issue.type == CheckType::CAN_BE_CONST ||
+                          issue.type == CheckType::CAN_BE_CONSTEXPR)) {
       fixable_issues.push_back(issue);
     }
   }
@@ -68,6 +71,10 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
       applied = applyEqualsSyntaxFix(issue, lines, replacement_text, offset, length);
     } else if (issue.type == CheckType::INIT_UNSIGNED_SUFFIX) {
       applied = applyUnsignedSuffixFix(issue, lines, replacement_text, offset, length);
+    } else if (issue.type == CheckType::CONST_SUGGESTION ||
+               issue.type == CheckType::CAN_BE_CONST ||
+               issue.type == CheckType::CAN_BE_CONSTEXPR) {
+      applied = applyConstSuggestionFix(issue, lines, replacement_text, offset, length);
     }
 
     if (applied && !replacement_text.empty()) {
@@ -296,6 +303,87 @@ size_t FixApplier::skipArrayDimensions(const std::string& line, size_t start_pos
 
 bool FixApplier::isArrayDimensionStart(const std::string& line, size_t pos) {
   return pos < line.length() && line[pos] == '[';
+}
+
+bool FixApplier::applyConstSuggestionFix(const LintIssue& issue,
+                                         const std::vector<std::string>& lines,
+                                         std::string& replacement_text, size_t& offset,
+                                         size_t& length) {
+  int line_idx = issue.line - 1;
+  if (line_idx < 0 || line_idx >= static_cast<int>(lines.size())) {
+    return false;
+  }
+
+  const std::string& line = lines[line_idx];
+
+  // Find the variable name
+  size_t var_pos = line.find(issue.name);
+  if (var_pos == std::string::npos) {
+    return false;
+  }
+
+  // Find the type position (search backwards from variable name)
+  // First try the full type_str
+  size_t type_pos = line.rfind(issue.type_str, var_pos);
+
+  // If not found, the type might have different spacing (e.g., "int &" vs "int&")
+  // Try finding just the base type without spaces and reference/pointer markers
+   if (type_pos == std::string::npos) {
+    std::string base_type = issue.type_str;
+    // Remove spaces
+    base_type.erase(std::remove(base_type.begin(), base_type.end(), ' '), base_type.end());
+    // Remove array dimensions [...]
+    size_t bracket_pos = base_type.find('[');
+    if (bracket_pos != std::string::npos) {
+      base_type = base_type.substr(0, bracket_pos);
+    }
+    // Remove reference and pointer markers
+    size_t ref_pos = base_type.find_first_of("&*");
+    if (ref_pos != std::string::npos) {
+      base_type = base_type.substr(0, ref_pos);
+    }
+    // Search for base type in line
+    type_pos = line.rfind(base_type, var_pos);
+  }
+
+  if (type_pos == std::string::npos) {
+    return false;
+  }
+
+  if (issue.type == CheckType::CAN_BE_CONSTEXPR) {
+    // Check if type_str starts with "const" - this is a const -> constexpr upgrade
+    // We need to replace "const " with "constexpr " in the source
+    if (issue.type_str.find("const") == 0) {
+      // Look for "const " in the line at or before type_pos
+      size_t const_space_pos = line.rfind("const ", type_pos + 6);
+      if (const_space_pos != std::string::npos && const_space_pos <= type_pos) {
+        // Replace "const " with "constexpr "
+        offset = offset + const_space_pos;
+        length = 6; // "const " length
+        replacement_text = "constexpr ";
+        return true;
+      }
+      // Also try "const" without trailing space (followed directly by type)
+      size_t const_pos = line.rfind("const", type_pos + 5);
+      if (const_pos != std::string::npos && const_pos == type_pos) {
+        offset = offset + const_pos;
+        length = 5; // "const" length
+        replacement_text = "constexpr ";
+        return true;
+      }
+    }
+    // No existing const, insert "constexpr " before type
+    offset = offset + type_pos;
+    length = 0;
+    replacement_text = "constexpr ";
+    return true;
+  } else {
+    // Regular const suggestion - insert "const " before type
+    offset = offset + type_pos;
+    length = 0;
+    replacement_text = "const ";
+    return true;
+  }
 }
 
 } // namespace lint
