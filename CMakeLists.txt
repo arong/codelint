@@ -124,7 +124,7 @@ else()
     # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
     target_link_libraries(codelint PRIVATE
         ${LLVM_LIBRARY_DIR}/libclang-cpp.so.18.1
-        ${LLVM_LIBRARY_DIR}/libclang.so.18
+        ${LLVM_LIBRARY_DIR}/libclang.so
         libgit2::libgit2package
     )
 endif()
