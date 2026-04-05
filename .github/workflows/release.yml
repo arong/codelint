@@ -22,7 +22,7 @@ jobs:
             llvm18-dev llvm18-static \
             clang18 clang18-static \
             zlib-static zstd-static \
-            libxml2-static ncurses-static libedit-static libffi-static
+            libxml2-static ncurses-static libedit-static
           
           # Try to install libgit2 static packages (may fail)
           apk add --no-cache libgit2-dev libgit2-static || echo "libgit2-static not available, will build from source"
@@ -100,7 +100,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            build-essential cmake git python3 wget lsb-release software-properties-common gnupg \
+            build-essential cmake git python3 wget file lsb-release software-properties-common gnupg \
             libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
             git curl zip unzip ca-certificates pkg-config
           
