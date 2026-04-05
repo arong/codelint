@@ -15,7 +15,8 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
   for (const auto& issue : issues) {
     if (issue.fixable && (issue.type == CheckType::INIT_UNINITIALIZED ||
                           issue.type == CheckType::INIT_EQUALS_SYNTAX ||
-                          issue.type == CheckType::INIT_UNSIGNED_SUFFIX)) {
+                          issue.type == CheckType::INIT_UNSIGNED_SUFFIX ||
+                          issue.type == CheckType::CONST_SUGGESTION)) {
       fixable_issues.push_back(issue);
     }
   }
@@ -68,6 +69,8 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
       applied = applyEqualsSyntaxFix(issue, lines, replacement_text, offset, length);
     } else if (issue.type == CheckType::INIT_UNSIGNED_SUFFIX) {
       applied = applyUnsignedSuffixFix(issue, lines, replacement_text, offset, length);
+    } else if (issue.type == CheckType::CONST_SUGGESTION) {
+      applied = applyConstSuggestionFix(issue, lines, replacement_text, offset, length);
     }
 
     if (applied && !replacement_text.empty()) {
@@ -296,6 +299,37 @@ size_t FixApplier::skipArrayDimensions(const std::string& line, size_t start_pos
 
 bool FixApplier::isArrayDimensionStart(const std::string& line, size_t pos) {
   return pos < line.length() && line[pos] == '[';
+}
+
+bool FixApplier::applyConstSuggestionFix(const LintIssue& issue,
+                                         const std::vector<std::string>& lines,
+                                         std::string& replacement_text, size_t& offset,
+                                         size_t& length) {
+  int line_idx = issue.line - 1;
+  if (line_idx < 0 || line_idx >= static_cast<int>(lines.size())) {
+    return false;
+  }
+
+  const std::string& line = lines[line_idx];
+
+  // Find the type and variable name
+  size_t var_pos = line.find(issue.name);
+  if (var_pos == std::string::npos) {
+    return false;
+  }
+
+  // Find the type position (search backwards from variable name)
+  size_t type_pos = line.rfind(issue.type_str, var_pos);
+  if (type_pos == std::string::npos) {
+    return false;
+  }
+
+  // Insert "const " before the type
+  offset = offset + type_pos;
+  length = 0;
+  replacement_text = "const ";
+
+  return true;
 }
 
 } // namespace lint

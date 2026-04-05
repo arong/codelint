@@ -77,6 +77,7 @@ run_test "exception.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/src/exception.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/fixed/exception.cpp"
 
+# Const detection tests
 run_test "const_basic.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/src/const_basic.cpp" \
     "$TEST_DIR/CodeLintTest/src/init_checker/fixed/const_basic.cpp"

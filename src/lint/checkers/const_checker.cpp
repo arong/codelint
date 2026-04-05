@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 namespace codelint {
@@ -57,6 +58,7 @@ private:
 };
 
 LintResult ConstChecker::check(const std::string& filepath) {
+
   Result_.issues.clear();
   Result_.error_count = 0;
   Result_.warning_count = 0;
@@ -66,23 +68,23 @@ LintResult ConstChecker::check(const std::string& filepath) {
   variables_.clear();
   modified_vars_.clear();
 
-  std::vector<const char*> cargs = {"codelint",
-                                    "-std=c++17",
-                                    "-x",
-                                    "c++",
-                                    "-I/usr/include/c++/13",
-                                    "-I/usr/include/x86_64-linux-gnu/c++/13",
-                                    "-I/usr/include",
-                                    "-I/usr/local/include"};
+  std::vector<std::string> args = {
+      "-std=c++17", "-x", "c++",
+      "-resource-dir=/Library/Developer/CommandLineTools/usr/lib/clang/21"};
 
-  std::string errorMsg;
-  int argc = static_cast<int>(cargs.size());
-  auto compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
-      argc, cargs.data(), errorMsg, ".");
+#if defined(__APPLE__)
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/lib/clang/21/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include");
+  args.push_back("-I/Library/Developer/CommandLineTools/usr/include");
+#else
+  args.push_back("-I/usr/include/c++/13");
+  args.push_back("-I/usr/include/x86_64-linux-gnu/c++/13");
+  args.push_back("-I/usr/include");
+  args.push_back("-I/usr/local/include");
+#endif
 
-  if (!compilations) {
-    return Result_;
-  }
+  auto compilations = std::make_unique<clang::tooling::FixedCompilationDatabase>(".", args);
 
   std::vector<std::string> sources = {filepath};
   clang::tooling::ClangTool tool(*compilations, sources);
@@ -101,6 +103,7 @@ void ConstChecker::runOnAST(clang::ASTContext* Context) {
   Context_ = Context;
 
   clang::TranslationUnitDecl* TU = Context->getTranslationUnitDecl();
+
   TraverseDecl(TU);
 
   analyzeAndReport();
@@ -283,7 +286,20 @@ bool ConstChecker::isBuiltinType(const std::string& type) const {
     clean_type.pop_back();
   }
 
-  return std::find(builtin_types.begin(), builtin_types.end(), clean_type) != builtin_types.end();
+  if (std::find(builtin_types.begin(), builtin_types.end(), clean_type) != builtin_types.end()) {
+    return true;
+  }
+
+  size_t bracket_pos = clean_type.find('[');
+  if (bracket_pos != std::string::npos) {
+    std::string element_type = clean_type.substr(0, bracket_pos);
+    while (!element_type.empty() && element_type.back() == ' ') {
+      element_type.pop_back();
+    }
+    return std::find(builtin_types.begin(), builtin_types.end(), element_type) != builtin_types.end();
+  }
+
+  return false;
 }
 
 std::string ConstChecker::makeConstSuggestion(const VarInfo& info) const {
@@ -298,7 +314,7 @@ void ConstChecker::analyzeAndReport() {
     if (info.is_reference || info.is_pointer) {
       continue;
     }
-    if (info.is_parameter || info.is_member || info.is_global) {
+    if (info.is_parameter || info.is_member) {
       continue;
     }
     if (modified_vars_.count(key) > 0) {
