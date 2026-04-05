@@ -8,29 +8,53 @@ on:
     tags: ['v*']
 
 jobs:
-  # Job 1: Static build (Ubuntu 24.04)
+  # Job 1: Static build (Ubuntu 24.04 + vcpkg)
   static:
     runs-on: ubuntu-24.04
+    
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Install dependencies
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-static-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-static-
+      
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential cmake git \
-            llvm-18-dev libclang-18-dev clang-18 \
-            libgit2-dev \
-            zlib1g-dev libzstd-dev libxml2-dev libedit-dev libncurses-dev \
-            libcurl4-openssl-dev
+            build-essential cmake git curl zip unzip tar \
+            pkg-config autoconf automake libtool \
+            python3 ninja-build
+
+      - name: Setup vcpkg
+        run: |
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          fi
+
+      - name: Install vcpkg packages (static)
+        run: |
+          ./vcpkg/vcpkg install --triplet=x64-linux-static
 
       - name: Configure CMake
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DSTATIC_LINKING=ON
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-linux-static \
+            -DCMAKE_EXE_LINKER_FLAGS="-static"
 
       - name: Build static binary
         run: |
@@ -41,14 +65,16 @@ jobs:
           echo "=== Binary Info ==="
           file build/codelint
           echo "=== Dynamic Dependencies ==="
-          ldd build/codelint || echo "Static or minimal deps"
+          ldd build/codelint 2>&1 || echo "Static or minimal deps"
+          echo "=== Size ==="
+          ls -lh build/codelint
           echo "=== Version Check ==="
           ./build/codelint --version
 
       - name: Package tar.gz
         run: |
-          VERSION=\${GITHUB_REF#refs/tags/v}
-          tar -czvf codelint-\${VERSION}-linux-x86_64-static.tar.gz \
+          VERSION=${GITHUB_REF#refs/tags/v}
+          tar -czvf codelint-${VERSION}-linux-x86_64-static.tar.gz \
             -C build codelint
 
       - name: Upload static artifact
@@ -58,13 +84,13 @@ jobs:
           path: codelint-*.tar.gz
           retention-days: 5
 
-  # Job 2: AppImage (Ubuntu 22.04)
+  # Job 2: AppImage (Ubuntu 22.04 + vcpkg dynamic)
   appimage:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
     
     env:
-      VCPKG_ROOT: \${{ github.workspace }}/vcpkg
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
     
     steps:
       - name: Checkout code
@@ -74,8 +100,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            \${{ github.workspace }}/vcpkg
-          key: vcpkg-\${{ hashFiles('vcpkg.json') }}
+            ${{ github.workspace }}/vcpkg
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             vcpkg-
       
@@ -83,20 +109,8 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            build-essential cmake git python3 wget file lsb-release software-properties-common gnupg \
-            libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
-            git curl zip unzip ca-certificates pkg-config
-          
-          # Install LLVM 18 from apt.llvm.org
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          ./llvm.sh 18
-          
-          # Install LLVM 18 development packages
-          apt-get install -y --no-install-recommends \
-            llvm-18-dev \
-            clang-18 \
-            libclang-18-dev
+            build-essential cmake git python3 wget file \
+            curl zip unzip ca-certificates pkg-config
           
           # Setup vcpkg
           if [ ! -d "vcpkg" ]; then
@@ -111,11 +125,11 @@ jobs:
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=\$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
       
       - name: Build binary
         run: |
-          cmake --build build -j\$(nproc)
+          cmake --build build -j$(nproc)
       
       - name: Verify binary
         run: |
@@ -128,19 +142,19 @@ jobs:
       
       - name: Create AppDir structure
         run: |
-          VERSION=\${GITHUB_REF#refs/tags/v}
+          VERSION=${GITHUB_REF#refs/tags/v}
           mkdir -p AppDir/usr/bin
           cp build/codelint AppDir/usr/bin/
           
           # Create AppRun
           cat > AppDir/AppRun << 'EOF'
           #!/bin/bash
-          exe="\$(dirname "\$(readlink -f "\$0")")/usr/bin/codelint"
-          exec "\$exe" "\$@"
+          exe="$(dirname "$(readlink -f "$0")")/usr/bin/codelint"
+          exec "$exe" "$@"
           EOF
           chmod +x AppDir/AppRun
           
-          # Create AppImage.desktop
+          # Create desktop file
           cat > AppDir/codelint.desktop << 'EOF'
           [Desktop Entry]
           Name=codelint
@@ -151,7 +165,7 @@ jobs:
           Categories=Development;
           EOF
           
-          # Create icon (SVG)
+          # Create icon
           cat > AppDir/codelint.svg << 'EOF'
           <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
             <rect width="128" height="128" fill="#3B82F6" rx="16"/>
@@ -162,8 +176,8 @@ jobs:
       
       - name: Build AppImage
         run: |
-          VERSION=\${GITHUB_REF#refs/tags/v}
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-\${VERSION}-linux-x86_64.AppImage
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
       
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
@@ -202,10 +216,10 @@ jobs:
       
       - name: Create GitHub Release
         env:
-          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=\${GITHUB_REF#refs/tags/v}
-          gh release create v\$VERSION \\
-            --title "v\$VERSION" \\
-            --generate-notes \\
+          VERSION=${GITHUB_REF#refs/tags/v}
+          gh release create v$VERSION \
+            --title "v$VERSION" \
+            --generate-notes \
             artifacts/*
