@@ -1,1 +1,176 @@
-../build/compile_commands.json
+[
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/main.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/main.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/main.cpp",
+  "output": "CMakeFiles/codelint.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/commands/cmd_utils.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/commands/cmd_utils.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/commands/cmd_utils.cpp",
+  "output": "CMakeFiles/codelint.dir/src/commands/cmd_utils.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/commands/cmd_check_init.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/commands/cmd_check_init.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/commands/cmd_check_init.cpp",
+  "output": "CMakeFiles/codelint.dir/src/commands/cmd_check_init.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/commands/cmd_find_global.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/commands/cmd_find_global.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/commands/cmd_find_global.cpp",
+  "output": "CMakeFiles/codelint.dir/src/commands/cmd_find_global.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/commands/cmd_find_singleton.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/commands/cmd_find_singleton.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/commands/cmd_find_singleton.cpp",
+  "output": "CMakeFiles/codelint.dir/src/commands/cmd_find_singleton.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint_checker.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint_checker.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint_checker.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint_checker.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/issue_reporter.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/issue_reporter.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/issue_reporter.cpp",
+  "output": "CMakeFiles/codelint.dir/src/issue_reporter.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/fix_applier.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/fix_applier.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/fix_applier.cpp",
+  "output": "CMakeFiles/codelint.dir/src/fix_applier.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/lint_runner.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/lint_runner.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/lint_runner.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/lint_runner.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/lint_action.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/lint_action.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/lint_action.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/lint_action.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/git_scope.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/git_scope.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/git_scope.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/git_scope.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint_visitor.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint_visitor.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint_visitor.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint_visitor.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/checkers/init_checker.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/checkers/init_checker.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/checkers/init_checker.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/checkers/init_checker.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/checkers/const_checker.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/checkers/const_checker.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/checkers/const_checker.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/checkers/const_checker.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/checkers/global_checker.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/checkers/global_checker.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/checkers/global_checker.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/checkers/global_checker.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DCODELINT_VERSION=\\\"1.0.0\\\" -DLLVM_VERSION=\\\"21.1.8\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/Users/aronic/Documents/codelint-regression-test -isystem /opt/homebrew/include -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -DLLVM_ENABLE_DUMP=0 -o CMakeFiles/codelint.dir/src/lint/checkers/singleton_checker.cpp.o -c /Users/aronic/Documents/codelint-regression-test/src/lint/checkers/singleton_checker.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/src/lint/checkers/singleton_checker.cpp",
+  "output": "CMakeFiles/codelint.dir/src/lint/checkers/singleton_checker.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++ -DTEST_SOURCE_DIR=\\\"/Users/aronic/Documents/codelint-regression-test\\\" -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/commands_test.dir/tests/commands_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/commands_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/commands_test.cpp",
+  "output": "CMakeFiles/commands_test.dir/tests/commands_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/edge_cases_test.dir/tests/edge_cases_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/edge_cases_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/edge_cases_test.cpp",
+  "output": "CMakeFiles/edge_cases_test.dir/tests/edge_cases_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/integration_test.dir/tests/integration_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/integration_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/integration_test.cpp",
+  "output": "CMakeFiles/integration_test.dir/tests/integration_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/backward_compat_test.dir/tests/backward_compat_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/backward_compat_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/backward_compat_test.cpp",
+  "output": "CMakeFiles/backward_compat_test.dir/tests/backward_compat_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/text_format_test.dir/tests/text_format_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/text_format_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/text_format_test.cpp",
+  "output": "CMakeFiles/text_format_test.dir/tests/text_format_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/sarif_validation_test.dir/tests/sarif_validation_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/sarif_validation_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/sarif_validation_test.cpp",
+  "output": "CMakeFiles/sarif_validation_test.dir/tests/sarif_validation_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/scope_complete_test.dir/tests/scope_complete_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/scope_complete_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/scope_complete_test.cpp",
+  "output": "CMakeFiles/scope_complete_test.dir/tests/scope_complete_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=gnu++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/fix_test.dir/tests/fix_test.cpp.o -c /Users/aronic/Documents/codelint-regression-test/tests/fix_test.cpp",
+  "file": "/Users/aronic/Documents/codelint-regression-test/tests/fix_test.cpp",
+  "output": "CMakeFiles/fix_test.dir/tests/fix_test.cpp.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock/include -I/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=c++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -DGTEST_HAS_PTHREAD=1   -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "file": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=c++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -DGTEST_HAS_PTHREAD=1   -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "file": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -I/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -I/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=c++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -DGTEST_HAS_PTHREAD=1   -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "file": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
+},
+{
+  "directory": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -I/opt/homebrew/Cellar/llvm@21/21.1.8/include -I/Users/aronic/Documents/codelint-regression-test/include -I/opt/homebrew/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/include -isystem /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest -std=c++23 -arch arm64   -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -DGTEST_HAS_PTHREAD=1   -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "file": "/Users/aronic/Documents/codelint-regression-test/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
+}
+]
