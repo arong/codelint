@@ -92,6 +92,7 @@ add_executable(codelint
   src/lint/checkers/init_checker.cpp
   src/lint/checkers/const_checker.cpp
   src/lint/checkers/global_checker.cpp
+  src/lint/checkers/global_checker_v2.cpp
   src/lint/checkers/singleton_checker.cpp
 )
 
