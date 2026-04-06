@@ -5,12 +5,12 @@
       "severity": "info",
       "checker": "singleton",
       "name": "getInstance",
-      "type_str": "manager",
+      "type_str": "LogManager &",
       "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/getinstance_singleton.cpp",
-      "line": 4,
-      "column": 24,
-      "description": "Meyer's Singleton pattern detected",
-      "suggestion": "getInstance() returns reference to static local 'manager'",
+      "line": 5,
+      "column": 22,
+      "description": "Singleton pattern detected in LogManager::getInstance",
+      "suggestion": "LogManager::getInstance()",
       "fixable": false
     }
   ]

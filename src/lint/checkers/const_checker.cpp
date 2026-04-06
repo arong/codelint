@@ -473,13 +473,13 @@ void ConstChecker::analyzeAndReport() {
     bool can_be_const = false;
 
     if (info.is_const) {
-      if (info.is_array && info.has_const_init && isBuiltinType(info.type) && !info.is_reference) {
+      if (info.has_const_init && isBuiltinType(info.type) && !info.is_reference) {
         can_be_constexpr = true;
       }
     } else {
       if (info.is_reference) {
         can_be_const = true;
-      } else if (info.is_array && isBuiltinType(info.type) && info.has_const_init) {
+      } else if (info.has_const_init && isBuiltinType(info.type)) {
         can_be_constexpr = true;
       }
     }
