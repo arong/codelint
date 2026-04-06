@@ -14,12 +14,9 @@ bool FixApplier::applyFixes(const std::vector<LintIssue>& issues,
   std::vector<LintIssue> fixable_issues;
 
   for (const auto& issue : issues) {
-    if (issue.fixable &&
-        (issue.type == CheckType::INIT_UNINITIALIZED ||
-         issue.type == CheckType::INIT_EQUALS_SYNTAX ||
-         issue.type == CheckType::INIT_UNSIGNED_SUFFIX ||
-         issue.type == CheckType::CONST_SUGGESTION || issue.type == CheckType::CAN_BE_CONST ||
-         issue.type == CheckType::CAN_BE_CONSTEXPR)) {
+    if (issue.fixable && (issue.type == CheckType::INIT_UNINITIALIZED ||
+                          issue.type == CheckType::INIT_EQUALS_SYNTAX ||
+                          issue.type == CheckType::INIT_UNSIGNED_SUFFIX)) {
       fixable_issues.push_back(issue);
     }
   }
@@ -209,16 +206,13 @@ bool FixApplier::applyEqualsSyntaxFix(const LintIssue& issue, const std::vector<
 
   if (init_part.size() >= 2 && init_part.front() == '{' && init_part.back() == '}') {
     replacement_text = init_part + ";";
-  } else if (!issue.suggestion.empty()) {
-    size_t indent_end = line.find_first_not_of(" \t");
-    std::string indent = (indent_end != std::string::npos) ? line.substr(0, indent_end) : "";
-    replacement_text = issue.suggestion;
-    size_t brace_pos = replacement_text.find('{');
-    if (brace_pos != std::string::npos) {
-      size_t close_brace_pos = replacement_text.find('}', brace_pos);
-      if (close_brace_pos != std::string::npos) {
-        replacement_text = replacement_text.substr(brace_pos, close_brace_pos - brace_pos + 2);
-      }
+  } else if (!issue.suggestion.empty() && issue.suggestion.find('{') != std::string::npos) {
+    size_t brace_pos = issue.suggestion.find('{');
+    size_t close_brace_pos = issue.suggestion.find('}', brace_pos);
+    if (close_brace_pos != std::string::npos) {
+      replacement_text = issue.suggestion.substr(brace_pos, close_brace_pos - brace_pos + 1) + ";";
+    } else {
+      replacement_text = "{" + init_part + "};";
     }
   } else {
     replacement_text = "{" + init_part + "};";
