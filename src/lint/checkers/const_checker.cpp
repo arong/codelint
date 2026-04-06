@@ -150,6 +150,7 @@ bool ConstChecker::VisitVarDecl(clang::VarDecl* VD) {
   info.is_constexpr = VD->isConstexpr();
   info.is_reference = VD->getType()->isReferenceType();
   info.is_pointer = VD->getType()->isPointerType();
+  info.is_array = VD->getType()->isArrayType();
   info.is_parameter = clang::isa<clang::ParmVarDecl>(VD);
   info.is_member = clang::isa<clang::FieldDecl>(VD);
   info.is_global = VD->hasGlobalStorage() && !VD->isLocalVarDecl() && !VD->isStaticLocal();
@@ -337,13 +338,13 @@ void ConstChecker::analyzeAndReport() {
     bool can_be_const = false;
 
     if (info.is_const) {
-      if (info.has_const_init && isBuiltinType(info.type) && !info.is_reference) {
+      if (info.is_array && info.has_const_init && isBuiltinType(info.type) && !info.is_reference) {
         can_be_constexpr = true;
       }
     } else {
       if (info.is_reference) {
         can_be_const = true;
-      } else if (isBuiltinType(info.type) && info.has_const_init) {
+      } else if (info.is_array && isBuiltinType(info.type) && info.has_const_init) {
         can_be_constexpr = true;
       }
     }

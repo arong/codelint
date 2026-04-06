@@ -63,6 +63,7 @@ private:
     bool is_global = false;
     bool is_modified = false;
     bool has_const_init = false;
+    bool is_array = false;
   };
 
   std::unordered_map<std::string, VarInfo> variables_;
