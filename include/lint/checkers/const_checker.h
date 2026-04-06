@@ -18,6 +18,21 @@ public:
   explicit ConstChecker(const std::optional<GitScope>& scope = std::nullopt);
   ~ConstChecker() = default;
 
+  struct Config {
+    bool analyze_parameters = true;
+    bool analyze_pointers_as_values = false;
+    bool analyze_pointers_as_pointees = true;
+    bool analyze_references = true;
+    bool analyze_values = true;
+  };
+
+  void setConfig(const Config& config) {
+    config_ = config;
+  }
+  const Config& getConfig() const {
+    return config_;
+  }
+
   LintResult check(const std::string& filepath) override;
 
   std::string name() const override {
@@ -37,9 +52,11 @@ public:
                    std::string& modified_content) override;
 
   bool VisitVarDecl(clang::VarDecl* VD);
+  bool VisitParmVarDecl(clang::ParmVarDecl* PVD);
   bool VisitBinaryOperator(clang::BinaryOperator* BO);
   bool VisitUnaryOperator(clang::UnaryOperator* UO);
   bool VisitCallExpr(clang::CallExpr* CE);
+  bool VisitFunctionDecl(clang::FunctionDecl* FD);
   void runOnAST(clang::ASTContext* Context);
 
 private:
@@ -47,6 +64,8 @@ private:
   IssueReporter Reporter_;
   LintResult Result_;
   std::optional<GitScope> scope_;
+  const clang::FunctionDecl* current_function_ = nullptr;
+  Config config_;
 
   struct VarInfo {
     std::string name;
@@ -64,6 +83,7 @@ private:
     bool is_modified = false;
     bool has_const_init = false;
     bool is_array = false;
+    const clang::FunctionDecl* parent_function = nullptr;
   };
 
   std::unordered_map<std::string, VarInfo> variables_;

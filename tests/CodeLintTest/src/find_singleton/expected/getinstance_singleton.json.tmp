@@ -1,10 +1,17 @@
 {
   "issues": [
     {
-      "file": "getinstance_singleton.cpp",
+      "type": "singleton_pattern",
+      "severity": "info",
+      "checker": "singleton",
+      "name": "getInstance",
+      "type_str": "manager",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/getinstance_singleton.cpp",
       "line": 4,
-      "message": "Possible singleton pattern detected",
-      "suggestion": "Consider if getInstance() is necessary or if dependency injection would be better"
+      "column": 24,
+      "description": "Meyer's Singleton pattern detected",
+      "suggestion": "getInstance() returns reference to static local 'manager'",
+      "fixable": false
     }
   ]
 }

@@ -169,6 +169,83 @@ bool ConstChecker::VisitVarDecl(clang::VarDecl* VD) {
   return true;
 }
 
+bool ConstChecker::VisitFunctionDecl(clang::FunctionDecl* FD) {
+  if (!FD || !FD->hasBody()) {
+    return true;
+  }
+
+  current_function_ = FD;
+  return true;
+}
+
+bool ConstChecker::VisitParmVarDecl(clang::ParmVarDecl* PVD) {
+  if (!PVD || !Context_) {
+    return true;
+  }
+
+  if (!config_.analyze_parameters) {
+    return true;
+  }
+
+  if (isInSystemHeader(PVD)) {
+    return true;
+  }
+
+  clang::QualType paramType = PVD->getType();
+
+  if (paramType->isReferenceType() && !config_.analyze_references) {
+    return true;
+  }
+
+  if (paramType->isPointerType() && !config_.analyze_pointers_as_pointees) {
+    return true;
+  }
+
+  if (!paramType->isReferenceType() && !paramType->isPointerType()) {
+    return true;
+  }
+
+  if (PVD->getName().empty()) {
+    return true;
+  }
+
+  std::string key = getVarKey(PVD);
+  if (key.empty()) {
+    return true;
+  }
+
+  VarInfo info;
+  info.name = PVD->getName().str();
+  info.type = paramType.getAsString();
+  info.is_const = paramType.isConstQualified();
+  info.is_reference = paramType->isReferenceType();
+  info.is_pointer = paramType->isPointerType();
+  info.is_parameter = true;
+  info.parent_function = current_function_;
+
+  clang::SourceManager& SM = Context_->getSourceManager();
+  clang::SourceLocation loc = PVD->getLocation();
+  info.file = SM.getFilename(loc).str();
+  info.line = static_cast<int>(SM.getExpansionLineNumber(loc));
+  info.column = static_cast<int>(SM.getExpansionColumnNumber(loc));
+
+  if (paramType->isReferenceType()) {
+    clang::QualType pointeeType = paramType->getPointeeType();
+    if (pointeeType.isConstQualified()) {
+      return true;
+    }
+  } else if (paramType->isPointerType()) {
+    clang::QualType pointeeType = paramType->getPointeeType();
+    if (pointeeType.isConstQualified()) {
+      return true;
+    }
+  }
+
+  variables_[key] = info;
+
+  return true;
+}
+
 bool ConstChecker::VisitBinaryOperator(clang::BinaryOperator* BO) {
   if (!BO || !BO->isAssignmentOp()) {
     return true;
@@ -329,7 +406,65 @@ void ConstChecker::analyzeAndReport() {
 
     if (modified_vars_.count(key) > 0)
       continue;
-    if (info.is_parameter || info.is_member)
+
+    if (info.is_parameter) {
+      if (!config_.analyze_parameters) {
+        continue;
+      }
+
+      if (info.is_reference && !info.is_const && config_.analyze_references) {
+        LintIssue issue;
+        issue.type = CheckType::CAN_BE_CONST;
+        issue.severity = Severity::HINT;
+        issue.checker_name = "const";
+        issue.name = info.name;
+        issue.type_str = info.type;
+        issue.file = info.file;
+        issue.line = info.line;
+        issue.column = info.column;
+        issue.description = "Parameter is never modified, consider making it const";
+
+        std::string suggestion = info.type;
+        size_t amp_pos = suggestion.find('&');
+        if (amp_pos != std::string::npos) {
+          suggestion.insert(amp_pos, " const");
+        } else {
+          suggestion = "const " + suggestion;
+        }
+        issue.suggestion = suggestion;
+        issue.fixable = true;
+        Reporter_.add_issue(issue);
+      } else if (info.is_pointer && !info.is_const) {
+        if (config_.analyze_pointers_as_pointees) {
+          clang::QualType pointeeType;
+          if (info.type.find('*') != std::string::npos) {
+            LintIssue issue;
+            issue.type = CheckType::CAN_BE_CONST;
+            issue.severity = Severity::HINT;
+            issue.checker_name = "const";
+            issue.name = info.name;
+            issue.type_str = info.type;
+            issue.file = info.file;
+            issue.line = info.line;
+            issue.column = info.column;
+            issue.description =
+                "Pointer parameter is never modified, consider making pointee const";
+
+            std::string suggestion = info.type;
+            size_t star_pos = suggestion.find('*');
+            if (star_pos != std::string::npos) {
+              suggestion.insert(star_pos, " const");
+            }
+            issue.suggestion = suggestion;
+            issue.fixable = true;
+            Reporter_.add_issue(issue);
+          }
+        }
+      }
+      continue;
+    }
+
+    if (info.is_member)
       continue;
     if (info.is_pointer)
       continue;

@@ -1,10 +1,17 @@
 {
   "issues": [
     {
-      "file": "namespace_singleton.cpp",
+      "type": "singleton_pattern",
+      "severity": "info",
+      "checker": "singleton",
+      "name": "instance",
+      "type_str": "cfg",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/namespace_singleton.cpp",
       "line": 5,
-      "message": "Possible singleton pattern detected",
-      "suggestion": "Consider if instance() is necessary or if dependency injection would be better"
+      "column": 26,
+      "description": "Meyer's Singleton pattern detected",
+      "suggestion": "instance() returns reference to static local 'cfg'",
+      "fixable": false
     }
   ]
 }

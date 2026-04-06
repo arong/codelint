@@ -1,10 +1,17 @@
 {
   "issues": [
     {
-      "file": "meyers_singleton.cpp",
+      "type": "singleton_pattern",
+      "severity": "info",
+      "checker": "singleton",
+      "name": "instance",
+      "type_str": "inst",
+      "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/meyers_singleton.cpp",
       "line": 4,
-      "message": "Possible singleton pattern detected",
-      "suggestion": "Consider if instance() is necessary or if dependency injection would be better"
+      "column": 22,
+      "description": "Meyer's Singleton pattern detected",
+      "suggestion": "instance() returns reference to static local 'inst'",
+      "fixable": false
     }
   ]
 }
