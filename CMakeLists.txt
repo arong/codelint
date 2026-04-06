@@ -27,6 +27,15 @@ if(COVERAGE)
 endif()
 
 # ========== LLVM/Clang Configuration (Portable) ==========
+# Prefer Homebrew LLVM over Apple Clang
+if(EXISTS "/opt/homebrew/opt/llvm@21/lib/cmake/llvm/LLVMConfig.cmake")
+  set(LLVM_DIR "/opt/homebrew/opt/llvm@21/lib/cmake/llvm")
+  message(STATUS "Using Homebrew LLVM 21")
+elseif(EXISTS "/usr/local/opt/llvm@21/lib/cmake/llvm/LLVMConfig.cmake")
+  set(LLVM_DIR "/usr/local/opt/llvm@21/lib/cmake/llvm")
+  message(STATUS "Using Homebrew LLVM 21 (Intel Mac)")
+endif()
+
 find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
