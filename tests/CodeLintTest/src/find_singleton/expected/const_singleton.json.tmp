@@ -8,7 +8,7 @@
       "type_str": "const Service &",
       "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/const_singleton.cpp",
       "line": 6,
-      "column": 27,
+      "column": 25,
       "description": "Singleton pattern detected in Service::instance",
       "suggestion": "Service::instance()",
       "fixable": false
