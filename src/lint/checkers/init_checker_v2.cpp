@@ -28,7 +28,7 @@ void InitCheckerV2::registerMatchers(MatchFinder& Finder) {
                     this);
 
   Finder.addMatcher(varDecl(hasInitializer(integerLiteral().bind("literal")), unless(isImplicit()),
-                            unless(parmVarDecl()))
+                            unless(parmVarDecl()), hasGlobalStorage())
                         .bind("unsignedCandidate"),
                     this);
 }
