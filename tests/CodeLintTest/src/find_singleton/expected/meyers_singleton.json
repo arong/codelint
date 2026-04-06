@@ -5,12 +5,12 @@
       "severity": "info",
       "checker": "singleton",
       "name": "instance",
-      "type_str": "Database &",
+      "type_str": "inst",
       "file": "<PROJECT_ROOT>/tests/CodeLintTest/src/find_singleton/src/meyers_singleton.cpp",
-      "line": 5,
+      "line": 4,
       "column": 22,
-      "description": "Singleton pattern detected in Database::instance",
-      "suggestion": "Database::instance()",
+      "description": "Meyer's Singleton pattern detected",
+      "suggestion": "instance() returns reference to static local 'inst'",
       "fixable": false
     }
   ]

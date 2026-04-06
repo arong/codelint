@@ -60,6 +60,7 @@ private:
   bool shouldSkipInitializerListConstructor(clang::VarDecl* VD);
   bool shouldSkipLambdaParameter(clang::VarDecl* VD);
   bool shouldSkipCatchVariableCopy(clang::VarDecl* VD);
+  bool shouldSkipStaticVariable(clang::VarDecl* VD);
 
   // Utility methods
   bool isInSystemHeader(clang::Decl* D) const;

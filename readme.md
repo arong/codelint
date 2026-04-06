@@ -31,7 +31,7 @@ Codelint 是一个基于 LLVM LibTooling 的 C++ 代码静态分析工具，用�
 - **取地址的变量** - `&var` 可能通过指针修改
 - **传递给指针/引用参数的变量** - 函数可能修改变量
 - **数组元素被修改的数组** - `arr[i] = x`
-- **全局变量** - 可能被其他翻译单元修改
+- **static 局部变量** - `static int x;` 在函数内部
 
 ```bash
 ./codelint check_init <file> [--fix]

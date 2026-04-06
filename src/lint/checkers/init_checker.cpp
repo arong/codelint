@@ -139,7 +139,7 @@ bool InitChecker::VisitVarDecl(clang::VarDecl* VD) {
   if (shouldSkipAutoDeclaration(VD) || shouldSkipForLoopVariable(VD) || shouldSkipUnionMember(VD) ||
       shouldSkipEnumClassWithoutZero(VD) || shouldSkipExternDeclaration(VD) ||
       shouldSkipExceptionVariable(VD) || shouldSkipInitializerListConstructor(VD) ||
-      shouldSkipLambdaParameter(VD)) {
+      shouldSkipLambdaParameter(VD) || shouldSkipStaticVariable(VD)) {
     return true;
   }
 
@@ -629,6 +629,13 @@ bool InitChecker::shouldSkipCatchVariableCopy(clang::VarDecl* VD) {
     return false;
 
   return referencedVar->isExceptionVariable();
+}
+
+bool InitChecker::shouldSkipStaticVariable(clang::VarDecl* VD) {
+  if (VD->isStaticLocal()) {
+    return true;
+  }
+  return false;
 }
 
 bool InitChecker::apply_fixes(const std::string& filepath, const std::vector<LintIssue>& issues,
