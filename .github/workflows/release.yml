@@ -49,6 +49,7 @@ jobs:
           apt-get install -y --no-install-recommends \
             llvm-21-dev \
             clang-21 \
+            clang-tidy-21 \
             libclang-21-dev
       
       - name: Install vcpkg packages

@@ -21,7 +21,9 @@ LLVM_VERSION="21"
 
 # Get version from git or default
 get_version() {
-    if git rev-parse --git-dir >/dev/null 2>&1; then
+    if [ -n "$GITHUB_REF" ]; then
+        echo "${GITHUB_REF#refs/tags/v}"
+    elif git rev-parse --git-dir >/dev/null 2>&1; then
         git describe --tags --always 2>/dev/null || echo "dev"
     else
         echo "dev"
@@ -48,13 +50,27 @@ mkdir -p "${PACKAGE_DIR}/lib"
 
 # Step 1: Copy clang-tidy binary
 echo "[1/6] Copying clang-tidy binary..."
-if [ -f "/usr/bin/clang-tidy-${LLVM_VERSION}" ]; then
-    cp "/usr/bin/clang-tidy-${LLVM_VERSION}" "${PACKAGE_DIR}/bin/clang-tidy"
-elif [ -f "/usr/lib/llvm-${LLVM_VERSION}/bin/clang-tidy" ]; then
-    cp "/usr/lib/llvm-${LLVM_VERSION}/bin/clang-tidy" "${PACKAGE_DIR}/bin/clang-tidy"
-else
-    echo "ERROR: clang-tidy-${LLVM_VERSION} not found!"
-    echo "Please ensure LLVM ${LLVM_VERSION} is installed."
+CLANG_TIDY_FOUND=false
+for candidate in \
+    "/usr/bin/clang-tidy-${LLVM_VERSION}" \
+    "/usr/lib/llvm-${LLVM_VERSION}/bin/clang-tidy" \
+    "/usr/bin/clang-tidy"
+do
+    if [ -f "$candidate" ]; then
+        cp "$candidate" "${PACKAGE_DIR}/bin/clang-tidy"
+        CLANG_TIDY_FOUND=true
+        echo "  Found: $candidate"
+        break
+    fi
+done
+
+if [ "$CLANG_TIDY_FOUND" = false ]; then
+    echo "ERROR: clang-tidy not found!"
+    echo "Searched locations:"
+    echo "  - /usr/bin/clang-tidy-${LLVM_VERSION}"
+    echo "  - /usr/lib/llvm-${LLVM_VERSION}/bin/clang-tidy"
+    echo "  - /usr/bin/clang-tidy"
+    echo "Please install: apt-get install clang-tidy-${LLVM_VERSION}"
     exit 1
 fi
 chmod +x "${PACKAGE_DIR}/bin/clang-tidy"
