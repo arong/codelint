@@ -1,252 +1,70 @@
 cmake_minimum_required(VERSION 3.20)
-project(codelint VERSION 1.0.0 LANGUAGES C CXX)
+project(codelint-plugin VERSION 1.0.0 LANGUAGES C CXX)
 
-# ========== C++ Standard Detection (C++26/C++23 with C++20 fallback) ==========
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++23" COMPILER_SUPPORTS_CXX23)
-
-if(COMPILER_SUPPORTS_CXX23)
-    set(CMAKE_CXX_STANDARD 23)
-    message(STATUS "Using C++23")
-else()
-    set(CMAKE_CXX_STANDARD 20)
-    message(STATUS "Using C++20 (fallback)")
-endif()
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ========== Build Options ==========
-option(STATIC_LINKING "Build with static linking for release" OFF)
-option(COVERAGE "Enable code coverage (use: cmake -DCOVERAGE=ON .. && make coverage)" OFF)
-
-# ========== Coverage Configuration ==========
-if(COVERAGE)
-    message(STATUS "Coverage enabled")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fprofile-arcs -ftest-coverage")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 --coverage -fprofile-arcs -ftest-coverage")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-endif()
-
-# ========== LLVM/Clang Configuration (Portable) ==========
+# Find LLVM/Clang
 find_package(LLVM REQUIRED CONFIG)
-
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-# LLVM include directories and definitions
+# Set Clang_DIR based on LLVM_DIR
+if(NOT DEFINED Clang_DIR)
+  get_filename_component(LLVM_DIR_PARENT "${LLVM_DIR}" DIRECTORY)
+  set(Clang_DIR "${LLVM_DIR_PARENT}/clang")
+endif()
+find_package(Clang REQUIRED CONFIG)
+message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
+
 include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${Clang_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-# LLVM components required for LibTooling
-llvm_map_components_to_libnames(llvm_libs
+# Use LLVM's cmake modules
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+include(AddLLVM)
+
+# Plugin shared library
+add_llvm_library(codelint-plugin SHARED
+    src/codelint_plugin/CodelintModule.cpp
+    src/codelint_plugin/checks/InitCheck.cpp
+    src/codelint_plugin/checks/GlobalCheck.cpp
+    src/codelint_plugin/checks/SingletonCheck.cpp
+
+    LINK_COMPONENTS
     support
-    core
-    analysis
-    clang
-    clang-frontend
-    clang-tooling
-    clang-ast
-    clang-basic
-    clang-lex
-    clang-parse
-    clang-sema
-    clang-codegen
 )
 
-# ========== Project Configuration ==========
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-# Use rapidjson from vcpkg (header-only library)
-find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson/document.h)
-if(RAPIDJSON_INCLUDE_DIR)
-    message(STATUS "Found RapidJSON at: ${RAPIDJSON_INCLUDE_DIR}")
-    include_directories(${RAPIDJSON_INCLUDE_DIR})
-endif()
-
-# ========== libgit2 Configuration ==========
-find_package(libgit2 REQUIRED)
-message(STATUS "Found libgit2 ${libgit2_VERSION}")
-
-# ========== Executable Definition ==========
-add_executable(codelint
-  src/main.cpp
-  src/commands/cmd_utils.cpp
-  src/commands/cmd_check_init.cpp
-  src/commands/cmd_find_global.cpp
-  src/commands/cmd_find_singleton.cpp
-  src/lint.cpp
-  src/lint_checker.cpp
-  src/issue_reporter.cpp
-  src/fix_applier.cpp
-  src/lint/lint_runner.cpp
-  src/lint/lint_action.cpp
-  src/lint/git_scope.cpp
-  src/lint_visitor.cpp
-  src/lint/checkers/init_checker.cpp
-  src/lint/checkers/global_checker.cpp
-  src/lint/checkers/singleton_checker.cpp
-)
-
-target_include_directories(codelint PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-# ========== Version Definitions ==========
-target_compile_definitions(codelint PRIVATE
-    CODELINT_VERSION="${PROJECT_VERSION}"
-    LLVM_VERSION="${LLVM_PACKAGE_VERSION}"
-)
-
-# ========== Linkage ==========
-# We need both libclang (C API for init_checker) and libclang-cpp (C++ API for other checkers)
-# Use -Wl,--no-as-needed to ensure both are linked, but link libclang-cpp FIRST
-# to have its LLVM command-line options registered first
-if(STATIC_LINKING)
-    # Static linking for musl/Alpine
-    message(STATUS "Building with static linking")
-
-    # Add static linking flags
-    set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
-
-    # Link against LLVM static libraries
-    target_link_libraries(codelint PRIVATE
-        ${llvm_libs}
-        ${LLVM_LIBRARY_DIR}/libclang.a
-        ${LLVM_LIBRARY_DIR}/libclang-cpp.a
-        ${LLVM_LIBRARY_DIR}/libLLVM-21.a
-        libgit2::libgit2package
-    )
-
-    # Set static linking properties
-    set_target_properties(codelint PROPERTIES LINK_SEARCH_START_STATIC ON)
-    set_target_properties(codelint PROPERTIES LINK_SEARCH_END_STATIC ON)
-else()
-    # Cross-platform library linking
-    if(APPLE)
-    target_link_libraries(codelint PRIVATE
-        ${LLVM_LIBRARY_DIR}/libclang-cpp.dylib
-        ${LLVM_LIBRARY_DIR}/libclang.dylib
-        ${LLVM_LIBRARY_DIR}/libLLVM.dylib
-        libgit2::libgit2package
-    )
-else()
-    # Linux: Use full versioned library names from Ubuntu's llvm-18-dev
-    target_link_libraries(codelint PRIVATE
-        ${LLVM_LIBRARY_DIR}/libclang-cpp.so.21.1
-        ${LLVM_LIBRARY_DIR}/libclang.so
-        libgit2::libgit2package
-        ${LLVM_LIBRARY_DIR}/libLLVM-21.so
-    )
-endif()
-    # Suppress LLVM command-line option duplication warning
-    target_compile_options(codelint PRIVATE -DLLVM_ENABLE_DUMP=0)
-endif()
-
-# ========== Install ==========
-install(TARGETS codelint DESTINATION bin)
-
-# ========== GoogleTest Setup ==========
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG v1.14.0
-)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
-# Enable testing
-enable_testing()
-
-# Test executables
-add_executable(commands_test tests/commands_test.cpp)
-target_link_libraries(commands_test PRIVATE
-    gtest_main
-    pthread
-)
-target_include_directories(commands_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-target_compile_definitions(commands_test PRIVATE TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-
-add_test(NAME commands_test COMMAND commands_test)
-
-add_executable(edge_cases_test tests/edge_cases_test.cpp)
-target_link_libraries(edge_cases_test PRIVATE
-    gtest_main
-    pthread
-)
-target_include_directories(edge_cases_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(codelint-plugin PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_test(NAME edge_cases_test COMMAND edge_cases_test)
-
-add_executable(integration_test tests/integration_test.cpp)
-target_link_libraries(integration_test PRIVATE
-    gtest_main
-    pthread
-)
-target_include_directories(integration_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-add_test(NAME integration_test COMMAND integration_test)
-
-add_executable(backward_compat_test tests/backward_compat_test.cpp)
-target_link_libraries(backward_compat_test PRIVATE
-    gtest_main
-    pthread
-)
-target_include_directories(backward_compat_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+# Link against clang libraries
+target_link_libraries(codelint-plugin PRIVATE
+    clangTidy
+    clangTidyPlugin
+    clangAST
+    clangASTMatchers
+    clangBasic
+    clangLex
+    clangFrontend
+    clangTooling
+    clangSerialization
+    clangSema
+    clangAnalysis
+    clangDriver
+    clangEdit
+    clangParse
 )
 
-add_executable(text_format_test tests/text_format_test.cpp)
-target_link_libraries(text_format_test PRIVATE
-    gtest_main
-    pthread
-)
-target_include_directories(text_format_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+# Set plugin properties
+set_target_properties(codelint-plugin PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "codelint-plugin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-add_test(NAME text_format_test COMMAND text_format_test)
-
-add_executable(sarif_validation_test tests/sarif_validation_test.cpp)
-target_link_libraries(sarif_validation_test PRIVATE
-    gtest_main
-    pthread
-)
-target_include_directories(sarif_validation_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-add_test(NAME sarif_validation_test COMMAND sarif_validation_test)
-
-add_test(NAME backward_compat_test COMMAND backward_compat_test)
-
-# ========== Integrated Test Target ==========
-# This target runs both unit tests (ctest) and regression tests
-# Usage: cmake --build build --target test-all
-add_custom_target(test-all
-    COMMENT "Running all tests (unit tests + regression tests)"
-    COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_BINARY_DIR} --output-on-failure
-    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/run_regression.sh
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS codelint
-)
-
-# Make test-all depend on all test executables being built
-add_dependencies(test-all
-    commands_test
-    edge_cases_test
-    integration_test
-    text_format_test
-    sarif_validation_test
-    backward_compat_test
-)
+# Install plugin
+install(TARGETS codelint-plugin LIBRARY DESTINATION lib/clang-tidy)

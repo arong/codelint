@@ -1,0 +1,296 @@
+#include "codelint/checks/InitCheck.h"
+#include "clang/AST/Decl.h"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/Lex/Lexer.h"
+
+using namespace clang::ast_matchers;
+
+namespace clang::tidy {
+namespace codelint {
+
+void InitCheck::registerMatchers(MatchFinder* Finder) {
+  if (!Finder)
+    return;
+
+  Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
+                             unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
+                             unless(hasAncestor(recordDecl(isUnion()))),
+                             unless(hasAncestor(cxxCatchStmt())))
+                         .bind("uninit"),
+                     this);
+
+  Finder->addMatcher(fieldDecl(unless(hasAncestor(recordDecl(isUnion())))).bind("uninit_field"),
+                     this);
+
+  Finder->addMatcher(varDecl(hasInitializer(expr()), unless(hasInitializer(initListExpr())),
+                             unless(hasType(autoType())), unless(parmVarDecl()),
+                             unless(hasParent(cxxCatchStmt())), unless(hasAncestor(forStmt())),
+                             unless(hasAncestor(cxxForRangeStmt())))
+                         .bind("equals"),
+                     this);
+
+  Finder->addMatcher(
+      varDecl(hasType(hasCanonicalType(isUnsignedInteger())), hasInitializer(integerLiteral()))
+          .bind("unsigned"),
+      this);
+}
+
+void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
+  if (!Result.Context)
+    return;
+
+  if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("uninit")) {
+    checkUninitialized(VD, Result.Context);
+  } else if (const auto* FD = Result.Nodes.getNodeAs<FieldDecl>("uninit_field")) {
+    checkUninitializedField(FD, Result.Context);
+  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals")) {
+    checkEqualsInit(VD, Result.Context);
+  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("unsigned")) {
+    checkUnsignedSuffix(VD, Result.Context);
+  }
+}
+
+bool InitCheck::shouldSkipAuto(const VarDecl* VD) {
+  if (!VD)
+    return false;
+  return VD->getType()->isUndeducedAutoType();
+}
+
+bool InitCheck::shouldSkipUnion(const VarDecl* VD) {
+  if (!VD)
+    return false;
+  const auto* DC = VD->getDeclContext();
+  if (const auto* RD = dyn_cast<RecordDecl>(DC)) {
+    return RD->isUnion();
+  }
+  return false;
+}
+
+bool InitCheck::shouldSkipExtern(const VarDecl* VD) {
+  if (!VD)
+    return false;
+  return VD->getStorageClass() == SC_Extern;
+}
+
+bool InitCheck::isBraceInit(const VarDecl* VD) {
+  if (!VD)
+    return false;
+
+  const auto* Init = VD->getInit();
+  if (!Init)
+    return false;
+
+  if (isa<InitListExpr>(Init))
+    return true;
+
+  if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
+    if (CCE->isListInitialization())
+      return true;
+  }
+
+  if (const auto* CXXTE = dyn_cast<CXXTemporaryObjectExpr>(Init)) {
+    if (CXXTE->isListInitialization())
+      return true;
+  }
+
+  return false;
+}
+
+bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
+  if (!VD)
+    return false;
+
+  if (!VD->hasInit())
+    return false;
+
+  if (VD->getInitStyle() == VarDecl::CInit || VD->getInitStyle() == VarDecl::ListInit)
+    return true;
+
+  const Expr* Init = VD->getInit();
+  if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
+    if (!CCE->isListInitialization() && CCE->getNumArgs() == 0)
+      return false;
+  }
+
+  return true;
+}
+
+bool InitCheck::shouldSkipEnumClass(const VarDecl* VD) {
+  if (!VD)
+    return false;
+  return VD->getType()->isScopedEnumeralType();
+}
+
+bool InitCheck::hasExplicitInitializer(const FieldDecl* FD) {
+  if (!FD)
+    return false;
+
+  if (!FD->hasInClassInitializer())
+    return false;
+
+  return true;
+}
+
+void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
+  if (!FD || !Ctx)
+    return;
+
+  const auto Name = FD->getName();
+  if (Name.empty())
+    return;
+
+  if (hasExplicitInitializer(FD))
+    return;
+
+  if (FD->getType()->isScopedEnumeralType())
+    return;
+
+  auto& SM = Ctx->getSourceManager();
+  auto LangOpts = Ctx->getLangOpts();
+
+  const auto Loc = FD->getLocation();
+  const auto EndLoc = Lexer::getLocForEndOfToken(FD->getLocation(), 0, SM, LangOpts);
+
+  diag(Loc, "field is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+}
+
+void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
+  if (!VD || !Ctx)
+    return;
+
+  const auto Name = VD->getName();
+  if (Name.empty())
+    return;
+
+  if (shouldSkipAuto(VD) || shouldSkipUnion(VD) || shouldSkipExtern(VD) || shouldSkipEnumClass(VD))
+    return;
+
+  if (hasExplicitInitializer(VD))
+    return;
+
+  auto& SM = Ctx->getSourceManager();
+  auto LangOpts = Ctx->getLangOpts();
+
+  const auto Loc = VD->getLocation();
+  SourceLocation EndLoc;
+
+  if (VD->getType()->isArrayType()) {
+    if (auto* TSI = VD->getTypeSourceInfo()) {
+      TypeLoc TL = TSI->getTypeLoc();
+      while (TL.getAs<ArrayTypeLoc>()) {
+        ArrayTypeLoc ATL = TL.getAs<ArrayTypeLoc>();
+        TL = ATL.getElementLoc();
+        EndLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
+      }
+      if (EndLoc.isInvalid())
+        EndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+      else
+        EndLoc = Lexer::getLocForEndOfToken(EndLoc, 0, SM, LangOpts);
+    } else {
+      EndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+    }
+  } else {
+    EndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+  }
+
+  diag(Loc, "variable is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+}
+
+void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
+  if (!VD || !Ctx)
+    return;
+
+  const auto Name = VD->getName();
+  if (Name.empty())
+    return;
+
+  if (VD->getInitStyle() != VarDecl::CInit)
+    return;
+
+  if (shouldSkipAuto(VD))
+    return;
+
+  if (isBraceInit(VD))
+    return;
+
+  const auto* Init = VD->getInit();
+  if (!Init)
+    return;
+
+  auto& SM = Ctx->getSourceManager();
+  auto LangOpts = Ctx->getLangOpts();
+
+  const auto InitRange = Init->getSourceRange();
+  const auto Value = Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SM, LangOpts);
+
+  auto VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+  auto InitStartLoc = Init->getBeginLoc();
+
+  const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
+
+  std::string ClosingBrace = "}";
+  const Type* Ty = VD->getType().getTypePtr();
+  bool isUnsignedInt = Ty->isSpecificBuiltinType(BuiltinType::UInt) ||
+                       Ty->isSpecificBuiltinType(BuiltinType::UShort) ||
+                       Ty->isSpecificBuiltinType(BuiltinType::UChar) ||
+                       Ty->isSpecificBuiltinType(BuiltinType::Char8) ||
+                       Ty->isSpecificBuiltinType(BuiltinType::Char16) ||
+                       Ty->isSpecificBuiltinType(BuiltinType::Char32) ||
+                       Ty->isSpecificBuiltinType(BuiltinType::UInt128);
+  const Expr* InitExpr = Init->IgnoreImplicit();
+  if (isUnsignedInt && isa<IntegerLiteral>(InitExpr)) {
+    bool hasSuffix = false;
+    for (char C : Value) {
+      if (C == 'U' || C == 'u') {
+        hasSuffix = true;
+        break;
+      }
+    }
+    if (!hasSuffix)
+      ClosingBrace = "U}";
+  }
+
+  diag(VD->getLocation(), "variable should use '{}' syntax for initialization")
+      << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "{")
+      << FixItHint::CreateInsertion(InitEnd, ClosingBrace);
+}
+
+void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
+  if (!VD || !Ctx)
+    return;
+
+  const auto Name = VD->getName();
+  if (Name.empty())
+    return;
+
+  auto& SM = Ctx->getSourceManager();
+  auto LangOpts = Ctx->getLangOpts();
+
+  const auto* Init = VD->getInit();
+  if (!Init)
+    return;
+
+  const auto* IL = dyn_cast<IntegerLiteral>(Init);
+  if (!IL)
+    return;
+
+  const auto InitRange = Init->getSourceRange();
+  auto ValueText = Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SM, LangOpts);
+
+  if (ValueText.empty() || ValueText.size() > 64)
+    return;
+
+  for (char C : ValueText) {
+    if (C == 'U' || C == 'u')
+      return;
+  }
+
+  const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
+
+  diag(Init->getBeginLoc(), "unsigned integer literal should have 'U' suffix")
+      << FixItHint::CreateInsertion(InitEnd, "U");
+}
+
+} // namespace codelint
+} // namespace clang::tidy

@@ -1,82 +1,182 @@
-# Codelint - C++ Code Analysis Tool
+# Codelint - clang-tidy Plugin for C++ Code Analysis
 
-Codelint 是一个基于 LLVM LibTooling 的 C++ 代码静态分析工具，用于检查代码中的常见问题并提供自动修复建议。
+Codelint is now a **clang-tidy plugin** that provides custom checks for C++ code analysis. It was refactored from a standalone LibTooling binary to integrate seamlessly with clang-tidy's ecosystem.
 
-## 功能特性
+## Features
 
-### 1. `check_init` - 变量初始化检查
+### Three Custom Checks
 
-检查变量初始化风格，推荐现代 C++ 最佳实践：
+| Check | Purpose | Auto-fix |
+|-------|---------|----------|
+| **codelint-init** | Variable initialization style (uninitialized, `=` → `{}`, unsigned suffix) | ✅ Yes |
+| **codelint-global** | Global variable detection | ❌ No |
+| **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No |
 
-#### 检测项
+## Installation
 
-| 问题类型 | 说明 | 示例修复 |
-|---------|------|---------|
-| **未初始化变量** | 变量声明时未显式初始化 | `int c;` → `int c{};` |
-| **`=` 初始化转 `{}`** | 建议使用统一初始化语法 | `int a = 5;` → `int a{5};` |
-| **无符号整型后缀** | unsigned 类型建议添加 `U` 后缀 | `unsigned int b = 42;` → `unsigned int b{42U};` |
-| **const 建议** | 变量未被修改，建议添加 `const` | `int x{42};` → `const int x{42};` |
-| **constexpr 建议** | 编译期常量，建议使用 `constexpr` | `const int x{42};` → `constexpr int x{42};` |
+### Prerequisites
 
-#### 智能跳过规则
+- **LLVM/Clang 21+** (with clang-tidy)
+- **CMake 3.20+**
+- **C++20 compiler**
 
-以下情况会自动跳过，避免误报：
+### Build the Plugin
 
-- **auto 声明** - 类型推导需要保留 `=` 语法
-- **for 循环变量** - `for (int i = 0; ...)` 等循环变量
-- **union 成员** - union 成员初始化有特殊语义
-- **enum class 无零值** - 枚举类型没有零值成员时跳过
-- **extern 声明** - 外部链接声明不修改
-- **异常变量** - `catch (const auto& e)` 中的异常变量
-- **取地址的变量** - `&var` 可能通过指针修改
-- **传递给指针/引用参数的变量** - 函数可能修改变量
-- **数组元素被修改的数组** - `arr[i] = x`
-- **全局变量** - 可能被其他翻译单元修改
+**macOS (Homebrew):**
+```bash
+cmake -B build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
+
+cmake --build build -j$(sysctl -n hw.ncpu)
+```
+
+**Linux:**
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+```
+
+### Install
 
 ```bash
-./codelint check_init <file> [--fix]
+sudo cp build/lib/codelint-plugin.so /usr/local/lib/clang-tidy/
 ```
 
-### 2. `find_global` - 全局变量检测
+## Usage
 
-查找项目中的所有全局变量，帮助识别潜在的状态管理问题：
+### Basic Usage
 
 ```bash
-./codelint find_global <file_or_directory>
+# Run all codelint checks
+clang-tidy --load=/usr/local/lib/clang-tidy/codelint-plugin.so \
+           --checks='codelint-*' \
+           main.cpp
+
+# With compilation database
+clang-tidy --load=codelint-plugin.so \
+           --checks='codelint-*' \
+           -p build \
+           src/**/*.cpp
+
+# Apply fixes automatically
+clang-tidy --load=codelint-plugin.so \
+           --checks='codelint-*' \
+           --fix \
+           main.cpp
 ```
 
-**输出内容**：
-- 变量名称、类型
-- 所在文件、行号、列号
-- 初始化值（如有）
+### Configuration
 
-### 3. `find_singleton` - 单例模式检测
+Create a `.clang-tidy` file in your project root:
 
-检测代码中的 Meyer's Singleton 实现（返回静态局部变量引用的函数）：
+```yaml
+Checks: '-*, codelint-*'
+WarningsAsErrors: 'codelint-init'
+HeaderFilterRegex: '.*'
+```
+
+### Selective Checks
 
 ```bash
-./codelint find_singleton <file_or_directory>
+# Only initialization checks
+clang-tidy --load=codelint-plugin.so \
+           --checks='codelint-init' \
+           main.cpp
+
+# Only global/singleton checks
+clang-tidy --load=codelint-plugin.so \
+           --checks='codelint-global,codelint-singleton' \
+           src/**/*.cpp
 ```
 
-**检测模式**：
-```cpp
-// 会检测到的模式
-static T& instance() {
-    static T inst{...};  // Meyer's Singleton
-    return inst;
-}
+## Output Formats
+
+clang-tidy supports multiple output formats:
+
+```bash
+# Default console output
+clang-tidy main.cpp
+
+# YAML export
+clang-tidy --export-fixes=fixes.yaml main.cpp
+
+# SARIF for CI/CD
+clang-tidy --checks='codelint-*' main.cpp | \
+  clang-tidy-to-sarif.py > results.sarif
 ```
 
-## 输出格式
+## CI Integration
 
-### 文本输出（默认）
+### GitHub Actions
+
+```yaml
+name: lint
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install clang-tidy
+        run: sudo apt install clang-tidy
+      - name: Build plugin
+        run: cmake -B build && cmake --build build
+      - name: Run codelint
+        run: clang-tidy --load=build/lib/codelint-plugin.so \
+                        --checks='codelint-*' \
+                        -p build \
+                        src/**/*.cpp
+```
+
+## Documentation
+
+- **[codelint-init](docs/check-docs/codelint-init.md)** - Variable initialization checks
+- **[codelint-global](docs/check-docs/codelint-global.md)** - Global variable detection
+- **[codelint-singleton](docs/check-docs/codelint-singleton.md)** - Singleton pattern detection
+- **[clang-tidy Integration Guide](docs/clang-tidy-integration.md)** - Detailed usage instructions
+
+## Migration from Standalone
+
+If you were using the old standalone codelint binary:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `codelint check_init src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-init' src/**/*.cpp` |
+| `codelint find_global src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-global' src/**/*.cpp` |
+| `codelint find_singleton src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-singleton' src/**/*.cpp` |
+
+### Deleted Features
+
+The following features were removed in the clang-tidy plugin migration:
+- ❌ Git scope filtering (`--scope modified`)
+- ❌ Const/constexpr suggestions (requires CFG analysis)
+- ❌ Custom output formats (use clang-tidy's native formats)
+- ❌ Custom CLI (use clang-tidy's CLI)
+
+## Running Tests
+
+```bash
+cmake --build build
+cd build
+ctest --output-on-failure
+```
+
+## Architecture
 
 ```
-/path/to/file.cpp:10:5: warning: Variable should use '{}' syntax for initialization [init]
-  int a = 5;
-      ^
-  suggestion: int a{5};
+codelint-plugin.so
+├── CodelintModule.cpp          # Plugin registration
+└── checks/
+    ├── InitCheck.cpp           # Initialization checks
+    ├── GlobalCheck.cpp         # Global variable detection
+    └── SingletonCheck.cpp      # Singleton pattern detection
 ```
+
+## License
+
+MIT License
 
 ### JSON 输出
 
