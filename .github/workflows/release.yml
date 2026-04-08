@@ -8,8 +8,7 @@ on:
     tags: ['v*']
 
 jobs:
-  # Job 1: AppImage (Ubuntu 22.04 + vcpkg dynamic)
-  appimage:
+  build:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
     
@@ -29,16 +28,15 @@ jobs:
           restore-keys: |
             vcpkg-
       
-      - name: Install dependencies and vcpkg
+      - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
             build-essential cmake git python3 wget file \
             curl zip unzip ca-certificates pkg-config \
             lsb-release software-properties-common gnupg \
-            patchelf
+            patchelf tar gzip
           
-          # Setup vcpkg
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
@@ -62,113 +60,90 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
       
-      - name: Build binary
-        run: |
-          cmake --build build -j$(nproc)
+      - name: Build plugin
+        run: cmake --build build -j$(nproc)
       
-      - name: Verify binary
+      - name: Verify plugin
         run: |
-          ./build/codelint --version
+          ls -la build/lib/
+          file build/lib/codelint-plugin.so
       
-      - name: Download appimagetool
+      - name: Create offline package
         run: |
-          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
+          chmod +x packaging/scripts/bundle_libs.sh
+          ./packaging/scripts/bundle_libs.sh
       
-      - name: Create AppDir structure
+      - name: Verify package
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          mkdir -p AppDir/usr/bin
-          cp build/codelint AppDir/usr/bin/
+          ARCH=$(uname -m)
+          PACKAGE_NAME="codelint-${VERSION}-linux-${ARCH}"
           
-          # Create AppRun
-          cat > AppDir/AppRun << 'EOF'
-          #!/bin/bash
-          APPDIR="$(dirname "$(readlink -f "$0")")"
-          export LD_LIBRARY_PATH="${APPDIR}/usr/lib${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
-          exec "${APPDIR}/usr/bin/codelint" "$@"
-          EOF
-          chmod +x AppDir/AppRun
+          ls -la package-output/
+          ls -la package-output/${PACKAGE_NAME}/
+          file package-output/${PACKAGE_NAME}/bin/clang-tidy
+          file package-output/${PACKAGE_NAME}/bin/codelint
+          file package-output/${PACKAGE_NAME}/lib/codelint-plugin.so
           
-          # Create desktop file
-          cat > AppDir/codelint.desktop << 'EOF'
-          [Desktop Entry]
-          Name=codelint
-          Comment=Code linting tool
-          Exec=codelint
-          Icon=codelint
-          Type=Application
-          Categories=Development;
-          EOF
-          
-          # Create icon
-          cat > AppDir/codelint.svg << 'EOF'
-          <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-            <rect width="128" height="128" fill="#3B82F6" rx="16"/>
-            <text x="64" y="80" text-anchor="middle" font-family="monospace" font-size="48" fill="white" font-weight="bold">C++</text>
-            <text x="64" y="110" text-anchor="middle" font-family="sans-serif" font-size="16" fill="white" font-weight="bold">codelint</text>
-          </svg>
-          EOF
-       
-      - name: Collect and bundle dynamic libraries
-        run: |
-          # Create lib directory
-          mkdir -p AppDir/usr/lib
-          
-          # Collect required libraries using ldd
-          ldd build/codelint | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ 2>/dev/null || true
-          
-          # Also copy LLVM libraries that may not show in ldd
-          cp -v /usr/lib/llvm-21/lib/libclang-cpp.so.21.1 AppDir/usr/lib/ 2>/dev/null || true
-          cp -v /usr/lib/llvm-21/lib/libLLVM-21.so AppDir/usr/lib/ 2>/dev/null || true
-          cp -v /usr/lib/llvm-21/lib/libclang.so.21 AppDir/usr/lib/ 2>/dev/null || true
-          cp -v /usr/lib/llvm-21/lib/libLLVM.so.21 AppDir/usr/lib/ 2>/dev/null || true
-          
-          # Set RPATH on binary to use bundled libraries
-          patchelf --set-rpath '$ORIGIN/../lib' AppDir/usr/bin/codelint
-          
-          # Verify libraries were copied
-          ls -la AppDir/usr/lib/
+          tar -tzf package-output/${PACKAGE_NAME}.tar.gz | head -20
       
-      - name: Build AppImage
+      - name: Test package functionality
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir codelint-${VERSION}-linux-x86_64.AppImage
+          ARCH=$(uname -m)
+          PACKAGE_NAME="codelint-${VERSION}-linux-${ARCH}"
+          
+          cd package-output/${PACKAGE_NAME}
+          
+          ./bin/codelint --version
+          ./bin/codelint --list-checks | grep codelint
+          
+          cat > /tmp/test.cpp << 'EOF'
+          void test() {
+            int x;
+            int y = 5;
+          }
+          EOF
+          
+          ./bin/codelint /tmp/test.cpp 2>&1 | head -20 || true
       
-      - name: Upload AppImage artifact
+      - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: appimage-artifact
-          path: codelint-*.AppImage
+          name: codelint-package
+          path: package-output/*.tar.gz
           retention-days: 5
 
-  # Job 2: Release
   release:
-    needs: [appimage]
-    if: always() && needs.appimage.result == 'success'
+    needs: [build]
+    if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download AppImage artifact
-        if: needs.appimage.result == 'success'
+      - name: Download package artifact
         uses: actions/download-artifact@v4
         with:
-          name: appimage-artifact
+          name: codelint-package
           path: artifacts
       
       - name: List artifacts
-        run: |
-          ls -la artifacts/
+        run: ls -la artifacts/
       
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
+          
           gh release create v$VERSION \
             --title "v$VERSION" \
             --generate-notes \
             artifacts/*
+      
+      - name: Verify release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          gh release view v$VERSION --json assets,name,tagName
