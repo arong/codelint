@@ -4,7 +4,6 @@
 #include <map>
 
 #include "commands/cmd_utils.h"
-#include "lint/checkers/const_checker.h"
 #include "lint/checkers/init_checker.h"
 #include "lint/fix_applier.h"
 #include "lint/git_scope.h"
@@ -187,7 +186,6 @@ collect_issues(const std::vector<std::string>& paths,
   }
 
   codelint::lint::InitChecker init_checker(scope);
-  codelint::lint::ConstChecker const_checker(scope);
   std::vector<codelint::lint::LintIssue> all_issues;
 
   for (const auto& filepath : files) {
@@ -197,11 +195,6 @@ collect_issues(const std::vector<std::string>& paths,
     }
     auto init_result = init_checker.check(filepath);
     all_issues.insert(all_issues.end(), init_result.issues.begin(), init_result.issues.end());
-
-    if (!suppress_constant) {
-      auto const_result = const_checker.check(filepath);
-      all_issues.insert(all_issues.end(), const_result.issues.begin(), const_result.issues.end());
-    }
   }
   return all_issues;
 }

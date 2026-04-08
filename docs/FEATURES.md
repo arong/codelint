@@ -122,7 +122,7 @@ options:
       example: "./codelint lint src/ --exclude=global"
     - name: "--fix"
       type: "flag"
-      description: "Automatically apply fixes where possible (init and const checkers only)"
+      description: "Automatically apply fixes where possible (init checker only)"
       example: "./codelint lint src/ --fix"
     - name: "--inplace"
       type: "flag"

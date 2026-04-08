@@ -81,7 +81,6 @@ add_executable(codelint
   src/lint/git_scope.cpp
   src/lint_visitor.cpp
   src/lint/checkers/init_checker.cpp
-  src/lint/checkers/const_checker.cpp
   src/lint/checkers/global_checker.cpp
   src/lint/checkers/singleton_checker.cpp
 )

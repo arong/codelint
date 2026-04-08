@@ -5,7 +5,6 @@
 namespace codelint {
 namespace lint {
 class InitChecker;
-class ConstChecker;
 class GitScope;
 class LintIssue;
 } // namespace lint
