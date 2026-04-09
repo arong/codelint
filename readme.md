@@ -8,9 +8,17 @@ Codelint is now a **clang-tidy plugin** that provides custom checks for C++ code
 
 | Check | Purpose | Auto-fix |
 |-------|---------|----------|
-| **codelint-init** | Variable initialization style (uninitialized, `=` → `{}`, unsigned suffix) | ✅ Yes |
+| **codelint-init** | Variable initialization style (uninitialized, `=` → `{}`, unsigned suffix, macro skip, C-array) | ✅ Yes |
 | **codelint-global** | Global variable detection | ❌ No |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No |
+
+### codelint-init Features
+
+1. **Uninitialized variables** - Detects variables without explicit initialization
+2. **Equals syntax** - Suggests brace initialization `int x{5}` instead of `int x = 5`
+3. **Unsigned suffix** - Adds `U` suffix to unsigned integer literals
+4. **Macro skip** - Automatically skips variables defined inside macros
+5. **C-style arrays** - Provides specific warning for uninitialized C-style arrays
 
 ## Installation
 

@@ -2,6 +2,7 @@
 #include "clang/AST/Decl.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/Basic/SourceManager.h"
 #include "clang/Lex/Lexer.h"
 
 using namespace clang::ast_matchers;
@@ -34,6 +35,11 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
       varDecl(hasType(hasCanonicalType(isUnsignedInteger())), hasInitializer(integerLiteral()))
           .bind("unsigned"),
       this);
+
+  Finder->addMatcher(varDecl(hasInitializer(initListExpr()), unless(parmVarDecl()),
+                             unless(hasAncestor(forStmt())), unless(hasAncestor(cxxForRangeStmt())))
+                         .bind("equals_brace"),
+                     this);
 }
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
@@ -48,6 +54,8 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     checkEqualsInit(VD, Result.Context);
   } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("unsigned")) {
     checkUnsignedSuffix(VD, Result.Context);
+  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals_brace")) {
+    checkEqualsBraceInit(VD, Result.Context);
   }
 }
 
@@ -132,6 +140,17 @@ bool InitCheck::hasExplicitInitializer(const FieldDecl* FD) {
   return true;
 }
 
+bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
+  if (!VD || !Ctx)
+    return false;
+
+  auto& SM = Ctx->getSourceManager();
+  SourceLocation Loc = VD->getLocation();
+
+  // Check if the declaration is inside a macro expansion
+  return SM.isMacroBodyExpansion(Loc) || SM.isMacroArgExpansion(Loc);
+}
+
 void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
   if (!FD || !Ctx)
     return;
@@ -161,6 +180,10 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
 
   const auto Name = VD->getName();
   if (Name.empty())
+    return;
+
+  // Skip checking if variable is inside a macro
+  if (isInsideMacro(VD, Ctx))
     return;
 
   if (shouldSkipAuto(VD) || shouldSkipUnion(VD) || shouldSkipExtern(VD) || shouldSkipEnumClass(VD))
@@ -194,7 +217,13 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
     EndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
   }
 
-  diag(Loc, "variable is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+  // Check if this is a C-style array and provide a more specific message
+  if (VD->getType()->isArrayType()) {
+    diag(Loc, "C-style array should be initialized with braces '{}'")
+        << FixItHint::CreateInsertion(EndLoc, "{}");
+  } else {
+    diag(Loc, "variable is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+  }
 }
 
 void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
@@ -290,6 +319,55 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
 
   diag(Init->getBeginLoc(), "unsigned integer literal should have 'U' suffix")
       << FixItHint::CreateInsertion(InitEnd, "U");
+}
+
+void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
+  if (!VD || !Ctx)
+    return;
+
+  const auto Name = VD->getName();
+  if (Name.empty())
+    return;
+
+  if (VD->getInitStyle() != VarDecl::CInit)
+    return;
+
+  const auto* Init = VD->getInit();
+  if (!Init)
+    return;
+
+  if (!isa<InitListExpr>(Init))
+    return;
+
+  if (isInsideMacro(VD, Ctx))
+    return;
+
+  auto& SM = Ctx->getSourceManager();
+  auto LangOpts = Ctx->getLangOpts();
+
+  SourceLocation VarEndLoc;
+  if (VD->getType()->isArrayType()) {
+    if (auto* TSI = VD->getTypeSourceInfo()) {
+      TypeLoc TL = TSI->getTypeLoc();
+      while (TL.getAs<ArrayTypeLoc>()) {
+        ArrayTypeLoc ATL = TL.getAs<ArrayTypeLoc>();
+        TL = ATL.getElementLoc();
+        VarEndLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
+      }
+      if (VarEndLoc.isInvalid())
+        VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+    } else {
+      VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+    }
+  } else {
+    VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+  }
+
+  VarEndLoc = Lexer::getLocForEndOfToken(VarEndLoc, 0, SM, LangOpts);
+  auto InitStartLoc = Init->getBeginLoc();
+
+  diag(VD->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
+      << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "");
 }
 
 } // namespace codelint

@@ -22,6 +22,7 @@ private:
   void checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx);
   void checkEqualsInit(const VarDecl* VD, ASTContext* Ctx);
   void checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx);
+  void checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx);
 
   bool shouldSkipAuto(const VarDecl* VD);
   bool shouldSkipUnion(const VarDecl* VD);
@@ -30,6 +31,7 @@ private:
   bool isBraceInit(const VarDecl* VD);
   bool hasExplicitInitializer(const VarDecl* VD);
   bool hasExplicitInitializer(const FieldDecl* FD);
+  bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
 };
 
 } // namespace codelint

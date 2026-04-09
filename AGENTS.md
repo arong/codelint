@@ -32,6 +32,7 @@ The following directories contain **TEST FIXTURES** that MUST NOT be modified:
 ### What AI CAN Do
 
 ✅ **Safe modifications**:
+- Add NEW test files in `tests/CodeLintTest/src/init_checker/src/` and `tests/CodeLintTest/src/init_checker/fixed/` (must add both src and fixed files with matching names)
 - Add NEW test files in `tests/` (e.g., `tests/commands_test.cpp`, `tests/integration_test.cpp`)
 - Modify test runner scripts (`tests/run_regression.sh`) for better reporting
 - Modify test infrastructure (CMakeLists.txt for test configuration)
