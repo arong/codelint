@@ -23,6 +23,8 @@ private:
   void checkEqualsInit(const VarDecl* VD, ASTContext* Ctx);
   void checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx);
   void checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx);
+  void checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
+                                                       ASTContext* Ctx);
 
   bool shouldSkipAuto(const VarDecl* VD);
   bool shouldSkipUnion(const VarDecl* VD);

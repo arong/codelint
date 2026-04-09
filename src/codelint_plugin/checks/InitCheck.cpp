@@ -1,9 +1,11 @@
 #include "codelint/checks/InitCheck.h"
 #include "clang/AST/Decl.h"
+#include "clang/AST/DeclCXX.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/Lexer.h"
+#include "llvm/ADT/SmallVector.h"
 
 using namespace clang::ast_matchers;
 
@@ -40,6 +42,9 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
                              unless(hasAncestor(forStmt())), unless(hasAncestor(cxxForRangeStmt())))
                          .bind("equals_brace"),
                      this);
+
+  // Matcher for C++ constructors to check member initialization
+  Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
 }
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
@@ -56,6 +61,8 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     checkUnsignedSuffix(VD, Result.Context);
   } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals_brace")) {
     checkEqualsBraceInit(VD, Result.Context);
+  } else if (const auto* Ctor = Result.Nodes.getNodeAs<CXXConstructorDecl>("constructor")) {
+    checkUninitializedMemberVariablesInConstructors(Ctor, Result.Context);
   }
 }
 
@@ -162,7 +169,13 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
   if (hasExplicitInitializer(FD))
     return;
 
+  if (FD->isBitField())
+    return;
+
   if (FD->getType()->isScopedEnumeralType())
+    return;
+
+  if (FD->getType()->isReferenceType())
     return;
 
   auto& SM = Ctx->getSourceManager();
@@ -191,6 +204,18 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
 
   if (hasExplicitInitializer(VD))
     return;
+
+  // Check if this is a reference type - needs special handling since references must be initialized
+  if (VD->getType()->isReferenceType()) {
+    auto& SM = Ctx->getSourceManager();
+    auto LangOpts = Ctx->getLangOpts();
+
+    const auto Loc = VD->getLocation();
+
+    diag(Loc, "reference variable is not initialized and must be bound to a value")
+        << DiagnosticIDs::Error;
+    return;
+  }
 
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
@@ -368,6 +393,55 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
 
   diag(VD->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
       << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "");
+}
+
+void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
+                                                                ASTContext* Ctx) {
+  if (!Ctor || !Ctx || Ctor->isImplicit())
+    return;
+
+  const CXXRecordDecl* Record = Ctor->getParent();
+  if (!Record)
+    return;
+
+  // Collection to store member variables that are not initialized in this constructor
+  llvm::SmallVector<const FieldDecl*, 16> UninitializedMembers;
+
+  for (const FieldDecl* Field : Record->fields()) {
+    // Skip members with in-class initializers (already handled by other checks)
+    if (Field->hasInClassInitializer())
+      continue;
+
+    // Skip bit fields
+    if (Field->isBitField())
+      continue;
+
+    // TODO: Need to determine how to properly identify static data members in LLVM 21+
+    // For now, we'll skip this check, which means static members might get reported
+    // (But typically static members are initialized elsewhere, not in constructors)
+
+    // Check if this field is initialized in the constructor's initializer list
+    bool InitializedInConstructor = false;
+    for (const auto& Init : Ctor->inits()) {
+      if (const FieldDecl* InitField = Init->getMember()) {
+        if (InitField == Field) {
+          InitializedInConstructor = true;
+          break;
+        }
+      }
+    }
+
+    if (!InitializedInConstructor) {
+      UninitializedMembers.push_back(Field);
+    }
+  }
+
+  // Report diagnostics for uninitialized members
+  for (const FieldDecl* Field : UninitializedMembers) {
+    const auto Loc = Field->getLocation();
+    diag(Loc, "member variable '%0' is not explicitly initialized in constructor")
+        << Field->getName();
+  }
 }
 
 } // namespace codelint
