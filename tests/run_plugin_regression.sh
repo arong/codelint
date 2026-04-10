@@ -53,7 +53,12 @@ else
     exit 1
 fi
 
-CLANG_TIDY=$(which clang-tidy 2>/dev/null || echo "")
+CLANG_TIDY_BIN=clang-tidy
+if command -v clang-tidy-21 > /dev/null 2>&1; then
+    CLANG_TIDY_BIN=clang-tidy-21
+fi
+
+CLANG_TIDY=$(which $CLANG_TIDY_BIN 2>/dev/null || echo "")
 if [ -z "$CLANG_TIDY" ]; then
     echo "ERROR: clang-tidy not found in PATH"
     exit 1
