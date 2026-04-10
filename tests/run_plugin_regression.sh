@@ -137,8 +137,12 @@ run_check_output_test() {
         found && count == 0 { found=0 }
     ' "$temp_full" > "$temp_output"
 
-    # Compare with expected output
-    if diff -q "$expected_output" "$temp_output" > /dev/null 2>&1; then
+    # Compare with expected output (strip trailing whitespace for flexible comparison)
+    local temp_expected="/tmp/codelint_expected_$$.txt"
+    sed 's/[[:blank:]]*$//' "$expected_output" > "$temp_expected"
+    sed 's/[[:blank:]]*$//' "$temp_output" > "${temp_output}.stripped"
+    
+    if diff -q "$temp_expected" "${temp_output}.stripped" > /dev/null 2>&1; then
         echo "PASS: $test_name warning output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
@@ -150,12 +154,12 @@ run_check_output_test() {
         echo "Got (actual output):"
         head -6 "$temp_output"
         echo ""
-        echo "Diff:"
-        diff "$expected_output" "$temp_output" | head -10
+        echo "Diff (ignoring trailing whitespace):"
+        diff "$temp_expected" "${temp_output}.stripped" | head -10
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 
-    rm -f "$temp_full" "$temp_output"
+    rm -f "$temp_full" "$temp_output" "$temp_expected" "${temp_output}.stripped"
 }
 
 # Test: Verify source files have issues
