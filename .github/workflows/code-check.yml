@@ -153,6 +153,9 @@ jobs:
           mkdir -p tests/CodeLintTest/build
           cp build/compile_commands.json tests/CodeLintTest/build/
 
+      - name: Setup PATH for clang-tidy-21
+        run: echo /usr/bin >> $GITHUB_PATH
+
       - name: Run all tests
         run: cmake --build build --target test-all
 
