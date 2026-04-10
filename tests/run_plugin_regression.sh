@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Regression test for codelint clang-tidy plugin
+#
+# Alias clang-tidy-21 to clang-tidy for Ubuntu compatibility
+if command -v clang-tidy-21 > /dev/null 2># Regression test for codelint clang-tidy plugin1; then
+    alias clang-tidy=clang-tidy-21
+fi
 # Tests: src files (with issues) -> clang-tidy --fix -> compare with fixed files
 
 set -e
