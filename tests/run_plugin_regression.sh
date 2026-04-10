@@ -13,7 +13,14 @@ TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
 TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
 COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
 
-export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"
+# Setup clang-tidy PATH based on platform
+if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
+    # macOS with homebrew clang-tidy
+    export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"
+elif [ -d "/usr/lib/llvm-21/bin" ]; then
+    # Ubuntu with LLVM 21
+    export PATH="/usr/lib/llvm-21/bin:$PATH"
+fi
 
 echo "========================================"
 echo "Codelint Plugin Regression Test Suite"
