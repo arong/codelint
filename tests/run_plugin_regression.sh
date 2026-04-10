@@ -141,7 +141,7 @@ run_check_output_test() {
     local temp_expected="/tmp/codelint_expected_$$.txt"
     sed 's/[[:blank:]]*$//' "$expected_output" > "$temp_expected"
     sed 's/[[:blank:]]*$//' "$temp_output" > "${temp_output}.stripped"
-    
+
     if diff -q "$temp_expected" "${temp_output}.stripped" > /dev/null 2>&1; then
         echo "PASS: $test_name warning output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))

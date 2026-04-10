@@ -50,12 +50,12 @@ jobs:
               errors=0
               for file; do
                 file_size=$(wc -c < "$file" | tr -d " ")
-                
+
                 # Skip empty files (0 bytes or 1 byte newline only)
                 if [ "$file_size" -eq 0 ] || [ "$file_size" -eq 1 ]; then
                   continue
                 fi
-                
+
                 # Check for multiple trailing newlines
                 last_two=$(tail -c 2 "$file" 2>/dev/null | od -An -tx1 | tr -d " \n")
                 if [ "$last_two" = "0a0a" ]; then
@@ -63,7 +63,7 @@ jobs:
                   errors=$((errors + 1))
                   continue
                 fi
-                
+
                 # Check for missing newline
                 last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d " \n")
                 if [ "$last" != "0a" ]; then
@@ -73,7 +73,7 @@ jobs:
               done
               exit $errors
             ' sh {} +
-          
+
           if [ $? -ne 0 ]; then
             echo "::error::Trailing newline check failed!"
             echo "Please ensure all files end with exactly one newline"
