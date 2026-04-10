@@ -14,12 +14,21 @@ TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
 COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
 
 # Setup clang-tidy PATH based on platform
-if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
+if command -v clang-tidy &> /dev/null; then
+    # clang-tidy already in PATH
+    :
+elif command -v clang-tidy-21 &> /dev/null; then
+    # Ubuntu apt.llvm.org installs clang-tidy-21
+    alias clang-tidy=clang-tidy-21
+elif [ -x "/usr/bin/clang-tidy-21" ]; then
+    # Ubuntu with clang-tidy-21 in /usr/bin
+    alias clang-tidy=clang-tidy-21
+elif [ -d "/usr/lib/llvm-21/bin" ]; then
+    # Ubuntu with LLVM 21 in /usr/lib/llvm-21/bin
+    export PATH="/usr/lib/llvm-21/bin:$PATH"
+elif [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
     # macOS with homebrew clang-tidy
     export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"
-elif [ -d "/usr/lib/llvm-21/bin" ]; then
-    # Ubuntu with LLVM 21
-    export PATH="/usr/lib/llvm-21/bin:$PATH"
 fi
 
 echo "========================================"
