@@ -167,3 +167,102 @@ git commit --no-verify -m "emergency fix"
 ```
 
 ---
+
+## 🔧 GitHub CLI (gh) Usage Guide for CI Debugging
+
+**IMPORTANT: gh CLI is available on this machine!** Always use it to check CI status and debug failures.
+
+### 🔍 Check CI Status
+
+```bash
+# List recent CI runs (show latest 1)
+gh run list --limit 1
+
+# List all runs for current branch
+gh run list --branch develop --limit 10
+```
+
+### 📖 View CI Run Details
+
+```bash
+# View run status and jobs
+gh run view <RUN_ID>
+
+# View failed run logs
+gh run view <RUN_ID> --log
+
+# View specific failed step logs
+gh run view <RUN_ID> --log --failed
+
+# View logs from a specific job
+gh run view <RUN_ID> --job <JOB_ID> --log
+```
+
+### 🚨 Common Commands for CI Debugging
+
+```bash
+# Check if latest CI passed
+gh run list --limit 1 | grep completed
+
+# Rerun failed workflow
+gh run rerun <FAILED_RUN_ID>
+
+# Watch CI run in real-time
+gh run watch <RUN_ID>
+```
+
+### 📊 Extract Error Information
+
+```bash
+# Get only error lines from logs
+gh run view <RUN_ID> --log | grep "ERROR:\|##\[error\]"
+
+# Check if tests passed
+gh run view <RUN_ID> --log | grep -E "(Total tests|Passed|Failed)"
+
+# Find specific failure
+gh run view <RUN_ID> --log | grep -B3 -A3 "FAIL:"
+```
+
+### 🛠️ Typical CI Debugging Workflow
+
+```bash
+# 1. Check latest CI status
+gh run list --limit 1
+
+# 2. View detailed run info
+gh run view <RUN_ID>
+
+# 3. Check which jobs failed
+gh run view <RUN_ID> | grep -E "(JOBS|X [a-z-]+)"
+
+# 4. Get failure logs
+gh run view <RUN_ID> --log | grep -B5 "##\[error\]"
+
+# 5. Focus on specific failure type
+gh run view <RUN_ID> --log | grep -E "(trailing whitespace|trailing newline|clang-tidy|FAIL:)"
+```
+
+### 📝 CI Run ID Examples
+
+Run IDs look like: `24257528758`, `24258215019`, etc.
+
+To find the latest run ID:
+```bash
+gh run list --limit 1 --json databaseId | jq -r '.[0].databaseId'
+```
+
+### 🎯 Quick Status Check Commands
+
+```bash
+# Is latest CI passing?
+gh run list --limit 1 --json conclusion --jq '.[0].conclusion'
+# Output: "success" or "failure"
+
+# Get job names that failed
+gh run view <RUN_ID> --json jobs --jq '.jobs[] | select(.conclusion=="failure") | .name'
+```
+
+---
+
+
