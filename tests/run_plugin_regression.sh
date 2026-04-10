@@ -20,9 +20,14 @@ echo "Codelint Plugin Regression Test Suite"
 echo "========================================"
 echo ""
 
-PLUGIN="$BUILD_DIR/lib/codelint-plugin.dylib"
-if [ ! -f "$PLUGIN" ]; then
-    echo "ERROR: Plugin not found at $PLUGIN"
+# Auto-detect plugin file based on platform
+BUILD_DIR="$PROJECT_ROOT/build"
+if [ -f "$BUILD_DIR/lib/codelint-plugin.so" ]; then
+    PLUGIN="$BUILD_DIR/lib/codelint-plugin.so"
+elif [ -f "$BUILD_DIR/lib/codelint-plugin.dylib" ]; then
+    PLUGIN="$BUILD_DIR/lib/codelint-plugin.dylib"
+else
+    echo "ERROR: Plugin not found in $BUILD_DIR/lib/"
     echo "Please build the plugin first: cmake --build build"
     exit 1
 fi
