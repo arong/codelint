@@ -10,7 +10,8 @@ set -e
 normalize_paths() {
     local input="$1"
     local output="$2"
-    sed -E 's|/[^/]*/codelint/tests/CodeLintTest/src/init_checker/|tests/CodeLintTest/src/init_checker/|g' "$input" > "$output"
+    # Remove everything before and including '/codelint/tests/CodeLintTest/src/init_checker/'
+    sed -E 's|^.+/codelint/tests/CodeLintTest/src/init_checker/|tests/CodeLintTest/src/init_checker/|g' "$input" > "$output"
 }
 
 
