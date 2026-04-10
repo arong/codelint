@@ -8,6 +8,11 @@ set -e
 # Alias clang-tidy-21 to clang-tidy for compatibility
 if command -v clang-tidy-21 >/dev/null 2>&1; then
     alias clang-tidy=clang-tidy-21
+# Use clang-tidy-21 on Ubuntu, clang-tidy on macOS
+CLANG_TIDY_BIN="clang-tidy"
+if command -v clang-tidy-21 > /dev/null 2>&1; then
+    CLANG_TIDY_BIN="clang-tidy-21"
+fi
 fi
 # set -x
 
