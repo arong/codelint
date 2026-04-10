@@ -264,5 +264,3 @@ gh run view <RUN_ID> --json jobs --jq '.jobs[] | select(.conclusion=="failure") 
 ```
 
 ---
-
-
