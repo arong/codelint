@@ -125,7 +125,7 @@ jobs:
           # Install LLVM 21 development packages
           apt-get install -y --no-install-recommends \
             llvm-21-dev \
-            clang-21 \
+            clang-tidy-21 clang-21 \
             libclang-21-dev
 
           # Setup vcpkg
