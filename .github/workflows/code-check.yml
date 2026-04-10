@@ -25,7 +25,7 @@ jobs:
               --include='*.py' \
               . 2>/dev/null | \
               grep -v '.git/' | \
-              grep -v '.sisyphus/' | 
+              grep -v '.sisyphus/' |
               grep -v 'tests/CodeLintTest/src/init_checker/check-output/'; then
             echo "::error::Found trailing whitespace!"
             echo "Please run './scripts/format.sh' to fix."
