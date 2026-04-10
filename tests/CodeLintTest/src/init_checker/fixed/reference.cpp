@@ -2,7 +2,9 @@
 // P1-2: Reference initialization style checks (only compilable code)
 
 #include <utility>
-
+#include <unordered_map>
+#include <string>
+#include <iostream>
 void test_reference_initialization() {
   int value{10};
   int& ref1{value}; // Should suggest brace init: int& ref1{value}
@@ -49,4 +51,13 @@ void test_rvalue_references() {
   int x{10};
   int&& rref1{std::move(x)}; // Should suggest brace init
   int&& rref2{std::move(x)};  // OK - already using brace init
+}
+
+void ref_with_map() {
+  std::unordered_map<std::string, uint32_t> table {
+    {"debug", 1},
+    {"info", 2},
+  };
+  auto& value {table["debug"]};
+  std::cout << value;
 }

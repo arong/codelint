@@ -4,11 +4,14 @@
 # Tests: src files (with issues) -> clang-tidy --fix -> compare with fixed files
 
 set -e
+# set -x
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build"
 TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
+TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
+COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
 
 export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"
 
@@ -32,7 +35,15 @@ fi
 
 echo "Using clang-tidy: $CLANG_TIDY"
 echo "Using plugin: $PLUGIN"
+echo "Using compile_commands: $COMPILE_COMMANDS"
 echo ""
+
+# Verify compile_commands.json exists
+if [ ! -f "$COMPILE_COMMANDS" ]; then
+    echo "ERROR: compile_commands.json not found at $COMPILE_COMMANDS"
+    echo "Please build the test project first: cd tests/CodeLintTest/build && cmake .. && cmake --build ."
+    exit 1
+fi
 
 TEST_COUNT=0
 PASS_COUNT=0
@@ -43,32 +54,31 @@ run_fix_test() {
     local test_name="$1"
     local src_file="$TEST_DIR/src/${test_name}.cpp"
     local expected_file="$TEST_DIR/fixed/${test_name}.cpp"
-    
+
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
     echo "Test $TEST_COUNT: $test_name"
     echo "------------------------------------------"
-    
+
     if [ ! -f "$src_file" ]; then
         echo "SKIP: Source file not found: $src_file"
         TEST_COUNT=$((TEST_COUNT - 1))
         return
     fi
-    
+
     if [ ! -f "$expected_file" ]; then
         echo "SKIP: Expected fixed file not found: $expected_file"
         TEST_COUNT=$((TEST_COUNT - 1))
         return
     fi
-    
+
     # Create temp file for fix result
     local temp_file=$(mktemp /tmp/codelint_fix.XXXXXX.cpp)
     cp "$src_file" "$temp_file"
-    
-    # Apply clang-tidy --fix to temp file (not source file)
-    local temp_dir=$(dirname "$temp_file")
-    "$CLANG_TIDY" --load="$PLUGIN" --checks='codelint-init' --fix "$temp_file" -- --std=c++17 2>&1 > /dev/null || true
-    
+
+    # Apply clang-tidy --fix using compile_commands.json with proper compiler flags
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' --fix "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
+
     # Compare fixed result with expected
     if diff -q "$expected_file" "$temp_file" > /dev/null 2>&1; then
         echo "PASS: $test_name - Fixed output matches expected"
@@ -86,7 +96,7 @@ run_fix_test() {
         diff "$expected_file" "$temp_file" | head -20
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
-    
+
     rm -f "$temp_file"
 }
 
@@ -95,28 +105,28 @@ run_source_issue_test() {
     local test_name="$1"
     local src_file="$TEST_DIR/src/${test_name}.cpp"
     local expected_file="$TEST_DIR/fixed/${test_name}.cpp"
-    
+
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
     echo "Test $TEST_COUNT: $test_name (source issues)"
     echo "------------------------------------------"
-    
+
     if [ ! -f "$src_file" ]; then
         echo "SKIP: Source file not found: $src_file"
         TEST_COUNT=$((TEST_COUNT - 1))
         return
     fi
-    
+
     # Skip if source and fixed files are identical (no issues expected)
     if [ -f "$expected_file" ] && diff -q "$src_file" "$expected_file" > /dev/null 2>&1; then
         echo "SKIP: Source and fixed files are identical (no issues expected)"
         TEST_COUNT=$((TEST_COUNT - 1))
         return
     fi
-    
-    local output=$("$CLANG_TIDY" --load="$PLUGIN" --checks='codelint-init' "$src_file" 2>&1) || true
+
+    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
     local issue_count=$(echo "$output" | grep -E "warning:.*codelint-init" | wc -l | awk '{print $1}')
-    
+
     if [ "$issue_count" -gt 0 ]; then
         echo "PASS: $test_name detects $issue_count issue(s)"
         PASS_COUNT=$((PASS_COUNT + 1))
@@ -130,21 +140,21 @@ run_source_issue_test() {
 run_fixed_issue_test() {
     local test_name="$1"
     local expected_file="$TEST_DIR/fixed/${test_name}.cpp"
-    
+
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
     echo "Test $TEST_COUNT: $test_name (fixed - no issues)"
     echo "------------------------------------------"
-    
+
     if [ ! -f "$expected_file" ]; then
         echo "SKIP: Fixed file not found: $expected_file"
         TEST_COUNT=$((TEST_COUNT - 1))
         return
     fi
-    
-    local output=$("$CLANG_TIDY" --load="$PLUGIN" --checks='codelint-init' "$expected_file" 2>&1) || true
+
+    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
     local issue_count=$(echo "$output" | grep -E "warning:.*codelint-init" | wc -l | awk '{print $1}')
-    
+
     if [ "$issue_count" -eq 0 ]; then
         echo "PASS: $test_name fixed file has 0 issues"
         PASS_COUNT=$((PASS_COUNT + 1))

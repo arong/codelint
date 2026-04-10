@@ -119,16 +119,29 @@ bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
   if (!VD->hasInit())
     return false;
 
+  // CInit (= init) and ListInit ({...} or (...)) are explicit initializations
   if (VD->getInitStyle() == VarDecl::CInit || VD->getInitStyle() == VarDecl::ListInit)
     return true;
 
   const Expr* Init = VD->getInit();
   if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
-    if (!CCE->isListInitialization() && CCE->getNumArgs() == 0)
-      return false;
+    // For list initialization (brace init), always consider as initialized
+    if (CCE->isListInitialization())
+      return true;
+    // For direct initialization with arguments (parentheses init), consider as initialized
+    if (CCE->getNumArgs() > 0)
+      return true;
   }
 
-  return true;
+  // For CXXTemporaryObjectExpr (rvalue initialization), always consider as initialized
+  if (const auto* TOE = dyn_cast<CXXTemporaryObjectExpr>(Init)) {
+    return true;
+  }
+
+  // Default: if we have a CallInit but no arguments and not list init,
+  // it may be implicit default construction (like std::string str;)
+  // Only consider as initialized if it's truly direct initialization
+  return false;
 }
 
 bool InitCheck::shouldSkipEnumClass(const VarDecl* VD) {

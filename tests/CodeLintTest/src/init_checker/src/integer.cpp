@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 
 int global1;
@@ -25,4 +26,7 @@ void foo(int a, int b = 10) {
 
   // 对 auto 声明的变量, 不要修改 =
   auto answer = 42;
+
+  // 正确格式,无需告警和修复
+  constexpr size_t answerOfUniverse{42UL};
 }
