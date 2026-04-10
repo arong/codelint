@@ -44,7 +44,7 @@ find . -type f \( \
             [ "$(tail -c 2 "$file" | od -An -tx1 | tr -d " \n")" = "0a0a" ]; do
         sed -i "" -e :a -e "/^\n*$/{$d;N;ba" -e "}" "$file" 2>/dev/null || true
       done
-      
+
       # Ensure file ends with newline
       if [ -n "$(tail -c 1 "$file" 2>/dev/null)" ] && [ "$(tail -c 1 "$file" | od -An -tx1 | tr -d " \n")" != "0a" ]; then
         echo "" >> "$file"

@@ -92,7 +92,7 @@ echo "[3/6] Collecting library dependencies..."
 copy_lib() {
     local lib_path="$1"
     local lib_name=$(basename "$lib_path")
-    
+
     # Skip system libraries (should exist on target)
     local skip_patterns="libc.so libm.so libdl.so libpthread.so librt.so ld-linux"
     for pattern in $skip_patterns; do
@@ -100,13 +100,13 @@ copy_lib() {
             return
         fi
     done
-    
+
     # Copy the library
     if [ ! -f "${PACKAGE_DIR}/lib/${lib_name}" ]; then
         cp -L "$lib_path" "${PACKAGE_DIR}/lib/${lib_name}" 2>/dev/null || true
         echo "  Copied: $lib_name"
     fi
-    
+
     # Also copy symlink if exists (for version flexibility)
     local lib_dir=$(dirname "$lib_path")
     local symlink_name=$(ls -la "$lib_dir" | grep "$lib_name" | grep -v "^-" | awk '{print $NF}' | head -1)

@@ -357,7 +357,7 @@ install(TARGETS codelint-plugin LIBRARY DESTINATION lib/clang-tidy)
 // Current: global_checker.cpp:99-109
 bool GlobalChecker::VisitVarDecl(clang::VarDecl* VD) {
   if (!VD || !Context_) return true;
-  
+
   if (isGlobalVariable(VD) && !isInSystemHeader(VD) && !isExternDeclaration(VD)) {
     reportGlobalVariable(VD);
   }
@@ -387,10 +387,10 @@ class GlobalCheck : public ClangTidyCheck {
 public:
   GlobalCheck(StringRef Name, ClangTidyContext* Context)
       : ClangTidyCheck(Name, Context) {}
-  
+
   void registerMatchers(ast_matchers::MatchFinder* Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
-  
+
   bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
     return LangOpts.CPlusPlus;
   }
@@ -430,7 +430,7 @@ void GlobalCheck::registerMatchers(MatchFinder* Finder) {
 void GlobalCheck::check(const MatchFinder::MatchResult& Result) {
   const auto* VD = Result.Nodes.getNodeAs<VarDecl>("global");
   if (!VD) return;
-  
+
   diag(VD->getLocation(), "global variable '%0' detected")
     << VD->getName()
     << "Consider using a singleton or dependency injection pattern";
@@ -467,7 +467,7 @@ class SingletonCheck : public ClangTidyCheck {
 public:
   SingletonCheck(StringRef Name, ClangTidyContext* Context)
       : ClangTidyCheck(Name, Context) {}
-  
+
   void registerMatchers(ast_matchers::MatchFinder* Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
 };
@@ -511,9 +511,9 @@ void SingletonCheck::registerMatchers(MatchFinder* Finder) {
 void SingletonCheck::check(const MatchFinder::MatchResult& Result) {
   const auto* FD = Result.Nodes.getNodeAs<FunctionDecl>("singleton");
   const auto* VD = Result.Nodes.getNodeAs<VarDecl>("static_local");
-  
+
   if (!FD || !VD) return;
-  
+
   diag(FD->getLocation(), "Meyer's Singleton pattern detected in '%0'")
     << FD->getName()
     << "Returns reference to static local '" << VD->getName() << "'";
@@ -540,15 +540,15 @@ class InitCheck : public ClangTidyCheck {
 public:
   InitCheck(StringRef Name, ClangTidyContext* Context)
       : ClangTidyCheck(Name, Context) {}
-  
+
   void registerMatchers(ast_matchers::MatchFinder* Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
-  
+
 private:
   void checkUninitialized(const VarDecl* VD, ASTContext* Ctx);
   void checkEqualsInit(const VarDecl* VD, ASTContext* Ctx);
   void checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx);
-  
+
   // Skip predicates (mirrored from current implementation)
   bool shouldSkipAuto(const VarDecl* VD);
   bool shouldSkipForLoop(const VarDecl* VD);
@@ -594,7 +594,7 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
     ).bind("uninit"),
     this
   );
-  
+
   // Matcher 2: Equals initialization (should use braces)
   Finder->addMatcher(
     varDecl(
@@ -608,7 +608,7 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
     ).bind("equals_init"),
     this
   );
-  
+
   // Matcher 3: Unsigned without suffix
   Finder->addMatcher(
     varDecl(
@@ -622,20 +622,20 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
 
 void InitCheck::check(const MatchFinder::MatchResult& Result) {
   ASTContext* Ctx = Result.Context;
-  
+
   // Handle uninitialized
   if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("uninit")) {
-    if (!shouldSkipAuto(VD) && !shouldSkipForLoop(VD) && 
+    if (!shouldSkipAuto(VD) && !shouldSkipForLoop(VD) &&
         !shouldSkipUnion(VD) && !shouldSkipExtern(VD)) {
       checkUninitialized(VD, Ctx);
     }
   }
-  
+
   // Handle equals init
   if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals_init")) {
     checkEqualsInit(VD, Ctx);
   }
-  
+
   // Handle unsigned
   if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("unsigned")) {
     checkUnsignedSuffix(VD, Ctx);
@@ -645,7 +645,7 @@ void InitCheck::check(const MatchFinder::MatchResult& Result) {
 void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
   auto Diag = diag(VD->getLocation(), "uninitialized variable '%0'");
   Diag << VD->getName();
-  
+
   // Fix: Add {} initializer
   SourceLocation EndLoc = VD->getEndLoc();
   Diag << FixItHint::CreateInsertion(EndLoc, "{}");
@@ -654,24 +654,24 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
 void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   SourceManager& SM = Ctx->getSourceManager();
   const LangOptions& LO = Ctx->getLangOpts();
-  
+
   // Get the initializer expression
   Expr* Init = VD->getInit();
   SourceRange InitRange = Init->getSourceRange();
-  
+
   // Get the "=" token range
   SourceLocation EqualLoc = Lexer::getLocForEndOfToken(
     VD->getLocation(), 0, SM, LO
   );
-  
-  auto Diag = diag(VD->getLocation(), 
+
+  auto Diag = diag(VD->getLocation(),
     "variable '%0' uses '=' initialization; prefer '{}' syntax");
   Diag << VD->getName();
-  
+
   // Fix: Replace = with { and add }
-  std::string Replacement = "{" + 
+  std::string Replacement = "{" +
     Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SM, LO).str() + "}";
-  
+
   Diag << FixItHint::CreateReplacement(
     CharSourceRange::getTokenRange(SourceRange(EqualLoc, InitRange.getEnd())),
     Replacement
@@ -681,24 +681,24 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
 void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
   Expr* Init = VD->getInit();
   if (!Init) return;
-  
+
   IntegerLiteral* Lit = dyn_cast<IntegerLiteral>(Init->IgnoreParenImpCasts());
   if (!Lit) return;
-  
+
   // Check if suffix already present
   SourceManager& SM = Ctx->getSourceManager();
   StringRef Text = Lexer::getSourceText(
     CharSourceRange::getTokenRange(Lit->getSourceRange()),
     SM, Ctx->getLangOpts()
   );
-  
+
   if (Text.endswith_insensitive("u") || Text.endswith_insensitive("U")) {
     return; // Already has suffix
   }
-  
-  auto Diag = diag(Lit->getLocation(), 
+
+  auto Diag = diag(Lit->getLocation(),
     "unsigned integer literal without 'U' suffix");
-  
+
   // Fix: Add U suffix
   Diag << FixItHint::CreateInsertionAfter(Lit->getEndLoc(), "U");
 }
@@ -797,27 +797,27 @@ namespace test {
 TEST(InitCheckTest, UninitializedVariable) {
   std::string Code = "void f() { int x; }";
   std::string Expected = "void f() { int x{}; }";
-  
+
   EXPECT_EQ(Expected, runCheckOnCode<InitCheck>(Code));
 }
 
 TEST(InitCheckTest, EqualsInitToBraceInit) {
   std::string Code = "void f() { int x = 5; }";
   std::string Expected = "void f() { int x{5}; }";
-  
+
   EXPECT_EQ(Expected, runCheckOnCode<InitCheck>(Code));
 }
 
 TEST(InitCheckTest, UnsignedSuffix) {
   std::string Code = "void f() { unsigned int x = 42; }";
   std::string Expected = "void f() { unsigned int x = 42U; }";
-  
+
   EXPECT_EQ(Expected, runCheckOnCode<InitCheck>(Code));
 }
 
 TEST(InitCheckTest, AutoNotReported) {
   std::string Code = "void f() { auto x = 5; }";
-  
+
   // Should NOT report anything
   EXPECT_EQ(Code, runCheckOnCode<InitCheck>(Code));
 }
