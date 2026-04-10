@@ -1,0 +1,60 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:5:6: warning: variable is not explicitly initialized [codelint-init]
+    5 | char c1;
+      |      ^ 
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:6:15: warning: variable is not explicitly initialized [codelint-init]
+    6 | unsigned char uc1;
+      |               ^  
+      |                  {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:7:13: warning: variable is not explicitly initialized [codelint-init]
+    7 | signed char sc1;
+      |             ^  
+      |                {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:10:7: warning: variable is not explicitly initialized [codelint-init]
+   10 | float f1;
+      |       ^ 
+      |         {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:11:8: warning: variable is not explicitly initialized [codelint-init]
+   11 | double d1;
+      |        ^ 
+      |          {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:12:13: warning: variable is not explicitly initialized [codelint-init]
+   12 | long double ld1;
+      |             ^  
+      |                {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:15:6: warning: variable is not explicitly initialized [codelint-init]
+   15 | bool b1;
+      |      ^ 
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:18:13: warning: variable is not explicitly initialized [codelint-init]
+   18 | const char* str1;
+      |             ^   
+      |                 {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:21:7: warning: variable is not explicitly initialized [codelint-init]
+   21 | short s1;
+      |       ^ 
+      |         {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:22:16: warning: variable is not explicitly initialized [codelint-init]
+   22 | unsigned short us1;
+      |                ^  
+      |                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:23:14: warning: variable is not explicitly initialized [codelint-init]
+   23 | signed short ss1;
+      |              ^  
+      |                 {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:26:8: warning: variable is not explicitly initialized [codelint-init]
+   26 |   char local_char;
+      |        ^         
+      |                  {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:27:9: warning: variable is not explicitly initialized [codelint-init]
+   27 |   float local_float;
+      |         ^          
+      |                    {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:28:10: warning: variable is not explicitly initialized [codelint-init]
+   28 |   double local_double;
+      |          ^           
+      |                      {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/builtin_types.cpp:29:8: warning: variable is not explicitly initialized [codelint-init]
+   29 |   bool local_bool;
+      |        ^         
+      |                  {}

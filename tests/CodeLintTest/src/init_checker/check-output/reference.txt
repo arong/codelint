@@ -1,0 +1,54 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:9:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+    9 |   int value = 10;
+      |       ^     ~   
+      |            {    }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:10:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+   10 |   int& ref1 = value; // Should suggest brace init: int& ref1{value}
+      |        ^    ~      
+      |            {       }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:13:14: warning: variable should use '{}' syntax for initialization [codelint-init]
+   13 |   const int& cref1 = 42; // Should suggest brace init: const int& cref1{42}
+      |              ^     ~   
+      |                   {    }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:18:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+   18 |   int x = 5;
+      |       ^ ~  
+      |        {   }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:19:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+   19 |   int y = 10;
+      |       ^ ~   
+      |        {    }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:21:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+   21 |   int& ref1 = x; // Should suggest brace init
+      |        ^    ~  
+      |            {   }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:22:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+   22 |   int& ref2 = y; // Should suggest brace init
+      |        ^    ~  
+      |            {   }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:29:9: warning: field is not explicitly initialized [codelint-init]
+   29 |     int value; // Should trigger warning: not initialized
+      |         ^    
+      |              {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:32:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+   32 |   int x = 5;
+      |       ^ ~  
+      |        {   }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:33:13: warning: Value stored to 'rs1' during its initialization is never read [clang-analyzer-deadcode.DeadStores]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:37:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+   37 |   int& local_ref = param; // Should suggest brace init
+      |        ^         ~      
+      |                 {       }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:43:7: warning: field is not explicitly initialized [codelint-init]
+   43 |   int value; // Should trigger warning: not initialized
+      |       ^    
+      |            {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:43:7: warning: member variable 'value' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:51:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+   51 |   int x = 10;
+      |       ^ ~   
+      |        {    }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/reference.cpp:52:9: warning: variable should use '{}' syntax for initialization [codelint-init]
+   52 |   int&& rref1 = std::move(x); // Should suggest brace init
+      |         ^     ~             
+      |              {              }

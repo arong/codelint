@@ -1,0 +1,90 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:7:7: warning: field is not explicitly initialized [codelint-init]
+    7 |   int x;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:7:7: warning: member variable 'x' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:8:7: warning: field is not explicitly initialized [codelint-init]
+    8 |   int y;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:8:7: warning: member variable 'y' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:9:10: warning: field is not explicitly initialized [codelint-init]
+    9 |   double d;
+      |          ^
+      |           {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:9:10: warning: member variable 'd' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:10:9: warning: field is not explicitly initialized [codelint-init]
+   10 |   char* ptr;
+      |         ^  
+      |            {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:10:9: warning: member variable 'ptr' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:18:7: warning: field is not explicitly initialized [codelint-init]
+   18 |   int a;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:19:7: warning: field is not explicitly initialized [codelint-init]
+   19 |   int b;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:19:7: warning: member variable 'b' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:20:7: warning: field is not explicitly initialized [codelint-init]
+   20 |   int c;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:20:7: warning: member variable 'c' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:28:7: warning: field is not explicitly initialized [codelint-init]
+   28 |   int x;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:29:7: warning: field is not explicitly initialized [codelint-init]
+   29 |   int y;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:48:7: warning: field is not explicitly initialized [codelint-init]
+   48 |   int b;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:48:7: warning: member variable 'b' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:57:7: warning: field is not explicitly initialized [codelint-init]
+   57 |   int value;
+      |       ^    
+      |            {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:57:7: warning: member variable 'value' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:58:15: warning: field is not explicitly initialized [codelint-init]
+   58 |   std::string name;
+      |               ^   
+      |                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:70:7: warning: field is not explicitly initialized [codelint-init]
+   70 |   int x;
+      |       ^
+      |        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:71:10: warning: field is not explicitly initialized [codelint-init]
+   71 |   double y;
+      |          ^
+      |           {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:72:8: warning: field is not explicitly initialized [codelint-init]
+   72 |   char c;
+      |        ^
+      |         {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:76:14: warning: variable is not explicitly initialized [codelint-init]
+   76 |   static int static_var; // Static members should NOT trigger warnings
+      |              ^         
+      |                        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:77:7: warning: field is not explicitly initialized [codelint-init]
+   77 |   int instance_var;      // Should trigger warning if not initialized
+      |       ^           
+      |                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:81:13: warning: field is not explicitly initialized [codelint-init]
+   81 |   const int const_val;
+      |             ^        
+      |                      {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:82:7: warning: field is not explicitly initialized [codelint-init]
+   82 |   int regular_val;
+      |       ^          
+      |                  {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:82:7: warning: member variable 'regular_val' is not explicitly initialized in constructor [codelint-init]
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:91:7: warning: field is not explicitly initialized [codelint-init]
+   91 |   int value;
+      |       ^    
+      |            {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/member_init.cpp:91:7: warning: member variable 'value' is not explicitly initialized in constructor [codelint-init]

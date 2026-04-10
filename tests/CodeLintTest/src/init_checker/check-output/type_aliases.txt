@@ -1,0 +1,20 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/type_aliases.cpp:7:10: warning: variable is not explicitly initialized [codelint-init]
+    7 | IntAlias alias1;
+      |          ^     
+      |                {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/type_aliases.cpp:8:13: warning: variable is not explicitly initialized [codelint-init]
+    8 | DoubleAlias alias2;
+      |             ^     
+      |                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/type_aliases.cpp:12:11: warning: variable is not explicitly initialized [codelint-init]
+   12 | IntAlias2 alias3;
+      |           ^     
+      |                 {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/type_aliases.cpp:18:12: warning: variable is not explicitly initialized [codelint-init]
+   18 |   LocalInt local_alias1;
+      |            ^           
+      |                        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/type_aliases.cpp:19:15: warning: variable is not explicitly initialized [codelint-init]
+   19 |   LocalDouble local_alias2;
+      |               ^           
+      |                           {}

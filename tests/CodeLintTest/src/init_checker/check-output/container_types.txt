@@ -1,0 +1,40 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:14:18: warning: variable is not explicitly initialized [codelint-init]
+   14 | std::vector<int> vec1;
+      |                  ^   
+      |                      {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:15:17: warning: variable is not explicitly initialized [codelint-init]
+   15 | std::deque<int> deque1;
+      |                 ^     
+      |                       {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:16:20: warning: variable is not explicitly initialized [codelint-init]
+   16 | std::array<int, 5> arr1;
+      |                    ^   
+      |                        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:19:20: warning: variable is not explicitly initialized [codelint-init]
+   19 | std::map<int, int> map1;
+      |                    ^   
+      |                        {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:20:15: warning: variable is not explicitly initialized [codelint-init]
+   20 | std::set<int> set1;
+      |               ^   
+      |                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:21:30: warning: variable is not explicitly initialized [codelint-init]
+   21 | std::unordered_map<int, int> umap1;
+      |                              ^    
+      |                                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:24:21: warning: variable is not explicitly initialized [codelint-init]
+   24 | std::pair<int, int> pair1;
+      |                     ^    
+      |                          {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:25:25: warning: variable is not explicitly initialized [codelint-init]
+   25 | std::tuple<int, double> tpl1;
+      |                         ^   
+      |                             {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:28:20: warning: variable is not explicitly initialized [codelint-init]
+   28 |   std::vector<int> local_vec;
+      |                    ^        
+      |                             {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:29:22: warning: variable is not explicitly initialized [codelint-init]
+   29 |   std::map<int, int> local_map;
+      |                      ^        
+      |                               {}

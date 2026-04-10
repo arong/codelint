@@ -100,6 +100,59 @@ run_fix_test() {
     rm -f "$temp_file"
 }
 
+# Test: Verify clang-tidy warning output matches expected
+run_check_output_test() {
+    local test_name="$1"
+    local src_file="$TEST_DIR/src/${test_name}.cpp"
+    local expected_output="$TEST_DIR/check-output/${test_name}.txt"
+
+    TEST_COUNT=$((TEST_COUNT + 1))
+    echo "------------------------------------------"
+    echo "Test $TEST_COUNT: $test_name (check output)"
+    echo "------------------------------------------"
+
+    if [ ! -f "$expected_output" ]; then
+        echo "SKIP: Expected output not found: $expected_output"
+        TEST_COUNT=$((TEST_COUNT - 1))
+        return
+    fi
+
+    # Run clang-tidy and save all output
+    local temp_full="/tmp/codelint_full_$$.txt"
+    local temp_output="/tmp/codelint_output_$$.txt"
+    
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init,-codelint-global,-codelint-singleton' "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
+
+    # Extract codelint-init warnings with context (the warning line + 3 subsequent format lines)
+    awk '
+        /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
+        /warning: .* \[codelint-/ { found=0 }
+        /Suppressed/ { found=0 }
+        found && count > 0 { print; count-- }
+        found && count == 0 { found=0 }
+    ' "$temp_full" > "$temp_output"
+
+    # Compare with expected output
+    if diff -q "$expected_output" "$temp_output" > /dev/null 2>&1; then
+        echo "PASS: $test_name warning output matches expected"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo "FAIL: $test_name warning output does NOT match expected"
+        echo ""
+        echo "Expected (check-output/${test_name}.txt):"
+        head -6 "$expected_output"
+        echo ""
+        echo "Got (actual output):"
+        head -6 "$temp_output"
+        echo ""
+        echo "Diff:"
+        diff "$expected_output" "$temp_output" | head -10
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+
+    rm -f "$temp_full" "$temp_output"
+}
+
 # Test: Verify source files have issues
 run_source_issue_test() {
     local test_name="$1"
@@ -165,6 +218,17 @@ run_fixed_issue_test() {
     fi
 }
 
+echo "=== Phase 0: Verify check output ==="
+echo ""
+
+for src_file in "$TEST_DIR"/src/*.cpp; do
+    if [ -f "$src_file" ]; then
+        test_name=$(basename "$src_file" .cpp)
+        run_check_output_test "$test_name"
+    fi
+done
+
+echo ""
 echo "=== Phase 1: Verify source files have issues ==="
 echo ""
 
