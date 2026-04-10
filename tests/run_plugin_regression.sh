@@ -120,7 +120,7 @@ run_check_output_test() {
     # Run clang-tidy and save all output
     local temp_full="/tmp/codelint_full_$$.txt"
     local temp_output="/tmp/codelint_output_$$.txt"
-    
+
     "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init,-codelint-global,-codelint-singleton' "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
 
     # Extract codelint-init warnings with context (the warning line + 3 subsequent format lines)
