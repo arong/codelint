@@ -4,6 +4,11 @@
 # Tests: src files (with issues) -> clang-tidy --fix -> compare with fixed files
 
 set -e
+
+# Alias clang-tidy-21 to clang-tidy for compatibility
+if command -v clang-tidy-21 >/dev/null 2>&1; then
+    alias clang-tidy=clang-tidy-21
+fi
 # set -x
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
