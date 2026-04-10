@@ -5,6 +5,15 @@
 
 set -e
 
+# Normalize file paths for cross-platform comparison
+# Replaces absolute paths (/anything/codelint/tests/...) with relative paths
+normalize_paths() {
+    local input="$1"
+    local output="$2"
+    sed -E 's|/[^/]*/codelint/tests/CodeLintTest/src/init_checker/|tests/CodeLintTest/src/init_checker/|g' "$input" > "$output"
+}
+
+
 # Alias clang-tidy-21 to clang-tidy for compatibility
 if command -v clang-tidy-21 >/dev/null 2>&1; then
     alias clang-tidy=clang-tidy-21
@@ -163,12 +172,19 @@ run_check_output_test() {
         found && count == 0 { found=0 }
     ' "$temp_full" > "$temp_output"
 
-    # Compare with expected output (strip trailing whitespace for flexible comparison)
-    local temp_expected="/tmp/codelint_expected_$$.txt"
-    sed 's/[[:blank:]]*$//' "$expected_output" > "$temp_expected"
-    sed 's/[[:blank:]]*$//' "$temp_output" > "${temp_output}.stripped"
+    # Normalize paths for cross-platform comparison (macOS vs GitHub Actions paths)
+    local temp_expected_norm="/tmp/codelint_expected_norm_$$.txt"
+    local temp_output_norm="/tmp/codelint_output_norm_$$.txt"
+    normalize_paths "$expected_output" "$temp_expected_norm"
+    normalize_paths "$temp_output" "$temp_output_norm"
 
-    if diff -q "$temp_expected" "${temp_output}.stripped" > /dev/null 2>&1; then
+    # Compare normalized output (also strip trailing whitespace)
+    local temp_expected_stripped="${temp_expected_norm}.stripped"
+    local temp_output_stripped="${temp_output_norm}.stripped"
+    sed 's/[[:blank:]]*$//' "$temp_expected_norm" > "$temp_expected_stripped"
+    sed 's/[[:blank:]]*$//' "$temp_output_norm" > "$temp_output_stripped"
+
+    if diff -q "$temp_expected_stripped" "$temp_output_stripped" > /dev/null 2>&1; then
         echo "PASS: $test_name warning output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
@@ -181,11 +197,11 @@ run_check_output_test() {
         head -6 "$temp_output"
         echo ""
         echo "Diff (ignoring trailing whitespace):"
-        diff "$temp_expected" "${temp_output}.stripped" | head -10
+        diff "$temp_expected_stripped" "$temp_output_stripped" | head -10
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 
-    rm -f "$temp_full" "$temp_output" "$temp_expected" "${temp_output}.stripped"
+    rm -f "$temp_full" "$temp_output" "$temp_expected_norm" "$temp_expected_stripped" "$temp_output_norm" "$temp_output_stripped"
 }
 
 # Test: Verify source files have issues
