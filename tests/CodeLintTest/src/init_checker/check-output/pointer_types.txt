@@ -1,44 +1,44 @@
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:5:6: warning: variable is not explicitly initialized [codelint-init]
     5 | int* ptr1;
-      |      ^   
+      |      ^
       |          {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:6:12: warning: variable is not explicitly initialized [codelint-init]
     6 | const int* ptr2;
-      |            ^   
+      |            ^
       |                {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:7:7: warning: variable is not explicitly initialized [codelint-init]
     7 | int** ptr3;
-      |       ^   
+      |       ^
       |           {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:8:7: warning: variable is not explicitly initialized [codelint-init]
     8 | void* void_ptr;
-      |       ^       
+      |       ^
       |               {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:11:6: warning: C-style array should be initialized with braces '{}' [codelint-init]
    11 | int* ptr_array1[10];
-      |      ^             
+      |      ^
       |                    {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:12:13: warning: C-style array should be initialized with braces '{}' [codelint-init]
    12 | const char* str_ptr_array[5];
-      |             ^               
+      |             ^
       |                             {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:17:7: warning: field is not explicitly initialized [codelint-init]
    17 |   int member;
-      |       ^     
+      |       ^
       |             {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:19:26: warning: variable is not explicitly initialized [codelint-init]
    19 | int ClassForMemberPtr::* pmem;
-      |                          ^   
+      |                          ^
       |                              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:22:8: warning: variable is not explicitly initialized [codelint-init]
    22 |   int* local_ptr;
-      |        ^        
+      |        ^
       |                 {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:23:11: warning: variable is not explicitly initialized [codelint-init]
    23 |   double* local_dptr;
-      |           ^         
+      |           ^
       |                     {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/pointer_types.cpp:24:9: warning: variable is not explicitly initialized [codelint-init]
    24 |   int** local_pptr;
-      |         ^         
+      |         ^
       |                   {}

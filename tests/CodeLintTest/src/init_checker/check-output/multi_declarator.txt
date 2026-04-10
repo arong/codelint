@@ -12,7 +12,7 @@
       |              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:6:10: warning: variable should use '{}' syntax for initialization [codelint-init]
     6 |   double x = 1.0, y, z = 3.0; // Only y should trigger warning
-      |          ^ ~    
+      |          ^ ~
       |           {     }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:6:19: warning: variable is not explicitly initialized [codelint-init]
     6 |   double x = 1.0, y, z = 3.0; // Only y should trigger warning
@@ -20,93 +20,93 @@
       |                    {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:6:22: warning: variable should use '{}' syntax for initialization [codelint-init]
     6 |   double x = 1.0, y, z = 3.0; // Only y should trigger warning
-      |                      ^ ~    
+      |                      ^ ~
       |                       {     }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:7:9: warning: variable is not explicitly initialized [codelint-init]
     7 |   char *p1, *p2, *p3;         // All three should trigger warnings
-      |         ^ 
+      |         ^
       |           {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:7:14: warning: variable is not explicitly initialized [codelint-init]
     7 |   char *p1, *p2, *p3;         // All three should trigger warnings
-      |              ^ 
+      |              ^
       |                {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:7:19: warning: variable is not explicitly initialized [codelint-init]
     7 |   char *p1, *p2, *p3;         // All three should trigger warnings
-      |                   ^ 
+      |                   ^
       |                     {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:9:7: warning: C-style array should be initialized with braces '{}' [codelint-init]
     9 |   int arr1[5], arr2[10]; // Both should trigger C-style array warnings
-      |       ^      
+      |       ^
       |              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:9:16: warning: C-style array should be initialized with braces '{}' [codelint-init]
     9 |   int arr1[5], arr2[10]; // Both should trigger C-style array warnings
-      |                ^       
+      |                ^
       |                        {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:10:15: warning: variable is not explicitly initialized [codelint-init]
    10 |   float f1{}, f2, f3{};  // Only f2 should trigger warning
-      |               ^ 
+      |               ^
       |                 {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:14:7: warning: variable should use '{}' syntax for initialization [codelint-init]
    14 |   int initialized = 10, uninitialized, also_initialized = 20; // Only uninitialized should warn
-      |       ^           ~   
+      |       ^           ~
       |                  {    }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:14:25: warning: variable is not explicitly initialized [codelint-init]
    14 |   int initialized = 10, uninitialized, also_initialized = 20; // Only uninitialized should warn
-      |                         ^            
+      |                         ^
       |                                      {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:14:40: warning: variable should use '{}' syntax for initialization [codelint-init]
    14 |   int initialized = 10, uninitialized, also_initialized = 20; // Only uninitialized should warn
-      |                                        ^                ~   
+      |                                        ^                ~
       |                                                        {    }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:15:12: warning: variable should use '{}' syntax for initialization [codelint-init]
    15 |   unsigned u1 = 1U, u2, u3 = 3U; // u2 should warn, and suggest U suffix
-      |            ^  ~   
+      |            ^  ~
       |              {    }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:15:21: warning: variable is not explicitly initialized [codelint-init]
    15 |   unsigned u1 = 1U, u2, u3 = 3U; // u2 should warn, and suggest U suffix
-      |                     ^ 
+      |                     ^
       |                       {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:15:25: warning: variable should use '{}' syntax for initialization [codelint-init]
    15 |   unsigned u1 = 1U, u2, u3 = 3U; // u2 should warn, and suggest U suffix
-      |                         ^  ~   
+      |                         ^  ~
       |                           {    }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:19:7: warning: variable is not explicitly initialized [codelint-init]
    19 |   int single;        // Should trigger warning
-      |       ^     
+      |       ^
       |             {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:26:9: warning: variable is not explicitly initialized [codelint-init]
    26 |     int m1, m2, m3;     // All three should trigger warnings
-      |         ^ 
+      |         ^
       |           {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:26:13: warning: variable is not explicitly initialized [codelint-init]
    26 |     int m1, m2, m3;     // All three should trigger warnings
-      |             ^ 
+      |             ^
       |               {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:26:17: warning: variable is not explicitly initialized [codelint-init]
    26 |     int m1, m2, m3;     // All three should trigger warnings
-      |                 ^ 
+      |                 ^
       |                   {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:27:10: warning: variable should use '{}' syntax for initialization [codelint-init]
    27 |     bool b1 = true, b2; // Only b2 should trigger warning
-      |          ^  ~     
+      |          ^  ~
       |            {      }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:27:21: warning: variable is not explicitly initialized [codelint-init]
    27 |     bool b1 = true, b2; // Only b2 should trigger warning
-      |                     ^ 
+      |                     ^
       |                       {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:31:5: warning: variable is not explicitly initialized [codelint-init]
    31 | int global1, global2, global3; // All three should trigger warnings
-      |     ^      
+      |     ^
       |            {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:31:14: warning: variable is not explicitly initialized [codelint-init]
    31 | int global1, global2, global3; // All three should trigger warnings
-      |              ^      
+      |              ^
       |                     {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:31:23: warning: variable is not explicitly initialized [codelint-init]
    31 | int global1, global2, global3; // All three should trigger warnings
-      |                       ^      
+      |                       ^
       |                              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:33:12: warning: variable is not explicitly initialized [codelint-init]
    33 | static int s1, s2{}; // Only s1 should trigger warning
-      |            ^ 
+      |            ^
       |              {}

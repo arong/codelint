@@ -1,4 +1,4 @@
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/std.cpp:3:20: warning: variable is not explicitly initialized [codelint-init]
     3 | static std::string str1;
-      |                    ^   
+      |                    ^
       |                        {}

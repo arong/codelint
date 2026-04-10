@@ -1,20 +1,20 @@
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:4:5: warning: variable is not explicitly initialized [codelint-init]
     4 | int global1;
-      |     ^      
+      |     ^
       |            {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:5:10: warning: variable is not explicitly initialized [codelint-init]
     5 | unsigned global2;
-      |          ^      
+      |          ^
       |                 {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:7:5: warning: variable should use '{}' syntax for initialization [codelint-init]
     7 | int global3 = 1;
-      |     ^       ~  
+      |     ^       ~
       |            {   }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:8:10: warning: variable should use '{}' syntax for initialization [codelint-init]
     8 | unsigned global4 = 2;
-      |          ^       ~  
+      |          ^       ~
       |                 {   U}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:9:10: warning: variable should use '{}' syntax for initialization [codelint-init]
     9 | uint64_t global5 = 5;
-      |          ^       ~  
+      |          ^       ~
       |                 {   }

@@ -1,8 +1,8 @@
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/bitfield.cpp:16:7: warning: field is not explicitly initialized [codelint-init]
    16 |   int normal_member;
-      |       ^            
+      |       ^
       |                    {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/bitfield.cpp:18:10: warning: field is not explicitly initialized [codelint-init]
    18 |   double regular;
-      |          ^      
+      |          ^
       |                 {}

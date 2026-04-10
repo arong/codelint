@@ -1,56 +1,56 @@
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:8:8: warning: variable is not explicitly initialized [codelint-init]
     8 | size_t sz1;
-      |        ^  
+      |        ^
       |           {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:9:11: warning: variable is not explicitly initialized [codelint-init]
     9 | ptrdiff_t pt1;
-      |           ^  
+      |           ^
       |              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:12:9: warning: variable is not explicitly initialized [codelint-init]
    12 | wchar_t wc1;
-      |         ^  
+      |         ^
       |            {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:13:10: warning: variable is not explicitly initialized [codelint-init]
    13 | char16_t char16_1;
-      |          ^       
+      |          ^
       |                  {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:14:10: warning: variable is not explicitly initialized [codelint-init]
    14 | char32_t char32_1;
-      |          ^       
+      |          ^
       |                  {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:17:9: warning: variable is not explicitly initialized [codelint-init]
    17 | int16_t i16;
-      |         ^  
+      |         ^
       |            {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:18:10: warning: variable is not explicitly initialized [codelint-init]
    18 | uint16_t ui16;
-      |          ^   
+      |          ^
       |              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:19:9: warning: variable is not explicitly initialized [codelint-init]
    19 | int32_t i32;
-      |         ^  
+      |         ^
       |            {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:20:10: warning: variable is not explicitly initialized [codelint-init]
    20 | uint32_t ui32;
-      |          ^   
+      |          ^
       |              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:21:9: warning: variable is not explicitly initialized [codelint-init]
    21 | int64_t i64;
-      |         ^  
+      |         ^
       |            {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:22:10: warning: variable is not explicitly initialized [codelint-init]
    22 | uint64_t ui64;
-      |          ^   
+      |          ^
       |              {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:25:10: warning: variable is not explicitly initialized [codelint-init]
    25 |   size_t local_sz;
-      |          ^       
+      |          ^
       |                  {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:26:13: warning: variable is not explicitly initialized [codelint-init]
    26 |   ptrdiff_t local_pt;
-      |             ^       
+      |             ^
       |                     {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/special_types.cpp:27:11: warning: variable is not explicitly initialized [codelint-init]
    27 |   wchar_t local_wc;
-      |           ^       
+      |           ^
       |                   {}
