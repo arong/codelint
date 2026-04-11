@@ -2,6 +2,7 @@
 // Focus: vector, map, set, array, deque, pair, tuple, unordered_map
 
 #include <array>
+#include <cstdint>
 #include <deque>
 #include <map>
 #include <set>
