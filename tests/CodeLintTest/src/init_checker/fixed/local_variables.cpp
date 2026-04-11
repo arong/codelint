@@ -26,7 +26,7 @@ void test_brace_local() {
 
 // 4. NON-BUILTIN TYPES (should NOT warn)
 void test_nonbuiltin_local() {
-  std::string local_str("hello");
+  std::string local_str{"hello"};
 }
 
 // 5. COMPLEX SCENARIO
