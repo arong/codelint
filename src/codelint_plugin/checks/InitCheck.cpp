@@ -119,28 +119,28 @@ bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
   if (!VD->hasInit())
     return false;
 
-  // CInit (= init) and ListInit ({...} or (...)) are explicit initializations
-  if (VD->getInitStyle() == VarDecl::CInit || VD->getInitStyle() == VarDecl::ListInit)
+  auto InitStyle = VD->getInitStyle();
+  if (InitStyle == VarDecl::CInit || InitStyle == VarDecl::ListInit)
     return true;
 
   const Expr* Init = VD->getInit();
-  if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
-    // For list initialization (brace init), always consider as initialized
+  if (!Init)
+    return false;
+
+  const Expr* InitExpr = Init->IgnoreImplicit();
+
+  if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
     if (CCE->isListInitialization())
       return true;
-    // For direct initialization with arguments (parentheses init), consider as initialized
     if (CCE->getNumArgs() > 0)
       return true;
+    return false;
   }
 
-  // For CXXTemporaryObjectExpr (rvalue initialization), always consider as initialized
-  if (const auto* TOE = dyn_cast<CXXTemporaryObjectExpr>(Init)) {
+  if (const auto* TOE = dyn_cast<CXXTemporaryObjectExpr>(InitExpr)) {
     return true;
   }
 
-  // Default: if we have a CallInit but no arguments and not list init,
-  // it may be implicit default construction (like std::string str;)
-  // Only consider as initialized if it's truly direct initialization
   return false;
 }
 
@@ -288,9 +288,12 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
 
   bool IsCallInit = (InitStyle == VarDecl::CallInit);
   if (IsCallInit) {
-    if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
+    const Expr* InitExpr = Init->IgnoreImplicit();
+    if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
       if (CCE->isListInitialization())
         return;
+    } else {
+      return;
     }
   }
 
@@ -328,14 +331,15 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   }
 
   if (IsCallInit) {
-    const auto* CCE = dyn_cast<CXXConstructExpr>(Init);
+    const Expr* InitExpr = Init->IgnoreImplicit();
+    const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr);
     if (CCE && CCE->getNumArgs() > 0) {
       const Expr* Arg = CCE->getArg(0);
       auto ArgStart = Arg->getBeginLoc();
-      auto InitEndLoc = Init->getEndLoc();
+      auto ParenCloseLoc = CCE->getParenOrBraceRange().getEnd();
       diag(VD->getLocation(), "variable should use '{}' syntax for initialization")
           << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, ArgStart), "{")
-          << FixItHint::CreateReplacement(InitEndLoc, ClosingBrace);
+          << FixItHint::CreateReplacement(ParenCloseLoc, ClosingBrace);
     }
   } else {
     diag(VD->getLocation(), "variable should use '{}' syntax for initialization")

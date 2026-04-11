@@ -19,7 +19,7 @@ packaging/
    ```bash
    cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm  # macOS
    cmake --build build
-   
+
    # Verify
    ls build/lib/*.so
    ```
@@ -43,7 +43,7 @@ This will create a portable package containing the codelint clang-tidy plugin.
 
 ## Features
 
-✅ **Plugin** (`*.so`) for clang-tidy  
+✅ **Plugin** (`*.so`) for clang-tidy
 ✅ **Flexible**: Plugin-only or bundle LLVM
 ✅ **Portable**: Cross-distribution compatible
 ✅ **Easy**: Drop-in installation or `--load` flag
