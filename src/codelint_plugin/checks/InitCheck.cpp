@@ -297,6 +297,35 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
     }
   }
 
+  if (InitStyle == VarDecl::CInit) {
+    const Expr* InitExpr = Init->IgnoreImplicit();
+    const Type* DestTy = VD->getType().getTypePtr();
+    const Type* SrcTy = InitExpr->getType().getTypePtr();
+
+    if (DestTy->isIntegerType() && SrcTy->isFloatingType())
+      return;
+
+    if (DestTy->isFloatingType() && SrcTy->isIntegerType())
+      return;
+
+    if (DestTy->isBooleanType() && SrcTy->isIntegerType())
+      return;
+
+    if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
+      if (CCE->isListInitialization()) {
+        auto& SM = Ctx->getSourceManager();
+        auto LangOpts = Ctx->getLangOpts();
+        auto VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+        VarEndLoc = Lexer::getLocForEndOfToken(VarEndLoc, 0, SM, LangOpts);
+        auto InitStartLoc = Init->getBeginLoc();
+        diag(VD->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
+            << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc),
+                                            "");
+        return;
+      }
+    }
+  }
+
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
 

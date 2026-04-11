@@ -167,7 +167,7 @@ run_check_output_test() {
     # Extract codelint-init warnings with context (the warning line + 3 subsequent format lines)
     awk '
         /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
-        /warning: .* \[codelint-/ { found=0 }
+        /warning:/ { found=0 }
         /Suppressed/ { found=0 }
         found && count > 0 { print; count-- }
         found && count == 0 { found=0 }
