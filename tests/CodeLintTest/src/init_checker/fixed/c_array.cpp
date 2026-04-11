@@ -20,5 +20,8 @@ void test_local_array() {
 int main() {
   int x1{}, x2{}, x3{};
   assert(x1 == 0);
+
+  int arr[3]{1, 2, 3};
+  int arr2[]{1, 2, 3};
   return 0;
 }

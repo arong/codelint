@@ -27,4 +27,6 @@ std::tuple<int, double> tpl1;
 void test_local_containers() {
   std::vector<int> local_vec;
   std::map<int, int> local_map;
+
+  std::vector<uint8_t> vec = {1, 2, 3};
 }

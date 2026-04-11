@@ -29,4 +29,7 @@ void foo(int a, int b = 10) {
 
   // 正确格式,无需告警和修复
   constexpr size_t answerOfUniverse{42UL};
+
+  // 应该跳过类型收紧
+  int d = 3.14;
 }
