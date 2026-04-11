@@ -41,3 +41,6 @@
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:31:24: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
    31 |   std::vector<uint8_t> vec = {1, 2, 3};
       |                        ^   ~
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:33:37: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+   33 |   std::vector<std::vector<uint8_t>> island = {
+      |                                     ^      ~
