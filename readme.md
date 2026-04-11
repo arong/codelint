@@ -155,6 +155,27 @@ If you were using the old standalone codelint binary:
 | `codelint find_global src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-global' src/**/*.cpp` |
 | `codelint find_singleton src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-singleton' src/**/*.cpp` |
 
+---
+
+## Documentation
+
+- **[codelint-init](docs/check-docs/codelint-init.md)** - Variable initialization checks
+- **[codelint-global](docs/check-docs/codelint-global.md)** - Global variable detection
+- **[codelint-singleton](docs/check-docs/codelint-singleton.md)** - Singleton pattern detection
+- **[clang-tidy Integration Guide](docs/clang-tidy-integration.md)** - Detailed usage instructions
+
+---
+
+## Migration from Standalone
+
+If you were using the old standalone codelint binary:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `codelint check_init src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-init' src/**/*.cpp` |
+| `codelint find_global src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-global' src/**/*.cpp` |
+| `codelint find_singleton src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-singleton' src/**/*.cpp` |
+
 ### Deleted Features
 
 The following features were removed in the clang-tidy plugin migration:
@@ -163,13 +184,18 @@ The following features were removed in the clang-tidy plugin migration:
 - ❌ Custom output formats (use clang-tidy's native formats)
 - ❌ Custom CLI (use clang-tidy's CLI)
 
-## Running Tests
+## Packaging
+
+Project supports packaging as AppImage format for easy distribution:
 
 ```bash
-cmake --build build
-cd build
-ctest --output-on-failure
+# After building the project
+python3 packaging/scripts/create_appimage.py
 ```
+
+This creates `codelint-VERSION-ARCH.AppImage` in the project root.
+
+See [packaging/README.md](packaging/README.md) for detailed packaging instructions.
 
 ## Architecture
 
@@ -183,170 +209,6 @@ codelint-plugin.so
 ```
 
 ## License
-
-MIT License
-
-### JSON 输出
-
-添加 `--output-json` 标志以 JSON 格式输出，方便与 CI/CD 或其他工具集成：
-
-```bash
-./codelint --output-json check_init tests/test.cpp
-./codelint --output-json find_global src/
-./codelint --output-json find_singleton src/
-```
-
-**JSON 格式示例**：
-```json
-{
-  "issues": [
-    {
-      "type": "INIT_EQUALS_SYNTAX",
-      "severity": "warning",
-      "checker": "init",
-      "name": "a",
-      "type_str": "int",
-      "file": "/path/to/file.cpp",
-      "line": 10,
-      "column": 5,
-      "description": "Variable should use '{}' syntax for initialization",
-      "suggestion": "int a{5};",
-      "fixable": true
-    }
-  ]
-}
-```
-
-## 回归测试
-
-项目包含完整的回归测试套件，确保功能稳定性：
-
-```bash
-bash tests/run_regression_tests.sh
-```
-
-## 快速开始
-
-### 环境要求
-
-**macOS (Homebrew)**:
-```bash
-# 安装 LLVM 和 libgit2
-brew install llvm@21 libgit2
-```
-
-**Ubuntu/Debian**:
-```bash
-# 安装 LLVM 和 libgit2 开发库
-sudo apt install llvm-dev libclang-dev clang libgit2-dev
-```
-
-**Arch Linux**:
-```bash
-sudo pacman -S llvm libs git
-```
-
-### 构建项目
-
-**macOS**:
-```bash
-# 创建构建目录并配置（必须指定 LLVM_DIR）
-cmake -B build \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
-
-# 构建项目
-cmake --build build -j$(sysctl -n hw.ncpu)
-```
-
-**Linux**:
-```bash
-# 创建构建目录并配置
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-# 构建项目
-cmake --build build -j$(nproc)
-```
-
-**注意**：macOS 上必须通过 `-DLLVM_DIR` 指定 LLVM 配置路径，否则 CMake 无法找到 Homebrew 安装的 LLVM。
-
-### 运行测试
-
-```bash
-cd build
-ctest --output-on-failure
-```
-
-### 使用示例
-
-```bash
-# 检查单个文件
-./codelint check_init src/main.cpp
-
-# 检查并自动修复
-./codelint check_init src/main.cpp --fix
-
-# 检查整个目录
-./codelint check_init src/
-
-# 检查全局变量
-./codelint find_global src/
-
-# 检查单例模式
-./codelint find_singleton src/
-
-# JSON 输出，用于 CI 集成
-./codelint --output-json check_init src/
-```
-
-## 增量分析 (--scope)
-
-只检查修改的代码，而不是整个代码库：
-
-```bash
-# 检查未提交的更改（工作目录）
-codelint check_init src/ --scope modified
-
-# 检查已暂存的更改（git add 但未提交）
-codelint find_global src/ --scope staged
-
-# 检查特定提交
-codelint find_singleton src/ --scope commit:HEAD
-
-# 检查 PR 与 main 的差异
-codelint check_init src/ --scope pr:main
-
-# 检查两个分支之间的差异
-codelint find_global src/ --scope diff:main...feature
-```
-
-**功能：**
-
-- **文件级过滤**：只编译和检查修改过的文件（更快）
-- **行级过滤**：只在修改的行上报告问题（更精确）
-- **支持所有检查器**：check_init, find_global, find_singleton
-
-## 技术架构
-
-- **基于 LLVM LibTooling** - 使用 Clang AST 进行精确的语法分析
-- **AST Visitor 模式** - 使用 `RecursiveASTVisitor` 遍历语法树
-- **CFG 数据流分析** - 使用控制流图分析变量的生命周期和修改情况
-- **模块化设计** - 检查器可独立运行或组合使用
-
-## 打包发布
-
-项目支持打包为 AppImage 格式，便于分发和部署：
-
-```bash
-# 构建项目后执行打包脚本
-python3 packaging/scripts/create_appimage.py
-```
-
-打包完成后会在项目根目录生成 `codelint-VERSION-ARCH.AppImage` 文件。
-
-详细打包说明请参考 [packaging/README.md](packaging/README.md)。
-
-## 许可证
 
 MIT License
 Test

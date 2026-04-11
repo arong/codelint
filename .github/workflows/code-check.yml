@@ -91,25 +91,13 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
 
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Required for git diff
 
-      - name: Cache vcpkg
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ github.workspace }}/vcpkg
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-
-
-      - name: Install dependencies and vcpkg
+      - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
@@ -128,22 +116,11 @@ jobs:
             clang-tidy-21 clang-21 \
             libclang-21-dev
 
-          # Setup vcpkg
-          if [ ! -d "vcpkg" ]; then
-            git clone https://github.com/Microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
-          fi
-
-      - name: Install vcpkg packages
-        run: ./vcpkg/vcpkg install
-
       - name: Configure CMake
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
-
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Build project
         run: cmake --build build -j$(nproc)

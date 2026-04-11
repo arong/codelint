@@ -12,21 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
 
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Cache vcpkg
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ github.workspace }}/vcpkg
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-
 
       - name: Install dependencies
         run: |
@@ -36,11 +24,6 @@ jobs:
             curl zip unzip ca-certificates pkg-config \
             lsb-release software-properties-common gnupg \
             patchelf tar gzip
-
-          if [ ! -d "vcpkg" ]; then
-            git clone https://github.com/Microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
-          fi
 
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
@@ -52,14 +35,10 @@ jobs:
             clang-tidy-21 \
             libclang-21-dev
 
-      - name: Install vcpkg packages
-        run: ./vcpkg/vcpkg install
-
       - name: Configure CMake
         run: |
           cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Build plugin
         run: cmake --build build -j$(nproc)
