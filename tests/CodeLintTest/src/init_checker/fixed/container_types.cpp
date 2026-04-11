@@ -29,4 +29,10 @@ void test_local_containers() {
   std::map<int, int> local_map{};
 
   std::vector<uint8_t> vec{1, 2, 3};
+
+  std::vector<std::vector<uint8_t>> island{
+      {1, 2, 3},
+      {4, 5, 6},
+      {7, 8, 9},
+  };
 }
