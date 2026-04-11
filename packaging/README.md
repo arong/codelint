@@ -15,91 +15,101 @@ packaging/
 
 ## Prerequisites
 
-1. **Build the project first**:
+1. **Build the plugin**:
    ```bash
-   cmake -B build
+   cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm  # macOS
    cmake --build build
-   ```
-
-2. **Verify binary exists**:
-   ```bash
-   ls -la build/codelint
+   
+   # Verify
+   ls build/lib/*.so
    ```
 
 ## Usage
 
 ```bash
-cd /path/to/codelint
 python3 packaging/scripts/create_appimage.py
 ```
 
+Creates a portable plugin package. See "Installation" below for usage with clang-tidy.
+
+This will create a portable package containing the codelint clang-tidy plugin.
+
 ## Output
 
-Creates:
-- **AppImage file**: `codelint-VERSION-ARCH.AppImage` (e.g., `codelint-dev-x86_64.AppImage`)
-- **Size**: ~63MB (includes bundled LLVM 18 libraries)
-- **Location**: Project root directory
+- **Package**: `codelint-VERSION-ARCH.tar.gz` (or .AppImage)
+- **Includes**: `codelint-plugin.so` (+ optional LLVM libs)
+- **Size**: Plugin-only ~2MB, with LLVM ~60MB+
+- **Location**: `package-output/` in project root
 
 ## Features
 
-✅ **Fully Portable**: Includes all necessary libraries (LLVM 18, libstdc++, etc.)
-✅ **No Dependencies**: Users don't need to install LLVM or other libraries
-✅ **FUSE-Free**: Uses `--appimage-extract-and-run` mode, works without FUSE
-✅ **Cross-Distribution**: Works on Ubuntu, Fedora, Debian, Arch, etc.
-✅ **Easy Distribution**: Single executable file
+✅ **Plugin** (`*.so`) for clang-tidy  
+✅ **Flexible**: Plugin-only or bundle LLVM
+✅ **Portable**: Cross-distribution compatible
+✅ **Easy**: Drop-in installation or `--load` flag
 
 ## Testing
 
-After creation, test the AppImage:
 ```bash
-./codelint-dev-x86_64.AppImage --help
-./codelint-dev-x86_64.AppImage check_init tests/test_check_init.cpp
+cd package-output &&tar xzf codelint-*.tar.gz
+
+# Test plugin
+clang-tidy --load=lib/codelint-plugin.so --checks='codelint-*' --list-checks
+
+# Test on code
+cat > /tmp/test.cpp << 'EOF'
+void test() { int x; }
+EOF
+clang-tidy --load=lib/codelint-plugin.so --checks='codelint-init' /tmp/test.cpp
 ```
 
-## Reusing for Future Releases
+## Installation
 
-To create AppImage for new versions:
+**System (sudo)**:
+```bash
+sudo cp lib/codelint-plugin.so /usr/local/lib/clang-tidy/
+```
 
-1. **Build your updated binary**:
-   ```bash
-   cmake --build build --clean-first
-   ```
+**User (no sudo)**:
+```bash
+cp lib/codelint-plugin.so ~/.local/lib/clang-tidy/
+clang-tidy --load=~/.local/lib/clang-tidy/codelint-plugin.so --checks='codelint-*' src/*.cpp
+```
 
-2. **Run the packaging script**:
-   ```bash
-   python3 packaging/scripts/create_appimage.py
-   ```
+## Reusing
 
-3. **The script will automatically**:
-   - Detect git version tags
-   - Create appropriate AppImage filename
-   - Bundle all current dependencies
+1. **Rebuild**: `cmake --build build --clean-first`
+2. **Package**: `python3 packaging/scripts/create_appimage.py`
+3. **Automatic**: Detects version, bundles deps
 
 ## Customization
 
-### Changing Version Detection
-Edit the `get_version()` function in `create_appimage.py` to customize version naming.
+### Version Detection
+Edit `get_version()` in `create_appimage.py`.
 
-### Adding More Libraries
-Modify the library copying logic in both scripts to include/exclude specific libraries.
+### Bundle LLVM
+Set `BUNDLE_LLVM=true` in `create_appimage.py`.
 
-### Updating Icon
-Replace the SVG content in the scripts or modify the `codelint.svg` generation section.
+### Library Filtering
+Modify library copying logic to customize which libs are bundled.
+
+### Branding
+Update app icon in the script.
 
 ## Troubleshooting
 
-### "Binary not found"
-- Ensure you've built the project with `cmake --build build`
-- Verify `build/codelint` exists
+### "Plugin not found"
+- Verify build: `ls build/lib/*.so`
+- Rebuild: `cmake --build build`
 
-### "appimagetool not found"
-- Ensure `packaging/tools/appimagetool` exists
-- Download from: https://github.com/AppImage/AppImageKit/releases
+### "LLVM version mismatch"
+- Match plugin LLVM version with system clang-tidy
+- Check: `clang-tidy --version`
 
-### Library Issues
-- The scripts automatically detect and bundle non-system libraries
-- System libraries (libc, libm, etc.) are expected to be on target systems
+### "Missing libraries"
+- Plugin-only: System libs handled automatically
+- Bundle: Script auto-detects non-system libs
 
 ## License
 
-The packaging scripts are part of the codelint project and follow the same license terms.
+MIT License (part of codelint project)

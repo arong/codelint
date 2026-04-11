@@ -1,118 +1,86 @@
 # Codelint Test Suite
 
-This directory contains test files and scripts for the codelint C++ code analysis tool.
+This directory contains regression tests for the codelint clang-tidy plugin.
 
-## Test Files
+## Regression Tests
 
-### test_find_global.cpp
-Tests the `find_global` command with various global variable patterns:
-- Basic global variables (int, const, unsigned)
-- Static and thread_local variables
-- Different types (float, double, char, bool)
-- Unsigned with proper suffixes
-- Class types (std::string, std::vector)
+The main test suite uses clang-tidy's plugin infrastructure to verify that the codelint checks work correctly across different environments.
 
-Expected result: Should find 13 global variables
+### Test Structure
 
-### test_find_singleton.cpp
-Tests the `find_singleton` command with various singleton patterns:
-- Classic Meyer's singleton (`instance()`)
-- Singleton with `getInstance()` naming
-- Singleton in namespace
-- Non-singleton static local variables (should NOT be detected)
-- Static methods without local static (should NOT be detected)
-- Methods returning value types (should NOT be detected)
-
-Expected result: Should find 3 singleton instances:
-- `Singleton::instance()`
-- `Manager::getInstance()`
-- `MyApp::Config::instance()`
-
-### test_check_init.cpp
-Tests the `check_init` command with various initialization patterns:
-- Uninitialized variables
-- Variables initialized with '=' (should report)
-- Unsigned without suffix (should report)
-- Proper brace initialization (should NOT report)
-- Unsigned with proper suffix (should NOT report)
-- Non-builtin types (should NOT report)
-
-Expected result: Should find multiple initialization issues
-
-## Test Scripts
-
-### test_find_global.sh
-Test script for the `find_global` command.
-- Tests plain text output
-- Tests JSON output
-- Tests directory scanning
-
-### test_find_singleton.sh
-Test script for the `find_singleton` command.
-- Tests plain text output
-- Tests JSON output
-- Tests directory scanning
-- Lists expected singleton patterns
-
-### test_check_init.sh
-Test script for the `check_init` command.
-- Tests plain text output
-- Tests JSON output
-- Counts issues by type (uninitialized, use_equals_init, unsigned_without_suffix)
-
-### run_all_tests.sh
-Master test script that runs all individual test scripts.
-- Verifies codelint executable exists
-- Runs all three test scripts
-- Provides summary of test results
-
-## Running Tests
-
-### Run all tests:
-```bash
-bash tests/run_all_tests.sh
+```
+tests/
+├── run_plugin_regression.sh      # Main regression test runner
+├── CodeLintTest/
+│   └── src/init_checker/
+│       ├── src/              # Source files WITH issues
+│       │   ├── std.cpp
+│       │   ├── integer.cpp
+│       │   └── ...
+│       ├── fixed/            # Expected output after clang-tidy --fix
+│       │   ├── std.cpp
+│       │   ├── integer.cpp
+│       │   └── ...
+│       └── check-output/     # Expected clang-tidy warnings
+│           ├── std.txt
+│           ├── integer.cpp
+│           └── ...
 ```
 
-### Run individual tests:
+### Running Tests
+
 ```bash
-# From project root
-bash tests/test_find_global.sh
-bash tests/test_find_singleton.sh
-bash tests/test_check_init.sh
+# Run all regression tests
+bash tests/run_plugin_regression.sh
+
+# Or use CMake target
+cmake --build build --target test-all
 ```
 
-### Run commands directly:
-```bash
-# From build directory
-./codelint -p ../tests/test_find_global.cpp find_global
-./codelint -p ../tests/test_find_singleton.cpp find_singleton
-./codelint -p ../tests/test_check_init.cpp check_init
+## Test Phases
 
-# With JSON output
-./codelint -p ../tests/test_find_global.cpp --output-json find_global
-./codelint -p ../tests/test_find_singleton.cpp --output-json find_singleton
-./codelint -p ../tests/test_check_init.cpp --output-json check_init
-```
+The regression test script runs 4 phases:
 
-## Test Expectations
+### Phase 0: Verify check output
+- Runs clang-tidy on source files
+- Compares warnings with `check-output/*.txt` expectations
+- Validates diagnostic messages
 
-### find_global
-- Should detect all global variables at translation unit level
-- Should correctly identify const modifiers
-- Should report variable types, names, locations, and initialization values
-- Should NOT detect local variables
+### Phase 1: Verify source files have issues
+- Ensures source files actually trigger the expected warnings
+- Counts issues per file
 
-### find_singleton
-- Should detect methods returning references named `instance` or `getInstance`
-- Should correctly identify the class name
-- Should NOT detect static methods returning values
-- Should NOT detect methods without static local variables
+### Phase 2: Verify fixed files have no issues
+- Runs clang-tidy on `fixed/` files
+- Expects ZERO warnings (all issues were fixed)
 
-### check_init
-- Should detect uninitialized built-in type variables
-- Should detect variables initialized with '='
-- Should detect unsigned integers without 'U' suffix
-- Should NOT report brace initialization
-- Should NOT report unsigned integers with proper suffix
-- Should NOT report non-built-in types (std::string, std::vector, etc.)
-- Should NOT report issues in system headers (/usr/include/, /usr/lib/)
+### Phase 3: Apply --fix and compare
+- Applies clang-tidy --fix to source files
+- Compares result with `fixed/` expectations
+- Validates auto-fix functionality
+
+## Adding New Tests
+
+To add a new test case:
+
+1. **Create source file** in `src/init_checker/src/your_test.cpp`
+   - Include code that should trigger codelint checks
+
+2. **Create expected fixed file** in `src/init_checker/fixed/your_test.cpp`
+   - The expected output after clang-tidy --fix
+
+3. **Create expected output** in `src/init_checker/check-output/your_test.txt`
+   - The expected clang-tidy warning messages
+
+4. **Run tests** to verify:
+   ```bash
+   bash tests/run_plugin_regression.sh
+   ```
+
+## Legacy Test Scripts
+
+The following scripts are deprecated and may not exist:
+- `test_find_global.sh` - Replaced by clang-tidy plugin tests
+- `test_find_singleton.sh` - Replaced by clang-tidy plugin tests
+- `test_check_init.sh` - Replaced by clang-tidy plugin tests
+- `run_all_tests.sh` - Replaced by `run_plugin_regression.sh`
