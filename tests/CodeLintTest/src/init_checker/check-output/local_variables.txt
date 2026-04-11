@@ -26,6 +26,10 @@
    18 |   int a = 1;
       |       ^ ~
       |        {   }
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:29:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   29 |   std::string local_str("hello");
+      |               ^        ~       ~
+      |                        {       }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/local_variables.cpp:34:7: warning: field is not explicitly initialized [codelint-init]
    34 |   int x;
       |       ^

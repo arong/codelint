@@ -272,7 +272,8 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   if (Name.empty())
     return;
 
-  if (VD->getInitStyle() != VarDecl::CInit)
+  auto InitStyle = VD->getInitStyle();
+  if (InitStyle != VarDecl::CInit && InitStyle != VarDecl::CallInit)
     return;
 
   if (shouldSkipAuto(VD))
@@ -284,6 +285,14 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   const auto* Init = VD->getInit();
   if (!Init)
     return;
+
+  bool IsCallInit = (InitStyle == VarDecl::CallInit);
+  if (IsCallInit) {
+    if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
+      if (CCE->isListInitialization())
+        return;
+    }
+  }
 
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
@@ -318,9 +327,21 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
       ClosingBrace = "U}";
   }
 
-  diag(VD->getLocation(), "variable should use '{}' syntax for initialization")
-      << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "{")
-      << FixItHint::CreateInsertion(InitEnd, ClosingBrace);
+  if (IsCallInit) {
+    const auto* CCE = dyn_cast<CXXConstructExpr>(Init);
+    if (CCE && CCE->getNumArgs() > 0) {
+      const Expr* Arg = CCE->getArg(0);
+      auto ArgStart = Arg->getBeginLoc();
+      auto InitEndLoc = Init->getEndLoc();
+      diag(VD->getLocation(), "variable should use '{}' syntax for initialization")
+          << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, ArgStart), "{")
+          << FixItHint::CreateReplacement(InitEndLoc, ClosingBrace);
+    }
+  } else {
+    diag(VD->getLocation(), "variable should use '{}' syntax for initialization")
+        << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "{")
+        << FixItHint::CreateInsertion(InitEnd, ClosingBrace);
+  }
 }
 
 void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
