@@ -1,0 +1,6 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/anon_namespace_globals.cpp:8:9: warning: global variable 'anon_var1' detected [codelint-global]
+    8 |     int anon_var1 = 10;              // Anonymous namespace var
+      |         ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/anon_namespace_globals.cpp:9:17: warning: global variable 'anon_var2' detected [codelint-global]
+    9 |     std::string anon_var2 = "test"; // Anonymous namespace string
+      |                 ^

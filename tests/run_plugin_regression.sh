@@ -7,7 +7,6 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$PROJECT_ROOT"
 BUILD_DIR="$PROJECT_ROOT/build"
-TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
 TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
 COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
 COVERAGE_DIR="$PROJECT_ROOT/coverage_report"
@@ -17,7 +16,8 @@ COVERAGE_ENABLED=false
 normalize_paths() {
     local input="$1"
     local output="$2"
-    sed -E 's|^.+/codelint/tests/CodeLintTest/src/init_checker/|tests/CodeLintTest/src/init_checker/|g' "$input" > "$output"
+    local checker="$3"
+    sed -E "s|^.+/codelint/tests/CodeLintTest/src/${checker}/|tests/CodeLintTest/src/${checker}/|g" "$input" > "$output"
 }
 
 detect_coverage_build() {
@@ -91,7 +91,6 @@ fi
 detect_coverage_build
 
 BUILD_DIR="$PROJECT_ROOT/build"
-TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
 TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
 COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
 
@@ -166,15 +165,35 @@ TEST_COUNT=0
 PASS_COUNT=0
 FAIL_COUNT=0
 
-# Test: Apply clang-tidy --fix to source file and compare with expected fixed file
+get_check_flag() {
+    local checker="$1"
+    case "$checker" in
+        "init_checker")    echo "codelint-init,-codelint-global,-codelint-singleton" ;;
+        "global_checker")  echo "-*,codelint-global" ;;
+        "singleton_checker") echo "-*,codelint-singleton" ;;
+        *) echo "" ;;
+    esac
+}
+
+has_fix_phase() {
+    local checker="$1"
+    case "$checker" in
+        "init_checker") echo "true" ;;
+        *) echo "false" ;;
+    esac
+}
+
 run_fix_test() {
-    local test_name="$1"
+    local checker="$1"
+    local test_name="$2"
+    local TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$checker"
     local src_file="$TEST_DIR/src/${test_name}.cpp"
     local expected_file="$TEST_DIR/fixed/${test_name}.cpp"
+    local check_flag=$(get_check_flag "$checker")
 
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
-    echo "Test $TEST_COUNT: $test_name"
+    echo "Test $TEST_COUNT: $checker/$test_name (fix)"
     echo "------------------------------------------"
 
     if [ ! -f "$src_file" ]; then
@@ -189,19 +208,16 @@ run_fix_test() {
         return
     fi
 
-    # Create temp file for fix result
     local temp_file=$(mktemp /tmp/codelint_fix.XXXXXX.cpp)
     cp "$src_file" "$temp_file"
 
-    # Apply clang-tidy --fix using compile_commands.json with proper compiler flags
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' --fix "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
 
-    # Compare fixed result with expected
     if diff -q "$expected_file" "$temp_file" > /dev/null 2>&1; then
-        echo "PASS: $test_name - Fixed output matches expected"
+        echo "PASS: $checker/$test_name - Fixed output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
-        echo "FAIL: $test_name - Fixed output does NOT match expected"
+        echo "FAIL: $checker/$test_name - Fixed output does NOT match expected"
         echo ""
         echo "Expected (fixed/${test_name}.cpp):"
         head -10 "$expected_file"
@@ -219,13 +235,16 @@ run_fix_test() {
 
 # Test: Verify clang-tidy warning output matches expected
 run_check_output_test() {
-    local test_name="$1"
+    local checker="$1"
+    local test_name="$2"
+    local TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$checker"
     local src_file="$TEST_DIR/src/${test_name}.cpp"
     local expected_output="$TEST_DIR/check-output/${test_name}.txt"
+    local check_flag=$(get_check_flag "$checker")
 
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
-    echo "Test $TEST_COUNT: $test_name (check output)"
+    echo "Test $TEST_COUNT: $checker/$test_name (check output)"
     echo "------------------------------------------"
 
     if [ ! -f "$expected_output" ]; then
@@ -234,38 +253,36 @@ run_check_output_test() {
         return
     fi
 
-    # Run clang-tidy and save all output
     local temp_full="/tmp/codelint_full_$$.txt"
     local temp_output="/tmp/codelint_output_$$.txt"
 
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init,-codelint-global,-codelint-singleton' "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
 
-    # Extract codelint-init warnings with context (the warning line + 3 subsequent format lines)
     awk '
         /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
+        /warning: .* \[codelint-global\]/ { found=1; count=3; print; next }
+        /warning: .* \[codelint-singleton\]/ { found=1; count=3; print; next }
         /warning:/ { found=0 }
         /Suppressed/ { found=0 }
         found && count > 0 { print; count-- }
         found && count == 0 { found=0 }
     ' "$temp_full" > "$temp_output"
 
-    # Normalize paths for cross-platform comparison (macOS vs GitHub Actions paths)
     local temp_expected_norm="/tmp/codelint_expected_norm_$$.txt"
     local temp_output_norm="/tmp/codelint_output_norm_$$.txt"
-    normalize_paths "$expected_output" "$temp_expected_norm"
-    normalize_paths "$temp_output" "$temp_output_norm"
+    normalize_paths "$expected_output" "$temp_expected_norm" "$checker"
+    normalize_paths "$temp_output" "$temp_output_norm" "$checker"
 
-    # Compare normalized output (also strip trailing whitespace)
     local temp_expected_stripped="${temp_expected_norm}.stripped"
     local temp_output_stripped="${temp_output_norm}.stripped"
     sed 's/[[:blank:]]*$//' "$temp_expected_norm" > "$temp_expected_stripped"
     sed 's/[[:blank:]]*$//' "$temp_output_norm" > "$temp_output_stripped"
 
     if diff -q "$temp_expected_stripped" "$temp_output_stripped" > /dev/null 2>&1; then
-        echo "PASS: $test_name warning output matches expected"
+        echo "PASS: $checker/$test_name warning output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
-        echo "FAIL: $test_name warning output does NOT match expected"
+        echo "FAIL: $checker/$test_name warning output does NOT match expected"
         echo ""
         echo "Expected (check-output/${test_name}.txt):"
         head -6 "$expected_output"
@@ -283,13 +300,16 @@ run_check_output_test() {
 
 # Test: Verify source files have issues
 run_source_issue_test() {
-    local test_name="$1"
+    local checker="$1"
+    local test_name="$2"
+    local TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$checker"
     local src_file="$TEST_DIR/src/${test_name}.cpp"
     local expected_file="$TEST_DIR/fixed/${test_name}.cpp"
+    local check_flag=$(get_check_flag "$checker")
 
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
-    echo "Test $TEST_COUNT: $test_name (source issues)"
+    echo "Test $TEST_COUNT: $checker/$test_name (source issues)"
     echo "------------------------------------------"
 
     if [ ! -f "$src_file" ]; then
@@ -298,33 +318,39 @@ run_source_issue_test() {
         return
     fi
 
-    # Skip if source and fixed files are identical (no issues expected)
-    if [ -f "$expected_file" ] && diff -q "$src_file" "$expected_file" > /dev/null 2>&1; then
-        echo "SKIP: Source and fixed files are identical (no issues expected)"
-        TEST_COUNT=$((TEST_COUNT - 1))
-        return
+    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
+    local issue_count=$(echo "$output" | grep -E "warning:.*\[codelint-.*\]" | wc -l | awk '{print $1}')
+
+    local expected_issues=0
+    if [ -f "$TEST_DIR/check-output/${test_name}.txt" ] && [ -s "$TEST_DIR/check-output/${test_name}.txt" ]; then
+        expected_issues=$(grep -c "warning:" "$TEST_DIR/check-output/${test_name}.txt" || echo 0)
     fi
 
-    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
-    local issue_count=$(echo "$output" | grep -E "warning:.*codelint-init" | wc -l | awk '{print $1}')
-
     if [ "$issue_count" -gt 0 ]; then
-        echo "PASS: $test_name detects $issue_count issue(s)"
+        echo "PASS: $checker/$test_name detects $issue_count issue(s)"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
-        echo "FAIL: $test_name detects 0 issues (expected > 0)"
-        FAIL_COUNT=$((FAIL_COUNT + 1))
+        if [ "$expected_issues" -eq 0 ]; then
+            echo "PASS: $checker/$test_name correctly detects 0 issues (false positive test)"
+            PASS_COUNT=$((PASS_COUNT + 1))
+        else
+            echo "FAIL: $checker/$test_name detects 0 issues (expected > 0)"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+        fi
     fi
 }
 
 # Test: Verify fixed files have no (or fewer) issues
 run_fixed_issue_test() {
-    local test_name="$1"
+    local checker="$1"
+    local test_name="$2"
+    local TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$checker"
     local expected_file="$TEST_DIR/fixed/${test_name}.cpp"
+    local check_flag=$(get_check_flag "$checker")
 
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "------------------------------------------"
-    echo "Test $TEST_COUNT: $test_name (fixed - no issues)"
+    echo "Test $TEST_COUNT: $checker/$test_name (fixed - no issues)"
     echo "------------------------------------------"
 
     if [ ! -f "$expected_file" ]; then
@@ -333,67 +359,85 @@ run_fixed_issue_test() {
         return
     fi
 
-    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
+    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
 
-    # Filter out bool-int warnings which are intentionally NOT auto-fixed (Error level)
     local filtered_output=$(echo "$output" | grep -v "assigning integer to bool")
-    # Filter out narrowing conversion warnings which are intentionally NOT auto-fixed
     local filtered_output=$(echo "$filtered_output" | grep -v "narrowing conversion")
-    local issue_count=$(echo "$filtered_output" | grep -E "warning:.*codelint-init" | wc -l | awk '{print $1}')
+    local issue_count=$(echo "$filtered_output" | grep -E "warning:.*\[codelint-.*\]" | wc -l | awk '{print $1}')
 
     if [ "$issue_count" -eq 0 ]; then
-        echo "PASS: $test_name fixed file has 0 issues"
+        echo "PASS: $checker/$test_name fixed file has 0 issues"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
-        echo "FAIL: $test_name fixed file has $issue_count issues (expected 0)"
-        echo "$filtered_output" | grep "warning:.*codelint-init" | head -3
+        echo "FAIL: $checker/$test_name fixed file has $issue_count issues (expected 0)"
+        echo "$filtered_output" | grep "warning:.*\[codelint-.*\]" | head -3
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 }
 
-echo "=== Phase 0: Verify check output ==="
-echo ""
+# Run tests for each checker
+CHECKERS=("init_checker" "global_checker" "singleton_checker")
 
-for src_file in "$TEST_DIR"/src/*.cpp; do
-    if [ -f "$src_file" ]; then
-        test_name=$(basename "$src_file" .cpp)
-        run_check_output_test "$test_name"
+for CHECKER in "${CHECKERS[@]}"; do
+    TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$CHECKER"
+
+    if [ ! -d "$TEST_DIR/src" ]; then
+        echo "SKIP: Checker directory not found: $TEST_DIR"
+        continue
     fi
-done
 
-echo ""
-echo "=== Phase 1: Verify source files have issues ==="
-echo ""
+    echo ""
+    echo "========================================"
+    echo "Testing Checker: $CHECKER"
+    echo "========================================"
+    echo ""
 
-for test_file in "$TEST_DIR"/src/*.cpp; do
-    if [ -f "$test_file" ]; then
-        test_name=$(basename "$test_file" .cpp)
-        run_source_issue_test "$test_name"
-    fi
-done
+    echo "=== Phase 0: Verify check output ==="
+    echo ""
 
-echo ""
-echo "=== Phase 2: Verify fixed files have no issues ==="
-echo ""
-
-for test_file in "$TEST_DIR"/fixed/*.cpp; do
-    if [ -f "$test_file" ]; then
-        test_name=$(basename "$test_file" .cpp)
-        run_fixed_issue_test "$test_name"
-    fi
-done
-
-echo ""
-echo "=== Phase 3: Apply --fix and compare with expected ==="
-echo ""
-
-for src_file in "$TEST_DIR"/src/*.cpp; do
-    if [ -f "$src_file" ]; then
-        test_name=$(basename "$src_file" .cpp)
-        expected_file="$TEST_DIR/fixed/${test_name}.cpp"
-        if [ -f "$expected_file" ]; then
-            run_fix_test "$test_name"
+    for src_file in "$TEST_DIR"/src/*.cpp; do
+        if [ -f "$src_file" ]; then
+            test_name=$(basename "$src_file" .cpp)
+            run_check_output_test "$CHECKER" "$test_name"
         fi
+    done
+
+    echo ""
+    echo "=== Phase 1: Verify source files have issues ==="
+    echo ""
+
+    for src_file in "$TEST_DIR"/src/*.cpp; do
+        if [ -f "$src_file" ]; then
+            test_name=$(basename "$src_file" .cpp)
+            run_source_issue_test "$CHECKER" "$test_name"
+        fi
+    done
+
+    if [ "$(has_fix_phase "$CHECKER")" = "true" ]; then
+        echo ""
+        echo "=== Phase 2: Verify fixed files have no issues ==="
+        echo ""
+
+        for fixed_file in "$TEST_DIR"/fixed/*.cpp; do
+            if [ -f "$fixed_file" ]; then
+                test_name=$(basename "$fixed_file" .cpp)
+                run_fixed_issue_test "$CHECKER" "$test_name"
+            fi
+        done
+
+        echo ""
+        echo "=== Phase 3: Apply --fix and compare with expected ==="
+        echo ""
+
+        for src_file in "$TEST_DIR"/src/*.cpp; do
+            if [ -f "$src_file" ]; then
+                test_name=$(basename "$src_file" .cpp)
+                expected_file="$TEST_DIR/fixed/${test_name}.cpp"
+                if [ -f "$expected_file" ]; then
+                    run_fix_test "$CHECKER" "$test_name"
+                fi
+            fi
+        done
     fi
 done
 

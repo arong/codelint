@@ -1,0 +1,26 @@
+# .clang-tidy configuration template for codelint plugin
+# Copy this file to your project root and customize as needed
+
+---
+Checks: 'codelint-*'
+HeaderFilterRegex: '.*'
+WarningsAsErrors: ''
+
+# Check-specific options (if supported)
+CheckOptions:
+  - key: readability-identifier-naming.VariableCase
+    value: camelCase
+
+# To use only initialization checks:
+# Checks: 'codelint-init'
+
+# To combine with other clang-tidy checks:
+# Checks: 'codelint-*,modernize-*,performance-*'
+
+# To exclude certain checks:
+# Checks: 'codelint-*,-codelint-global,-codelint-singleton'
+
+# Notes for AI assistants:
+# - This config file is auto-discovered by clang-tidy starting from source file directory
+# - Use --fix to apply auto-fixes
+# - Error-level warnings (int->bool) require manual review

@@ -1,0 +1,6 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/const_globals.cpp:7:11: warning: global variable 'const_val' detected [codelint-global]
+    7 | const int const_val = 100;
+      |           ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/const_globals.cpp:9:19: warning: global variable 'const_str' detected [codelint-global]
+    9 | const std::string const_str = "const";
+      |                   ^

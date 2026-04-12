@@ -78,16 +78,26 @@ bool ok = true;         // ✅ OK: bool literal
 bool status{false};     // ✅ OK: brace init with bool
 ```
 
-### 5. Smart Skip List
+### 5. Smart Skip List (Complete)
 
-Codelint skips cases where `=` syntax is intentional:
+Codelint intelligently skips these cases where modification is unsafe or intentional:
 
-- **For loops**: `for (int i = 0; i < n; i++)` - C-style idiom
-- **Catch blocks**: `catch (int e)` - exception handling
-- **Macro definitions**: Variables inside `#define`
-- **Auto types**: Undeduced `auto` variables
-- **Narrowing conversions**: `int x = 3.14` - user intentionally narrowing
-- **Type widening**: `float f = 5` - safe implicit conversion
+| Category | Example | Reason |
+|----------|---------|--------|
+| **For loops** | `for (int i = 0; i < n; i++)` | C-style idiom |
+| **Catch blocks** | `catch (int e)` | Exception handling |
+| **Macro definitions** | Variables inside `#define` | Cannot modify macros |
+| **Auto types** | `auto x = getValue()` | Type deduction required |
+| **Extern declarations** | `extern int x;` | Definition elsewhere |
+| **Union members** | `union { int a; }` | Union special handling |
+| **Enum class** | `enum class Color { Red }` | Scoped enum |
+| **Bitfields** | `int flags : 4;` | Bitfield special syntax |
+| **References** | `int& ref = x;` | Must be bound at declaration |
+| **Default arguments** | `void foo(int a = 10)` | Function signature |
+| **Lambda captures** | `auto f = [](int x)` | Lambda context |
+| **= {} syntax** | `int x = {};` | Already brace init |
+| **Narrowing conversions** | `int x = 3.14;` | Cannot use {} (warns only) |
+| **Type widening** | `float f = 5` | Safe implicit conversion |
 
 ### 6. Constructor Member Initialization
 
@@ -115,6 +125,45 @@ clang-tidy --load=build/lib/codelint-plugin.dylib \
            --fix \
            src/**/*.cpp
 ```
+
+## AI Tool Integration
+
+### For AI Assistants (Claude, Cursor, Copilot)
+
+**Option 1: Use the wrapper script**
+
+```bash
+# Add to PATH
+export PATH=/path/to/codelint/bin:$PATH
+
+# AI can simply run
+codelint --fix src/*.cpp
+```
+
+**Option 2: Use with .clang-tidy config**
+
+```yaml
+# .clang-tidy in project root
+Checks: 'codelint-*'
+HeaderFilterRegex: '.*'
+```
+
+**Option 3: Direct invocation**
+
+```bash
+clang-tidy --load=/path/to/codelint-plugin.so \
+           --checks='codelint-init' \
+           --fix \
+           -p build/compile_commands.json \
+           src/**/*.cpp
+```
+
+### Tips for AI Assistants
+
+1. **Always use `--fix`** for auto-fixable issues
+2. **Manually review Error-level warnings** (int→bool conversion)
+3. **Check constructor initializer lists** for member warnings
+4. **Use `-p compile_commands.json`** for accurate analysis
 
 ## Requirements
 

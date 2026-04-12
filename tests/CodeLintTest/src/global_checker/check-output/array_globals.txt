@@ -1,0 +1,9 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/array_globals.cpp:5:5: warning: global variable 'global_array' detected [codelint-global]
+    5 | int global_array[10];               // C-style array global - SHOULD detect
+      |     ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/array_globals.cpp:6:8: warning: global variable 'values' detected [codelint-global]
+    6 | double values[5] = {1.0, 2.0, 3.0}; // C-style array with init - SHOULD detect
+      |        ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/array_globals.cpp:7:13: warning: global variable 'strings' detected [codelint-global]
+    7 | const char* strings[3];             // Pointer array global - SHOULD detect
+      |             ^
