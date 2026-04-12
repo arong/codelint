@@ -4,6 +4,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$PROJECT_ROOT"
 BUILD_DIR="$PROJECT_ROOT/build"
 TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
 TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
@@ -88,8 +90,6 @@ fi
 
 detect_coverage_build
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build"
 TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
 TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
