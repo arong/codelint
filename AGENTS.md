@@ -168,6 +168,106 @@ git commit --no-verify -m "emergency fix"
 
 ---
 
+## 🔧 LLVM/Clang Tool Paths (CRITICAL)
+
+**This project uses LLVM 21 from Homebrew. All LLVM tools must use this specific path.**
+
+### Required LLVM Tool Paths
+
+```bash
+LLVM_BIN=/opt/homebrew/opt/llvm@21/bin
+LLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
+```
+
+### Tools in This Directory
+
+| Tool | Full Path |
+|------|-----------|
+| `clang` | `/opt/homebrew/opt/llvm@21/bin/clang` |
+| `clang++` | `/opt/homebrew/opt/llvm@21/bin/clang++` |
+| `clang-tidy` | `/opt/homebrew/opt/llvm@21/bin/clang-tidy` |
+| `llvm-cov` | `/opt/homebrew/opt/llvm@21/bin/llvm-cov` |
+| `llvm-profdata` | `/opt/homebrew/opt/llvm@21/bin/llvm-profdata` |
+| `clang-format` | `/opt/homebrew/opt/llvm@21/bin/clang-format` |
+
+### How to Use
+
+**Before running any LLVM tool, set PATH:**
+```bash
+export PATH=/opt/homebrew/opt/llvm@21/bin:$PATH
+```
+
+**Or use full paths directly:**
+```bash
+/opt/homebrew/opt/llvm@21/bin/clang-tidy --version
+```
+
+**CMake configuration must include LLVM_DIR:**
+```bash
+cmake -B build -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
+```
+
+### Why This Matters
+
+1. **Consistency** - Ensures all tools are from the same LLVM version
+2. **Compatibility** - Plugin requires LLVM 21 APIs
+3. **Coverage** - llvm-cov must match the compiler version used for instrumentation
+
+---
+
+## 🎨 C++ Code Formatting (MANDATORY)
+
+**After modifying ANY C++ source file, you MUST run clang-format.**
+
+### Required Workflow
+
+```
+1. Edit C++ file(s)
+2. Run clang-format on modified files
+3. Build and test to verify changes
+```
+
+### clang-format Command
+
+```bash
+# Format specific files
+clang-format -i src/codelint_plugin/checks/InitCheck.cpp
+
+# Format all modified C++ files in src/
+clang-format -i src/**/*.cpp
+
+# Or using full path (recommended)
+/opt/homebrew/opt/llvm@21/bin/clang-format -i <modified_files>
+```
+
+### Project Style Configuration
+
+The project uses `.clang-format` with:
+- **Base Style**: LLVM
+- **Indent Width**: 2 spaces
+- **Column Limit**: 100
+- **Pointer Alignment**: Left
+
+### Why This Matters
+
+1. **Consistency** - All code follows the same style
+2. **Readability** - Proper indentation and spacing
+3. **Pre-commit Hook** - Fails if formatting is incorrect
+4. **Review Quality** - Cleaner diffs for human review
+
+### Files to Format
+
+| Directory | Format Required |
+|-----------|-----------------|
+| `src/**/*.cpp` | ✅ Yes |
+| `src/**/*.h` | ✅ Yes |
+| `include/**/*.h` | ✅ Yes |
+| `tests/**/*.cpp` | ✅ Yes (except protected fixtures) |
+
+**⚠️ EXCEPTION**: Do NOT format files in `tests/CodeLintTest/src/init_checker/src/` or `tests/CodeLintTest/src/init_checker/fixed/` - these are protected test fixtures.
+
+---
+
 ## 🔧 GitHub CLI (gh) Usage Guide for CI Debugging
 
 **IMPORTANT: gh CLI is available on this machine!** Always use it to check CI status and debug failures.

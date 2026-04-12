@@ -1,17 +1,83 @@
 #!/bin/bash
 
-# Regression test for codelint clang-tidy plugin
-# Tests: src files (with issues) -> clang-tidy --fix -> compare with fixed files
-
 set -e
 
-# Normalize file paths for cross-platform comparison
-# Replaces absolute paths (/anything/codelint/tests/...) with relative paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+BUILD_DIR="$PROJECT_ROOT/build"
+TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/init_checker"
+TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
+COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
+COVERAGE_DIR="$PROJECT_ROOT/coverage_report"
+
+COVERAGE_ENABLED=false
+
 normalize_paths() {
     local input="$1"
     local output="$2"
-    # Remove everything before and including '/codelint/tests/CodeLintTest/src/init_checker/'
     sed -E 's|^.+/codelint/tests/CodeLintTest/src/init_checker/|tests/CodeLintTest/src/init_checker/|g' "$input" > "$output"
+}
+
+detect_coverage_build() {
+    if [ -f "$BUILD_DIR/CMakeCache.txt" ]; then
+        if grep -q "ENABLE_COVERAGE:BOOL=ON" "$BUILD_DIR/CMakeCache.txt" 2>/dev/null; then
+            COVERAGE_ENABLED=true
+            echo "Coverage build detected"
+        fi
+    fi
+}
+
+generate_coverage_report() {
+    local LLVM_PROFDATA LLVM_COV
+    
+    LLVM_PROFDATA=$(which llvm-profdata 2>/dev/null || echo "")
+    LLVM_COV=$(which llvm-cov 2>/dev/null || echo "")
+    
+    if [ -z "$LLVM_PROFDATA" ] || [ -z "$LLVM_COV" ]; then
+        if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
+            LLVM_PROFDATA="/opt/homebrew/opt/llvm@21/bin/llvm-profdata"
+            LLVM_COV="/opt/homebrew/opt/llvm@21/bin/llvm-cov"
+        elif [ -d "/usr/lib/llvm-21/bin" ]; then
+            LLVM_PROFDATA="/usr/lib/llvm-21/bin/llvm-profdata"
+            LLVM_COV="/usr/lib/llvm-21/bin/llvm-cov"
+        fi
+    fi
+    
+    if [ -z "$LLVM_PROFDATA" ] || [ -z "$LLVM_COV" ]; then
+        echo "WARNING: llvm-profdata/llvm-cov not found, skipping coverage report"
+        return
+    fi
+    
+    local profraw_files=$(ls "$PROJECT_ROOT"/*.profraw 2>/dev/null || echo "")
+    if [ -z "$profraw_files" ]; then
+        echo "WARNING: No coverage data collected"
+        return
+    fi
+    
+    echo "Merging coverage data..."
+    "$LLVM_PROFDATA" merge -o "$COVERAGE_DIR/codelint.profdata" "$PROJECT_ROOT"/*.profraw
+    
+    echo "Generating coverage report..."
+    "$LLVM_COV" report "$PLUGIN" \
+        -instr-profile="$COVERAGE_DIR/codelint.profdata" \
+        -ignore-filename-regex="(tests|build|CMakeFiles|^/opt/|^/usr/lib/llvm|^/Library/)" \
+        > "$COVERAGE_DIR/coverage_summary.txt"
+    
+    "$LLVM_COV" show "$PLUGIN" \
+        -instr-profile="$COVERAGE_DIR/codelint.profdata" \
+        -format=html \
+        -output-dir="$COVERAGE_DIR/html" \
+        -ignore-filename-regex="(tests|build|CMakeFiles|^/opt/|^/usr/lib/llvm|^/Library/)" \
+        -show-line-counts-or-regions \
+        -show-expansions \
+        -path-equivalence="$PROJECT_ROOT/src,"src
+    
+    echo ""
+    cat "$COVERAGE_DIR/coverage_summary.txt"
+    echo ""
+    echo "HTML report: $COVERAGE_DIR/html/index.html"
+    
+    rm -f "$PROJECT_ROOT"/*.profraw
 }
 
 
@@ -19,7 +85,8 @@ normalize_paths() {
 if command -v clang-tidy-21 >/dev/null 2>&1; then
     alias clang-tidy=clang-tidy-21
 fi
-# set -x
+
+detect_coverage_build
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -78,6 +145,15 @@ echo "Using clang-tidy: $CLANG_TIDY"
 echo "Using plugin: $PLUGIN"
 echo "Using compile_commands: $COMPILE_COMMANDS"
 echo ""
+
+if [ "$COVERAGE_ENABLED" = true ]; then
+    rm -f "$PROJECT_ROOT"/*.profraw
+    export LLVM_PROFILE_FILE="$PROJECT_ROOT/codelint_%p.profraw"
+    mkdir -p "$COVERAGE_DIR"
+    echo "Coverage instrumentation enabled"
+    echo "Profile files will be written to: $PROJECT_ROOT/codelint_*.profraw"
+    echo ""
+fi
 
 # Verify compile_commands.json exists
 if [ ! -f "$COMPILE_COMMANDS" ]; then
@@ -324,6 +400,13 @@ echo "Total tests:  $TEST_COUNT"
 echo "Passed:       $PASS_COUNT"
 echo "Failed:       $FAIL_COUNT"
 echo ""
+
+if [ "$COVERAGE_ENABLED" = true ]; then
+    echo "========================================"
+    echo "Generating Coverage Report"
+    echo "========================================"
+    generate_coverage_report
+fi
 
 if [ $FAIL_COUNT -eq 0 ]; then
     echo "✓ All regression tests PASSED!"
