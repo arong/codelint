@@ -24,6 +24,10 @@ void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
+  if (VD->isConstexpr()) {
+    return;
+  }
+
   if (VD->getStorageClass() == clang::SC_Extern && !VD->hasInit()) {
     return;
   }

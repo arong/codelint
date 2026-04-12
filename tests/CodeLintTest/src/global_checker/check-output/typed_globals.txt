@@ -1,0 +1,18 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/typed_globals.cpp:8:7: warning: global variable 'global_float' detected [codelint-global]
+    8 | float global_float = 3.14f;       // float
+      |       ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/typed_globals.cpp:9:8: warning: global variable 'global_double' detected [codelint-global]
+    9 | double global_double = 2.718;     // double
+      |        ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/typed_globals.cpp:10:6: warning: global variable 'global_char' detected [codelint-global]
+   10 | char global_char = 'A';           // char
+      |      ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/typed_globals.cpp:11:6: warning: global variable 'global_bool' detected [codelint-global]
+   11 | bool global_bool = true;          // bool
+      |      ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/typed_globals.cpp:12:18: warning: global variable 'global_vec' detected [codelint-global]
+   12 | std::vector<int> global_vec;      // std::vector
+      |                  ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/typed_globals.cpp:13:13: warning: global variable 'global_str' detected [codelint-global]
+   13 | std::string global_str = "hello"; // std::string
+      |             ^

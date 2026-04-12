@@ -47,6 +47,31 @@ set(TEST_SOURCES
     src/init_checker/fixed/struct_class.cpp
     src/init_checker/src/type_aliases.cpp
     src/init_checker/fixed/type_aliases.cpp
+    src/global_checker/src/anon_namespace_globals.cpp
+    src/global_checker/src/array_globals.cpp
+    src/global_checker/src/basic_globals.cpp
+    src/global_checker/src/class_globals.cpp
+    src/global_checker/src/class_member.cpp
+    src/global_checker/src/const_globals.cpp
+    src/global_checker/src/extern_globals.cpp
+    src/global_checker/src/function_local_static.cpp
+    src/global_checker/src/inline_globals.cpp
+    src/global_checker/src/namespace_globals.cpp
+    src/global_checker/src/static_globals.cpp
+    src/global_checker/src/template_globals.cpp
+    src/global_checker/src/thread_local_globals.cpp
+    src/global_checker/src/typed_globals.cpp
+    src/singleton_checker/src/false_positive_pointer.cpp
+    src/singleton_checker/src/false_positive_ref.cpp
+    src/singleton_checker/src/false_positive_static.cpp
+    src/singleton_checker/src/false_positive_value.cpp
+    src/singleton_checker/src/getinstance_singleton.cpp
+    src/singleton_checker/src/meyers_singleton.cpp
+    src/singleton_checker/src/multi_singleton.cpp
+    src/singleton_checker/src/namespace_singleton.cpp
+    src/singleton_checker/src/no_return_static.cpp
+    src/singleton_checker/src/param_singleton.cpp
+    src/singleton_checker/src/template_singleton.cpp
 )
 
 add_library(codelint_test_objects OBJECT ${TEST_SOURCES})

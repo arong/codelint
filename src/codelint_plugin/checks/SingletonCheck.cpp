@@ -8,10 +8,11 @@ using namespace ast_matchers;
 
 void SingletonCheck::registerMatchers(MatchFinder* Finder) {
   Finder->addMatcher(
-      functionDecl(returns(referenceType()),
-                   has(compoundStmt(has(varDecl(isStaticStorageClass()).bind("staticLocal")),
-                                    has(returnStmt(has(declRefExpr(
-                                        to(varDecl(equalsBoundNode("staticLocal"))))))))))
+      functionDecl(
+          returns(referenceType()),
+          has(compoundStmt(hasDescendant(varDecl(isStaticStorageClass()).bind("staticLocal")),
+                           hasDescendant(returnStmt(
+                               has(declRefExpr(to(varDecl(equalsBoundNode("staticLocal"))))))))))
           .bind("singletonFunc"),
       this);
 }

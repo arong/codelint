@@ -1,0 +1,3 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/extern_globals.cpp:9:5: warning: global variable 'defined_var' detected [codelint-global]
+    9 | int defined_var = 42;               // Definition - SHOULD be detected
+      |     ^

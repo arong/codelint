@@ -1,0 +1,6 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/static_globals.cpp:7:12: warning: global variable 'static_int' detected [codelint-global]
+    7 | static int static_int = 10;                  // Static int global
+      |            ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/static_globals.cpp:8:20: warning: global variable 'static_str' detected [codelint-global]
+    8 | static std::string static_str = "test";      // Static std::string global
+      |                    ^

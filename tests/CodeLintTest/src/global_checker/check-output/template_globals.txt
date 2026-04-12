@@ -1,0 +1,9 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/template_globals.cpp:6:3: warning: global variable 'template_var' detected [codelint-global]
+    6 | T template_var = T{};
+      |   ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/template_globals.cpp:8:16: warning: global variable 'template_var' detected [codelint-global]
+    8 | template<> int template_var<int> = 42;
+      |                ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/template_globals.cpp:10:8: warning: global variable 'd' detected [codelint-global]
+   10 | double d = template_var<double>;
+      |        ^

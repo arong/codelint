@@ -119,41 +119,128 @@ Comment=C++ code analysis tool
 
     # Create README
     print("Creating README...")
-    readme_content = '''# codelint - C++ Code Analysis Tool
+    readme_content = '''# Codelint - Offline clang-tidy Plugin Package
 
-This is an AppImage distribution of codelint, a C++ code analysis tool.
+This package contains clang-tidy with the codelint plugin and all required libraries
+for offline deployment on Ubuntu 22.04.
+
+## Contents
+
+- `bin/clang-tidy` - clang-tidy binary (LLVM 21)
+- `bin/codelint` - Wrapper script that auto-loads the plugin
+- `lib/codelint-plugin.so` - Codelint clang-tidy plugin
+- `lib/*.so` - Required LLVM/Clang libraries
 
 ## Requirements
 
-- Linux (glibc 2.17+)
-- Standard system libraries (libc, libm, libstdc++, etc.)
-
-Note: LLVM 18 libraries are bundled in this AppImage for portability.
+- Ubuntu 22.04 (or compatible Linux distribution)
+- No LLVM installation required
+- No network access required
 
 ## Usage
 
-Run directly from AppImage:
+### Quick Start (Recommended)
 
 ```bash
-./codelint-x86_64.AppImage --help
+# Using the wrapper (auto-loads plugin)
+./bin/codelint your_file.cpp
+
+# With compilation database
+./bin/codelint -p build/compile_commands.json src/*.cpp
+
+# Apply fixes automatically
+./bin/codelint --fix your_file.cpp
 ```
 
-## Examples
+### Learn What Codelint Does
 
-Check initialization issues:
 ```bash
-./codelint-x86_64.AppImage check_init mycode.cpp --fix
+# Show detailed functionality
+./bin/codelint --describe
 ```
 
-Find global variables:
+### Manual Usage
+
 ```bash
-./codelint-x86_64.AppImage find_global mycode.cpp
+# Direct clang-tidy invocation
+./bin/clang-tidy \
+    --load=lib/codelint-plugin.so \
+    --checks='codelint-*' \
+    your_file.cpp
+
+# Skip plugin loading
+./bin/codelint --raw --checks='modernize-*' your_file.cpp
 ```
 
-Find singletons:
-```bash
-./codelint-x86_64.AppImage find_singleton mycode.cpp
+## Available Checks
+
+| Check | Purpose | Auto-fix |
+|-------|---------|----------|
+| `codelint-init` | Variable initialization style | Yes |
+| `codelint-global` | Global variable detection | No |
+| `codelint-singleton` | Meyer's Singleton pattern | No |
+
+## codelint-init Check Details
+
+### What It Detects and Fixes
+
+| Issue | Before | Auto-fix? | After |
+|-------|--------|-----------|-------|
+| Uninitialized variable | `int x;` | Yes | `int x{};` |
+| Uninitialized array | `int arr[10];` | Yes | `int arr[10]{};` |
+| Equals initialization | `int x = 5;` | Yes | `int x{5};` |
+| = {} syntax | `int x = {};` | Yes | `int x{};` |
+| Unsigned missing U | `unsigned u = 1;` | Yes | `unsigned u{1U};` |
+| **Integer to bool** | `bool b = 1;` | **Error** | Manual fix required |
+| **Float to int** | `int x = 3.14;` | Warn | Manual fix required |
+| **Constructor members** | `Widget() {}` | Warn | Add to initializer list |
+
+### Multiple Declarators
+
+```cpp
+// Before: Multiple variables on one line
+int a, b, c;
+
+// After: Each variable fixed separately
+int a{}, b{}, c{};
 ```
+
+### Smart Skip List
+
+Codelint skips these cases (intentionally not modified):
+
+| Category | Example | Reason |
+|----------|---------|--------|
+| For loops | `for (int i = 0; ...)` | C-style idiom |
+| Catch blocks | `catch (int e)` | Exception handling |
+| Macro definitions | Inside `#define` | Cannot modify |
+| Auto types | `auto x = func()` | Type deduction |
+| Extern | `extern int x;` | Definition elsewhere |
+| Type widening | `float f = 5` | Safe conversion |
+
+## Tips for AI Assistants
+
+1. **Always use `--fix`** for auto-fixable issues
+2. **Manually review Error-level warnings** (int→bool)
+3. **Check constructor initializer lists** for member warnings
+4. **Use `-p compile_commands.json`** for accurate analysis
+
+## Troubleshooting
+
+If you see "library not found" errors:
+
+```bash
+# Verify all libraries are present
+ldd bin/clang-tidy | grep "not found"
+
+# Check plugin dependencies
+ldd lib/codelint-plugin.so | grep "not found"
+```
+
+## Version
+
+Package version: ${VERSION}
+LLVM version: ${LLVM_VERSION}
 '''
     with open(f"{appdir_path}/README.md", 'w') as f:
         f.write(readme_content)
