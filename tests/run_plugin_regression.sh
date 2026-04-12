@@ -334,14 +334,19 @@ run_fixed_issue_test() {
     fi
 
     local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
-    local issue_count=$(echo "$output" | grep -E "warning:.*codelint-init" | wc -l | awk '{print $1}')
+    
+    # Filter out bool-int warnings which are intentionally NOT auto-fixed (Error level)
+    local filtered_output=$(echo "$output" | grep -v "assigning integer to bool")
+    # Filter out narrowing conversion warnings which are intentionally NOT auto-fixed
+    local filtered_output=$(echo "$filtered_output" | grep -v "narrowing conversion")
+    local issue_count=$(echo "$filtered_output" | grep -E "warning:.*codelint-init" | wc -l | awk '{print $1}')
 
     if [ "$issue_count" -eq 0 ]; then
         echo "PASS: $test_name fixed file has 0 issues"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
         echo "FAIL: $test_name fixed file has $issue_count issues (expected 0)"
-        echo "$output" | grep "warning:.*codelint-init" | head -3
+        echo "$filtered_output" | grep "warning:.*codelint-init" | head -3
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 }

@@ -310,10 +310,9 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
     const Type* SrcTy = InitExpr->getType().getTypePtr();
 
     if (DestTy->isIntegerType() && SrcTy->isFloatingType()) {
-      return;
-    }
-
-    if (DestTy->isFloatingType() && SrcTy->isIntegerType()) {
+      diag(VD->getLocation(),
+           "narrowing conversion from floating to integer; cannot use '{}' initialization")
+          << DiagnosticIDs::Warning;
       return;
     }
 
