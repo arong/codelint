@@ -33,3 +33,13 @@ void foo(int a, int b = 10) {
   // 应该跳过类型收紧
   int d = 3.14;
 }
+
+int Init() {
+  return 0;
+}
+
+void test_bool_from_int() {
+  bool ret = Init();
+  bool flag = 1;
+  bool ok = true;
+}

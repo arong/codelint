@@ -1,214 +1,127 @@
-# Codelint - clang-tidy Plugin for C++ Code Analysis
+# Codelint - clang-tidy Plugin for C++ Initialization Best Practices
 
-Codelint is now a **clang-tidy plugin** that provides custom checks for C++ code analysis. It was refactored from a standalone LibTooling binary to integrate seamlessly with clang-tidy's ecosystem.
+Codelint is a **clang-tidy plugin** that enforces modern C++ initialization best practices, helping you write safer and more consistent code.
 
-## Features
+## Why Codelint?
 
-### Three Custom Checks
+### Problems Codelint Solves
 
-| Check | Purpose | Auto-fix |
-|-------|---------|----------|
-| **codelint-init** | Variable initialization style (uninitialized, `=` → `{}`, unsigned suffix, macro skip, C-array) | ✅ Yes |
+| Problem | Risk | Codelint Solution |
+|---------|------|-------------------|
+| Uninitialized variables | Undefined behavior, crashes | Auto-fix with `{}` initialization |
+| `int x = 5` style | Less explicit, allows narrowing | Auto-fix to `int x{5}` |
+| `bool b = 1` | Dangerous implicit conversion | **Error warning** - force explicit |
+| Missing `U` suffix | Silent signed/unsigned bugs | Auto-fix with `U` suffix |
+| Uninitialized class members | Partial initialization bugs | Constructor initializer check |
+
+### Real-World Example
+
+```cpp
+// Before: Dangerous code that Codelint catches
+int Init() { return 0; }
+
+void process() {
+  int count;              // ❌ uninitialized - undefined behavior
+  int value = 3.14;       // ❌ narrowing conversion
+  unsigned u = 100;       // ❌ missing U suffix
+  bool ret = Init();      // ❌ ERROR: integer to bool is dangerous
+}
+
+// After: Safe code after Codelint auto-fix
+void process() {
+  int count{};            // ✅ explicitly initialized
+  int value{3};           // ✅ explicit integer (user fixed narrowing)
+  unsigned u{100U};       // ✅ proper U suffix
+  bool ret{true};         // ✅ explicit bool (user fixed conversion)
+}
+```
+
+## Checks
+
+| Check | What It Does | Auto-fix |
+|-------|--------------|----------|
+| **codelint-init** | Variable initialization style | ✅ Yes |
 | **codelint-global** | Global variable detection | ❌ No |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No |
 
-### codelint-init Features
+## codelint-init Features
 
-1. **Uninitialized variables** - Detects variables without explicit initialization
-2. **Equals syntax** - Suggests brace initialization `int x{5}` instead of `int x = 5`
-3. **Unsigned suffix** - Adds `U` suffix to unsigned integer literals
-4. **Macro skip** - Automatically skips variables defined inside macros
-5. **C-style arrays** - Provides specific warning for uninitialized C-style arrays
+### 1. Uninitialized Variables → `{}`
 
-## Installation
-
-### Prerequisites
-
-- **LLVM/Clang 21+** (with clang-tidy)
-- **CMake 3.20+**
-- **C++20 compiler**
-
-### Build the Plugin
-
-**macOS (Homebrew):**
-```bash
-cmake -B build \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
-
-cmake --build build -j$(sysctl -n hw.ncpu)
+```cpp
+int x;                  // → int x{};
+std::string str;        // → std::string str{};
+int arr[10];            // → int arr[10]{};
 ```
 
-**Linux:**
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
+### 2. Equals Syntax → Brace Initialization
+
+```cpp
+int x = 5;              // → int x{5};
+std::string s = "hi";   // → std::string s{"hi"};
 ```
 
-### Install
+### 3. Unsigned Suffix → `U`
 
-```bash
-sudo cp build/lib/codelint-plugin.so /usr/local/lib/clang-tidy/
+```cpp
+unsigned u = 1;         // → unsigned u{1U};
+uint64_t val = 42;      // → uint64_t val{42U};
 ```
 
-## Usage
+### 4. Bool from Integer → Error
 
-### Basic Usage
+```cpp
+bool ret = Init();      // ❌ Error: assigning integer to bool is dangerous
+bool flag = 1;          // ❌ Error: assigning integer to bool is dangerous
 
-```bash
-# Run all codelint checks
-clang-tidy --load=/usr/local/lib/clang-tidy/codelint-plugin.so \
-           --checks='codelint-*' \
-           main.cpp
-
-# With compilation database
-clang-tidy --load=codelint-plugin.so \
-           --checks='codelint-*' \
-           -p build \
-           src/**/*.cpp
-
-# Apply fixes automatically
-clang-tidy --load=codelint-plugin.so \
-           --checks='codelint-*' \
-           --fix \
-           main.cpp
+bool ok = true;         // ✅ OK: bool literal
+bool status{false};     // ✅ OK: brace init with bool
 ```
 
-### Configuration
+### 5. Smart Skip List
 
-Create a `.clang-tidy` file in your project root:
+Codelint skips cases where `=` syntax is intentional:
 
-```yaml
-Checks: '-*, codelint-*'
-WarningsAsErrors: 'codelint-init'
-HeaderFilterRegex: '.*'
+- **For loops**: `for (int i = 0; i < n; i++)` - C-style idiom
+- **Catch blocks**: `catch (int e)` - exception handling
+- **Macro definitions**: Variables inside `#define`
+- **Auto types**: Undeduced `auto` variables
+- **Narrowing conversions**: `int x = 3.14` - user intentionally narrowing
+- **Type widening**: `float f = 5` - safe implicit conversion
+
+### 6. Constructor Member Initialization
+
+```cpp
+class Widget {
+  int id;
+  std::string name;
+
+  Widget() {}           // ❌ Warning: 'id', 'name' not initialized
+
+  Widget() : id{}, name{} {}  // ✅ OK: all members initialized
+};
 ```
 
-### Selective Checks
+## Quick Start
 
 ```bash
-# Only initialization checks
-clang-tidy --load=codelint-plugin.so \
+# Build
+cmake -B build -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
+cmake --build build
+
+# Run on your code
+clang-tidy --load=build/lib/codelint-plugin.dylib \
            --checks='codelint-init' \
-           main.cpp
-
-# Only global/singleton checks
-clang-tidy --load=codelint-plugin.so \
-           --checks='codelint-global,codelint-singleton' \
+           --fix \
            src/**/*.cpp
 ```
 
-## Output Formats
+## Requirements
 
-clang-tidy supports multiple output formats:
-
-```bash
-# Default console output
-clang-tidy main.cpp
-
-# YAML export
-clang-tidy --export-fixes=fixes.yaml main.cpp
-
-# SARIF for CI/CD
-clang-tidy --checks='codelint-*' main.cpp | \
-  clang-tidy-to-sarif.py > results.sarif
-```
-
-## CI Integration
-
-### GitHub Actions
-
-```yaml
-name: lint
-on: [push, pull_request]
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install clang-tidy
-        run: sudo apt install clang-tidy
-      - name: Build plugin
-        run: cmake -B build && cmake --build build
-      - name: Run codelint
-        run: clang-tidy --load=build/lib/codelint-plugin.so \
-                        --checks='codelint-*' \
-                        -p build \
-                        src/**/*.cpp
-```
-
-## Documentation
-
-- **[codelint-init](docs/check-docs/codelint-init.md)** - Variable initialization checks
-- **[codelint-global](docs/check-docs/codelint-global.md)** - Global variable detection
-- **[codelint-singleton](docs/check-docs/codelint-singleton.md)** - Singleton pattern detection
-- **[clang-tidy Integration Guide](docs/clang-tidy-integration.md)** - Detailed usage instructions
-
-## Migration from Standalone
-
-If you were using the old standalone codelint binary:
-
-| Old Command | New Command |
-|-------------|-------------|
-| `codelint check_init src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-init' src/**/*.cpp` |
-| `codelint find_global src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-global' src/**/*.cpp` |
-| `codelint find_singleton src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-singleton' src/**/*.cpp` |
-
----
-
-## Documentation
-
-- **[codelint-init](docs/check-docs/codelint-init.md)** - Variable initialization checks
-- **[codelint-global](docs/check-docs/codelint-global.md)** - Global variable detection
-- **[codelint-singleton](docs/check-docs/codelint-singleton.md)** - Singleton pattern detection
-- **[clang-tidy Integration Guide](docs/clang-tidy-integration.md)** - Detailed usage instructions
-
----
-
-## Migration from Standalone
-
-If you were using the old standalone codelint binary:
-
-| Old Command | New Command |
-|-------------|-------------|
-| `codelint check_init src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-init' src/**/*.cpp` |
-| `codelint find_global src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-global' src/**/*.cpp` |
-| `codelint find_singleton src/` | `clang-tidy --load=codelint-plugin.so --checks='codelint-singleton' src/**/*.cpp` |
-
-### Deleted Features
-
-The following features were removed in the clang-tidy plugin migration:
-- ❌ Git scope filtering (`--scope modified`)
-- ❌ Const/constexpr suggestions (requires CFG analysis)
-- ❌ Custom output formats (use clang-tidy's native formats)
-- ❌ Custom CLI (use clang-tidy's CLI)
-
-## Packaging
-
-Project supports packaging as AppImage format for easy distribution:
-
-```bash
-# After building the project
-python3 packaging/scripts/create_appimage.py
-```
-
-This creates `codelint-VERSION-ARCH.AppImage` in the project root.
-
-See [packaging/README.md](packaging/README.md) for detailed packaging instructions.
-
-## Architecture
-
-```
-codelint-plugin.so
-├── CodelintModule.cpp          # Plugin registration
-└── checks/
-    ├── InitCheck.cpp           # Initialization checks
-    ├── GlobalCheck.cpp         # Global variable detection
-    └── SingletonCheck.cpp      # Singleton pattern detection
-```
+- LLVM/Clang 21+
+- CMake 3.20+
+- C++20 compiler
 
 ## License
 
 MIT License
-Test

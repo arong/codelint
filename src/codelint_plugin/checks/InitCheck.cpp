@@ -13,8 +13,9 @@ namespace clang::tidy {
 namespace codelint {
 
 void InitCheck::registerMatchers(MatchFinder* Finder) {
-  if (!Finder)
+  if (!Finder) {
     return;
+  }
 
   Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
                              unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
@@ -48,8 +49,9 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
 }
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
-  if (!Result.Context)
+  if (!Result.Context) {
     return;
+  }
 
   if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("uninit")) {
     checkUninitialized(VD, Result.Context);
@@ -67,14 +69,16 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
 }
 
 bool InitCheck::shouldSkipAuto(const VarDecl* VD) {
-  if (!VD)
+  if (!VD) {
     return false;
+  }
   return VD->getType()->isUndeducedAutoType();
 }
 
 bool InitCheck::shouldSkipUnion(const VarDecl* VD) {
-  if (!VD)
+  if (!VD) {
     return false;
+  }
   const auto* DC = VD->getDeclContext();
   if (const auto* RD = dyn_cast<RecordDecl>(DC)) {
     return RD->isUnion();
@@ -83,57 +87,40 @@ bool InitCheck::shouldSkipUnion(const VarDecl* VD) {
 }
 
 bool InitCheck::shouldSkipExtern(const VarDecl* VD) {
-  if (!VD)
+  if (!VD) {
     return false;
+  }
   return VD->getStorageClass() == SC_Extern;
 }
 
-bool InitCheck::isBraceInit(const VarDecl* VD) {
-  if (!VD)
-    return false;
-
-  const auto* Init = VD->getInit();
-  if (!Init)
-    return false;
-
-  if (isa<InitListExpr>(Init))
-    return true;
-
-  if (const auto* CCE = dyn_cast<CXXConstructExpr>(Init)) {
-    if (CCE->isListInitialization())
-      return true;
-  }
-
-  if (const auto* CXXTE = dyn_cast<CXXTemporaryObjectExpr>(Init)) {
-    if (CXXTE->isListInitialization())
-      return true;
-  }
-
-  return false;
-}
-
 bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
-  if (!VD)
+  if (!VD) {
     return false;
+  }
 
-  if (!VD->hasInit())
+  if (!VD->hasInit()) {
     return false;
+  }
 
   auto InitStyle = VD->getInitStyle();
-  if (InitStyle == VarDecl::CInit || InitStyle == VarDecl::ListInit)
+  if (InitStyle == VarDecl::CInit || InitStyle == VarDecl::ListInit) {
     return true;
+  }
 
   const Expr* Init = VD->getInit();
-  if (!Init)
+  if (!Init) {
     return false;
+  }
 
   const Expr* InitExpr = Init->IgnoreImplicit();
 
   if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
-    if (CCE->isListInitialization())
+    if (CCE->isListInitialization()) {
       return true;
-    if (CCE->getNumArgs() > 0)
+    }
+    if (CCE->getNumArgs() > 0) {
       return true;
+    }
     return false;
   }
 
@@ -145,24 +132,28 @@ bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
 }
 
 bool InitCheck::shouldSkipEnumClass(const VarDecl* VD) {
-  if (!VD)
+  if (!VD) {
     return false;
+  }
   return VD->getType()->isScopedEnumeralType();
 }
 
 bool InitCheck::hasExplicitInitializer(const FieldDecl* FD) {
-  if (!FD)
+  if (!FD) {
     return false;
+  }
 
-  if (!FD->hasInClassInitializer())
+  if (!FD->hasInClassInitializer()) {
     return false;
+  }
 
   return true;
 }
 
 bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
-  if (!VD || !Ctx)
+  if (!VD || !Ctx) {
     return false;
+  }
 
   auto& SM = Ctx->getSourceManager();
   SourceLocation Loc = VD->getLocation();
@@ -172,24 +163,30 @@ bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
 }
 
 void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
-  if (!FD || !Ctx)
+  if (!FD || !Ctx) {
     return;
+  }
 
   const auto Name = FD->getName();
-  if (Name.empty())
+  if (Name.empty()) {
     return;
+  }
 
-  if (hasExplicitInitializer(FD))
+  if (hasExplicitInitializer(FD)) {
     return;
+  }
 
-  if (FD->isBitField())
+  if (FD->isBitField()) {
     return;
+  }
 
-  if (FD->getType()->isScopedEnumeralType())
+  if (FD->getType()->isScopedEnumeralType()) {
     return;
+  }
 
-  if (FD->getType()->isReferenceType())
+  if (FD->getType()->isReferenceType()) {
     return;
+  }
 
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
@@ -201,22 +198,28 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
 }
 
 void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
-  if (!VD || !Ctx)
+  if (!VD || !Ctx) {
     return;
+  }
 
   const auto Name = VD->getName();
-  if (Name.empty())
+  if (Name.empty()) {
     return;
+  }
 
   // Skip checking if variable is inside a macro
-  if (isInsideMacro(VD, Ctx))
+  if (isInsideMacro(VD, Ctx)) {
     return;
+  }
 
-  if (shouldSkipAuto(VD) || shouldSkipUnion(VD) || shouldSkipExtern(VD) || shouldSkipEnumClass(VD))
+  if (shouldSkipAuto(VD) || shouldSkipUnion(VD) || shouldSkipExtern(VD) ||
+      shouldSkipEnumClass(VD)) {
     return;
+  }
 
-  if (hasExplicitInitializer(VD))
+  if (hasExplicitInitializer(VD)) {
     return;
+  }
 
   // Check if this is a reference type - needs special handling since references must be initialized
   if (VD->getType()->isReferenceType()) {
@@ -244,10 +247,11 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
         TL = ATL.getElementLoc();
         EndLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
       }
-      if (EndLoc.isInvalid())
+      if (EndLoc.isInvalid()) {
         EndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
-      else
+      } else {
         EndLoc = Lexer::getLocForEndOfToken(EndLoc, 0, SM, LangOpts);
+      }
     } else {
       EndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
     }
@@ -265,33 +269,36 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
 }
 
 void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
-  if (!VD || !Ctx)
+  if (!VD || !Ctx) {
     return;
+  }
 
   const auto Name = VD->getName();
-  if (Name.empty())
+  if (Name.empty()) {
     return;
+  }
 
   auto InitStyle = VD->getInitStyle();
-  if (InitStyle != VarDecl::CInit && InitStyle != VarDecl::CallInit)
+  if (InitStyle != VarDecl::CInit && InitStyle != VarDecl::CallInit) {
     return;
+  }
 
-  if (shouldSkipAuto(VD))
+  if (shouldSkipAuto(VD)) {
     return;
-
-  if (isBraceInit(VD))
-    return;
+  }
 
   const auto* Init = VD->getInit();
-  if (!Init)
+  if (!Init) {
     return;
+  }
 
   bool IsCallInit = (InitStyle == VarDecl::CallInit);
   if (IsCallInit) {
     const Expr* InitExpr = Init->IgnoreImplicit();
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
-      if (CCE->isListInitialization())
+      if (CCE->isListInitialization()) {
         return;
+      }
     } else {
       return;
     }
@@ -302,14 +309,23 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
     const Type* DestTy = VD->getType().getTypePtr();
     const Type* SrcTy = InitExpr->getType().getTypePtr();
 
-    if (DestTy->isIntegerType() && SrcTy->isFloatingType())
+    if (DestTy->isIntegerType() && SrcTy->isFloatingType()) {
+      diag(VD->getLocation(),
+           "narrowing conversion from floating to integer; cannot use '{}' initialization")
+          << DiagnosticIDs::Warning;
       return;
+    }
 
-    if (DestTy->isFloatingType() && SrcTy->isIntegerType())
+    if (DestTy->isBooleanType() && SrcTy->isIntegerType() && !SrcTy->isBooleanType()) {
+      diag(VD->getLocation(),
+           "assigning integer to bool is dangerous; use explicit comparison or bool literal")
+          << DiagnosticIDs::Error;
       return;
+    }
 
-    if (DestTy->isBooleanType() && SrcTy->isIntegerType())
+    if (DestTy->isBooleanType() && SrcTy->isBooleanType()) {
       return;
+    }
 
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
       if (CCE->isListInitialization()) {
@@ -355,8 +371,9 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
         break;
       }
     }
-    if (!hasSuffix)
+    if (!hasSuffix) {
       ClosingBrace = "U}";
+    }
   }
 
   if (IsCallInit) {
@@ -378,33 +395,39 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
 }
 
 void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
-  if (!VD || !Ctx)
+  if (!VD || !Ctx) {
     return;
+  }
 
   const auto Name = VD->getName();
-  if (Name.empty())
+  if (Name.empty()) {
     return;
+  }
 
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
 
   const auto* Init = VD->getInit();
-  if (!Init)
+  if (!Init) {
     return;
+  }
 
   const auto* IL = dyn_cast<IntegerLiteral>(Init);
-  if (!IL)
+  if (!IL) {
     return;
+  }
 
   const auto InitRange = Init->getSourceRange();
   auto ValueText = Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SM, LangOpts);
 
-  if (ValueText.empty() || ValueText.size() > 64)
+  if (ValueText.empty() || ValueText.size() > 64) {
     return;
+  }
 
   for (char C : ValueText) {
-    if (C == 'U' || C == 'u')
+    if (C == 'U' || C == 'u') {
       return;
+    }
   }
 
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
@@ -414,25 +437,31 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
 }
 
 void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
-  if (!VD || !Ctx)
+  if (!VD || !Ctx) {
     return;
+  }
 
   const auto Name = VD->getName();
-  if (Name.empty())
+  if (Name.empty()) {
     return;
+  }
 
-  if (VD->getInitStyle() != VarDecl::CInit)
+  if (VD->getInitStyle() != VarDecl::CInit) {
     return;
+  }
 
   const auto* Init = VD->getInit();
-  if (!Init)
+  if (!Init) {
     return;
+  }
 
-  if (!isa<InitListExpr>(Init))
+  if (!isa<InitListExpr>(Init)) {
     return;
+  }
 
-  if (isInsideMacro(VD, Ctx))
+  if (isInsideMacro(VD, Ctx)) {
     return;
+  }
 
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
@@ -446,8 +475,9 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
         TL = ATL.getElementLoc();
         VarEndLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
       }
-      if (VarEndLoc.isInvalid())
+      if (VarEndLoc.isInvalid()) {
         VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+      }
     } else {
       VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
     }
@@ -464,24 +494,28 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
 
 void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
                                                                 ASTContext* Ctx) {
-  if (!Ctor || !Ctx || Ctor->isImplicit())
+  if (!Ctor || !Ctx || Ctor->isImplicit()) {
     return;
+  }
 
   const CXXRecordDecl* Record = Ctor->getParent();
-  if (!Record)
+  if (!Record) {
     return;
+  }
 
   // Collection to store member variables that are not initialized in this constructor
   llvm::SmallVector<const FieldDecl*, 16> UninitializedMembers;
 
   for (const FieldDecl* Field : Record->fields()) {
     // Skip members with in-class initializers (already handled by other checks)
-    if (Field->hasInClassInitializer())
+    if (Field->hasInClassInitializer()) {
       continue;
+    }
 
     // Skip bit fields
-    if (Field->isBitField())
+    if (Field->isBitField()) {
       continue;
+    }
 
     // TODO: Need to determine how to properly identify static data members in LLVM 21+
     // For now, we'll skip this check, which means static members might get reported
