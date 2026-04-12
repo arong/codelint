@@ -31,10 +31,10 @@ detect_coverage_build() {
 
 generate_coverage_report() {
     local LLVM_PROFDATA LLVM_COV
-    
+
     LLVM_PROFDATA=$(which llvm-profdata 2>/dev/null || echo "")
     LLVM_COV=$(which llvm-cov 2>/dev/null || echo "")
-    
+
     if [ -z "$LLVM_PROFDATA" ] || [ -z "$LLVM_COV" ]; then
         if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
             LLVM_PROFDATA="/opt/homebrew/opt/llvm@21/bin/llvm-profdata"
@@ -44,27 +44,27 @@ generate_coverage_report() {
             LLVM_COV="/usr/lib/llvm-21/bin/llvm-cov"
         fi
     fi
-    
+
     if [ -z "$LLVM_PROFDATA" ] || [ -z "$LLVM_COV" ]; then
         echo "WARNING: llvm-profdata/llvm-cov not found, skipping coverage report"
         return
     fi
-    
+
     local profraw_files=$(ls "$PROJECT_ROOT"/*.profraw 2>/dev/null || echo "")
     if [ -z "$profraw_files" ]; then
         echo "WARNING: No coverage data collected"
         return
     fi
-    
+
     echo "Merging coverage data..."
     "$LLVM_PROFDATA" merge -o "$COVERAGE_DIR/codelint.profdata" "$PROJECT_ROOT"/*.profraw
-    
+
     echo "Generating coverage report..."
     "$LLVM_COV" report "$PLUGIN" \
         -instr-profile="$COVERAGE_DIR/codelint.profdata" \
         -ignore-filename-regex="(tests|build|CMakeFiles|^/opt/|^/usr/lib/llvm|^/Library/)" \
         > "$COVERAGE_DIR/coverage_summary.txt"
-    
+
     "$LLVM_COV" show "$PLUGIN" \
         -instr-profile="$COVERAGE_DIR/codelint.profdata" \
         -format=html \
@@ -73,12 +73,12 @@ generate_coverage_report() {
         -show-line-counts-or-regions \
         -show-expansions \
         -path-equivalence="$PROJECT_ROOT/src,"src
-    
+
     echo ""
     cat "$COVERAGE_DIR/coverage_summary.txt"
     echo ""
     echo "HTML report: $COVERAGE_DIR/html/index.html"
-    
+
     rm -f "$PROJECT_ROOT"/*.profraw
 }
 
@@ -334,7 +334,7 @@ run_fixed_issue_test() {
     fi
 
     local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks='codelint-init' "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
-    
+
     # Filter out bool-int warnings which are intentionally NOT auto-fixed (Error level)
     local filtered_output=$(echo "$output" | grep -v "assigning integer to bool")
     # Filter out narrowing conversion warnings which are intentionally NOT auto-fixed

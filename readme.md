@@ -95,9 +95,9 @@ Codelint skips cases where `=` syntax is intentional:
 class Widget {
   int id;
   std::string name;
-  
+
   Widget() {}           // ❌ Warning: 'id', 'name' not initialized
-  
+
   Widget() : id{}, name{} {}  // ✅ OK: all members initialized
 };
 ```
