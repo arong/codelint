@@ -86,8 +86,12 @@
    26 |     int m1, m2, m3;     // All three should trigger warnings
       |                 ^
       |                   {}
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:27:10: warning: variable should use '{}' syntax for initialization [codelint-init]
+   27 |     bool b1 = true, b2; // Both should trigger warnings
+      |          ^  ~
+      |            {      }
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:27:21: warning: variable is not explicitly initialized [codelint-init]
-   27 |     bool b1 = true, b2; // Only b2 should trigger warning
+   27 |     bool b1 = true, b2; // Both should trigger warnings
       |                     ^
       |                       {}
 /Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/multi_declarator.cpp:31:5: warning: variable is not explicitly initialized [codelint-init]

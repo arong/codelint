@@ -323,10 +323,6 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
       return;
     }
 
-    if (DestTy->isBooleanType() && SrcTy->isBooleanType()) {
-      return;
-    }
-
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
       if (CCE->isListInitialization()) {
         auto& SM = Ctx->getSourceManager();
