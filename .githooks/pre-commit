@@ -10,8 +10,8 @@ echo "🔍 Running pre-commit checks..."
 # ========================================
 echo "📝 Checking C++ formatting..."
 
-# Get staged C++ files
-STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' || true)
+# Get staged C++ files (exclude test fixture files)
+STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' | grep -v 'tests/CodeLintTest/src/init_checker/fixed/' || true)
 
 if [[ -n "$STAGED_CPP" ]]; then
     if [[ ! -x "$CLANG_FORMAT" ]]; then
