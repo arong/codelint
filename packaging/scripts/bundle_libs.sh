@@ -147,9 +147,26 @@ done
 
 # Also create unversioned symlinks for compatibility
 cd "${PACKAGE_DIR}/lib"
-ln -sf libclang-cpp.so.${LLVM_VERSION}* libclang-cpp.so 2>/dev/null || true
-ln -sf libLLVM-${LLVM_VERSION}.so libLLVM.so 2>/dev/null || true
-ln -sf libclang.so.${LLVM_VERSION}* libclang.so 2>/dev/null || true
+
+# Create symlinks only if target files exist
+if [ -f "libclang-cpp.so.${LLVM_VERSION}" ]; then
+    ln -sf libclang-cpp.so.${LLVM_VERSION} libclang-cpp.so
+fi
+if [ -f "libclang-cpp.so.${LLVM_VERSION}.1" ]; then
+    ln -sf libclang-cpp.so.${LLVM_VERSION}.1 libclang-cpp.so
+fi
+
+if [ -f "libLLVM-${LLVM_VERSION}.so" ]; then
+    ln -sf libLLVM-${LLVM_VERSION}.so libLLVM.so
+fi
+
+if [ -f "libclang.so.${LLVM_VERSION}" ]; then
+    ln -sf libclang.so.${LLVM_VERSION} libclang.so
+fi
+if [ -f "libclang.so.${LLVM_VERSION}.1" ]; then
+    ln -sf libclang.so.${LLVM_VERSION}.1 libclang.so
+fi
+
 cd - > /dev/null
 
 # Step 5: Create wrapper script
