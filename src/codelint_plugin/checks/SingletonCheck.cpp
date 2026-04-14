@@ -1,5 +1,6 @@
 #include "codelint/checks/SingletonCheck.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Basic/Diagnostic.h"
 
 namespace clang::tidy {
 namespace codelint {
@@ -18,6 +19,10 @@ void SingletonCheck::registerMatchers(MatchFinder* Finder) {
 }
 
 void SingletonCheck::check(const MatchFinder::MatchResult& Result) {
+  if (Result.Context->getDiagnostics().hasErrorOccurred()) {
+    return;
+  }
+
   const auto* FD = Result.Nodes.getNodeAs<clang::FunctionDecl>("singletonFunc");
   if (!FD) {
     return;

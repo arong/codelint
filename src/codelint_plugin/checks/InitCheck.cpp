@@ -3,6 +3,7 @@
 #include "clang/AST/DeclCXX.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/Lexer.h"
 #include "llvm/ADT/SmallVector.h"
@@ -50,6 +51,10 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
   if (!Result.Context) {
+    return;
+  }
+
+  if (Result.Context->getDiagnostics().hasErrorOccurred()) {
     return;
   }
 
@@ -135,7 +140,37 @@ bool InitCheck::shouldSkipEnumClass(const VarDecl* VD) {
   if (!VD) {
     return false;
   }
-  return VD->getType()->isScopedEnumeralType();
+  if (!VD->getType()->isScopedEnumeralType()) {
+    return false;
+  }
+  return !isEnumZeroValidType(VD->getType().getTypePtr());
+}
+
+bool InitCheck::isEnumZeroValidType(const Type* Ty) {
+  if (!Ty || !Ty->isEnumeralType()) {
+    return false;
+  }
+
+  const EnumDecl* Enum = nullptr;
+  if (const auto* EnumTy = Ty->getAs<EnumType>()) {
+    Enum = EnumTy->getDecl();
+  } else if (const auto* ElabTy = Ty->getAs<ElaboratedType>()) {
+    if (const auto* InnerEnumTy = ElabTy->getNamedType()->getAs<EnumType>()) {
+      Enum = InnerEnumTy->getDecl();
+    }
+  }
+
+  if (!Enum) {
+    return false;
+  }
+
+  for (const auto* EnumConst : Enum->enumerators()) {
+    if (EnumConst->getInitVal().isZero()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 bool InitCheck::hasExplicitInitializer(const FieldDecl* FD) {
@@ -180,7 +215,7 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
     return;
   }
 
-  if (FD->getType()->isScopedEnumeralType()) {
+  if (FD->getType()->isScopedEnumeralType() && !isEnumZeroValidType(FD->getType().getTypePtr())) {
     return;
   }
 

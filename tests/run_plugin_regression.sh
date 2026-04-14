@@ -140,7 +140,26 @@ if [ -z "$CLANG_TIDY" ]; then
     exit 1
 fi
 
+CLANG_FORMAT_BIN=clang-format
+if command -v clang-format-21 > /dev/null 2>&1; then
+    CLANG_FORMAT_BIN=clang-format-21
+fi
+
+CLANG_FORMAT=$(which $CLANG_FORMAT_BIN 2>/dev/null || echo "")
+if [ -z "$CLANG_FORMAT" ]; then
+    if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
+        CLANG_FORMAT="/opt/homebrew/opt/llvm@21/bin/clang-format"
+    elif [ -d "/usr/lib/llvm-21/bin" ]; then
+        CLANG_FORMAT="/usr/lib/llvm-21/bin/clang-format"
+    fi
+fi
+
+if [ -z "$CLANG_FORMAT" ]; then
+    echo "WARNING: clang-format not found, Phase 3 tests may fail due to formatting differences"
+fi
+
 echo "Using clang-tidy: $CLANG_TIDY"
+echo "Using clang-format: $CLANG_FORMAT"
 echo "Using plugin: $PLUGIN"
 echo "Using compile_commands: $COMPILE_COMMANDS"
 echo ""
@@ -213,24 +232,32 @@ run_fix_test() {
 
     "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
 
-    if diff -q "$expected_file" "$temp_file" > /dev/null 2>&1; then
+    # Apply clang-format to both files to eliminate formatting differences
+    local temp_formatted=$(mktemp /tmp/codelint_formatted.XXXXXX.cpp)
+    local expected_formatted=$(mktemp /tmp/codelint_expected_formatted.XXXXXX.cpp)
+    cp "$temp_file" "$temp_formatted"
+    cp "$expected_file" "$expected_formatted"
+    "$CLANG_FORMAT" -i "$temp_formatted" 2>/dev/null || true
+    "$CLANG_FORMAT" -i "$expected_formatted" 2>/dev/null || true
+
+    if diff -q "$expected_formatted" "$temp_formatted" > /dev/null 2>&1; then
         echo "PASS: $checker/$test_name - Fixed output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
         echo "FAIL: $checker/$test_name - Fixed output does NOT match expected"
         echo ""
-        echo "Expected (fixed/${test_name}.cpp):"
-        head -10 "$expected_file"
+        echo "Expected (fixed/${test_name}.cpp after clang-format):"
+        head -10 "$expected_formatted"
         echo ""
-        echo "Got (after clang-tidy --fix):"
-        head -10 "$temp_file"
+        echo "Got (after clang-tidy --fix + clang-format):"
+        head -10 "$temp_formatted"
         echo ""
         echo "Diff:"
-        diff "$expected_file" "$temp_file" | head -20
+        diff "$expected_formatted" "$temp_formatted" | head -20
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 
-    rm -f "$temp_file"
+    rm -f "$temp_file" "$temp_formatted" "$expected_formatted"
 }
 
 # Test: Verify clang-tidy warning output matches expected
@@ -375,6 +402,48 @@ run_fixed_issue_test() {
     fi
 }
 
+run_compilation_error_test() {
+    local checker="$1"
+    local test_name="$2"
+    local TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$checker"
+    local src_file="$TEST_DIR/src/${test_name}.cpp"
+    local check_flag=$(get_check_flag "$checker")
+
+    TEST_COUNT=$((TEST_COUNT + 1))
+    echo "------------------------------------------"
+    echo "Test $TEST_COUNT: $checker/$test_name (compilation error - no false suggestions)"
+    echo "------------------------------------------"
+
+    if [ ! -f "$src_file" ]; then
+        echo "SKIP: Source file not found: $src_file"
+        TEST_COUNT=$((TEST_COUNT - 1))
+        return
+    fi
+
+    local temp_full="/tmp/codelint_error_full_$$.txt"
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
+
+    local has_compilation_error=0
+    if grep -q "file not found" "$temp_full" 2>/dev/null; then
+        has_compilation_error=1
+    fi
+
+    local codelint_warnings=$(grep "warning:.*\[codelint-.*\]" "$temp_full" 2>/dev/null | wc -l | tr -d ' ')
+
+    rm -f "$temp_full"
+
+    if [ "$has_compilation_error" -eq 1 ] && [ "$codelint_warnings" -eq 0 ]; then
+        echo "PASS: $checker/$test_name correctly skips analysis on compilation error"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    elif [ "$has_compilation_error" -eq 0 ]; then
+        echo "FAIL: $checker/$test_name - expected compilation error not detected"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    else
+        echo "FAIL: $checker/$test_name - produced $codelint_warnings false suggestion(s) on compilation error"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+}
+
 # Run tests for each checker
 CHECKERS=("init_checker" "global_checker" "singleton_checker")
 
@@ -438,6 +507,15 @@ for CHECKER in "${CHECKERS[@]}"; do
                 fi
             fi
         done
+    fi
+
+    echo ""
+    echo "=== Phase 4: Verify compilation error handling ==="
+    echo ""
+
+    error_test_file="$TEST_DIR/src/missing_header.cpp"
+    if [ -f "$error_test_file" ]; then
+        run_compilation_error_test "$CHECKER" "missing_header"
     fi
 done
 
