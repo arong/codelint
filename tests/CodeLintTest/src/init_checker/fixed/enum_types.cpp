@@ -21,8 +21,8 @@ enum class Status {
   Fail = 1,
 };
 
-Status sts{};            // shall be `{}` inited
-Status sts1{Status::OK}; // shall be `{}` inited
+Status sts{};              // shall be `{}` inited
+Status sts1{Status::OK};   // shall be `{}` inited
 Status sts2{Status::Fail}; // OK
 
 void test_local_enum() {
