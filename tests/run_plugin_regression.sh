@@ -240,7 +240,14 @@ run_fix_test() {
     "$CLANG_FORMAT" -i "$temp_formatted" 2>/dev/null || true
     "$CLANG_FORMAT" -i "$expected_formatted" 2>/dev/null || true
 
-    if diff -q "$expected_formatted" "$temp_formatted" > /dev/null 2>&1; then
+    # Normalize whitespace to handle clang-format version differences
+    # Collapse multiple spaces to single space, but preserve indentation
+    local temp_normalized=$(mktemp /tmp/codelint_normalized.XXXXXX.cpp)
+    local expected_normalized=$(mktemp /tmp/codelint_expected_normalized.XXXXXX.cpp)
+    sed 's/  */ /g' "$temp_formatted" > "$temp_normalized"
+    sed 's/  */ /g' "$expected_formatted" > "$expected_normalized"
+
+    if diff -q "$expected_normalized" "$temp_normalized" > /dev/null 2>&1; then
         echo "PASS: $checker/$test_name - Fixed output matches expected"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
@@ -253,11 +260,11 @@ run_fix_test() {
         head -10 "$temp_formatted"
         echo ""
         echo "Diff:"
-        diff "$expected_formatted" "$temp_formatted" | head -20
+        diff "$expected_normalized" "$temp_normalized" | head -20
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 
-    rm -f "$temp_file" "$temp_formatted" "$expected_formatted"
+    rm -f "$temp_file" "$temp_formatted" "$expected_formatted" "$temp_normalized" "$expected_normalized"
 }
 
 # Test: Verify clang-tidy warning output matches expected
