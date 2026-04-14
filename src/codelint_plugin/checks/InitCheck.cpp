@@ -197,6 +197,29 @@ bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
   return SM.isMacroBodyExpansion(Loc) || SM.isMacroArgExpansion(Loc);
 }
 
+bool InitCheck::hasInitializerListConstructor(const CXXRecordDecl* Record) {
+  if (!Record) {
+    return false;
+  }
+
+  for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+    if (Ctor->isExplicit()) {
+      continue;
+    }
+
+    for (const ParmVarDecl* Param : Ctor->parameters()) {
+      const Type* ParamTy = Param->getType().getTypePtr();
+      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>()) {
+        if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
   if (!FD || !Ctx) {
     return;
@@ -369,6 +392,12 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
             << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc),
                                             "");
         return;
+      }
+
+      if (const CXXRecordDecl* Record = CCE->getConstructor()->getParent()) {
+        if (hasInitializerListConstructor(Record)) {
+          return;
+        }
       }
     }
   }

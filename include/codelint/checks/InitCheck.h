@@ -34,6 +34,7 @@ private:
   bool hasExplicitInitializer(const VarDecl* VD);
   bool hasExplicitInitializer(const FieldDecl* FD);
   bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
+  bool hasInitializerListConstructor(const CXXRecordDecl* Record);
 };
 
 } // namespace codelint
