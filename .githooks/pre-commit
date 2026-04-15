@@ -10,8 +10,8 @@ echo "🔍 Running pre-commit checks..."
 # ========================================
 echo "📝 Checking C++ formatting..."
 
-# Get staged C++ files
-STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' || true)
+# Get staged C++ files (exclude test fixture files)
+STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' | grep -v 'tests/CodeLintTest/src/init_checker/fixed/' || true)
 
 if [[ -n "$STAGED_CPP" ]]; then
     if [[ ! -x "$CLANG_FORMAT" ]]; then
@@ -50,23 +50,75 @@ fi
 echo "✅ No trailing whitespace"
 
 # ========================================
-# Check 3: Missing trailing newline
+# Check 3: Trailing newlines (missing & multiple)
 # ========================================
 echo "📝 Checking trailing newlines..."
 
 errors=0
 while IFS= read -r -d '' file; do
+    file_size=$(wc -c < "$file" | tr -d " ")
+    
+    # Skip empty files (0 bytes or 1 byte newline only)
+    if [ "$file_size" -eq 0 ] || [ "$file_size" -eq 1 ]; then
+        continue
+    fi
+    
+    # Check for multiple trailing newlines (0a0a)
+    last_two=$(tail -c 2 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
+    if [ "$last_two" = "0a0a" ]; then
+        echo "❌ Multiple trailing newlines: $file"
+        errors=$((errors + 1))
+        continue
+    fi
+    
+    # Check for missing trailing newline
     last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
-    if [ "$last" != "0a" ] && [ -s "$file" ]; then
+    if [ "$last" != "0a" ]; then
         echo "❌ Missing trailing newline: $file"
         errors=$((errors + 1))
     fi
-done < <(find . -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.py' \) ! -path './.git/*' ! -path './build/*' ! -path './.sisyphus/*' -print0)
+done < <(find . -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.py' \) ! -path './.git/*' ! -path './build/*' ! -path './.sisyphus/*' ! -path './tests/CodeLintTest/build/*' ! -path './tests/CodeLintTest/src/init_checker/check-output/*' -print0)
 
 if [ $errors -ne 0 ]; then
-    echo "❌ Error: $errors file(s) missing trailing newline"
+    echo "❌ Error: $errors file(s) have trailing newline issues"
     exit 1
 fi
-echo "✅ All files have trailing newlines"
+echo "✅ All files have correct trailing newlines"
+
+# ========================================
+# Check 4: Sensitive files detection
+# ========================================
+echo "🔒 Checking for sensitive files..."
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+SENSITIVE_PATTERNS=(
+    ".env"
+    ".env.local"
+    ".env.*.local"
+    "credentials"
+    "secrets"
+    "*.pem"
+    "*.key"
+    "*.p12"
+    "*.pkcs12"
+)
+
+sensitive_found=0
+for file in $STAGED_FILES; do
+    for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+        if [[ "$file" == *"$pattern"* ]]; then
+            echo "❌ Sensitive file detected: $file"
+            sensitive_found=$((sensitive_found + 1))
+        fi
+    done
+done
+
+if [ $sensitive_found -ne 0 ]; then
+    echo "❌ Error: Found $sensitive_found sensitive file(s)"
+    echo "Please remove sensitive files before committing"
+    exit 1
+fi
+echo "✅ No sensitive files detected"
 
 echo "✨ All pre-commit checks passed!"

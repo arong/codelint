@@ -1,6 +1,7 @@
 #include "codelint/checks/GlobalCheck.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/Basic/Diagnostic.h"
 
 namespace clang::tidy {
 namespace codelint {
@@ -19,6 +20,10 @@ void GlobalCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
 }
 
 void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
+  if (Result.Context->getDiagnostics().hasErrorOccurred()) {
+    return;
+  }
+
   const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("globalVar");
   if (!VD || VD->isImplicit() || VD->getName().empty()) {
     return;

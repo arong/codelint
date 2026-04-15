@@ -24,7 +24,7 @@ class TestClass {
 public:
   void method() {
     int m1{}, m2{}, m3{};     // All three should trigger warnings
-    bool b1 = true, b2{}; // Only b2 should trigger warning
+    bool b1{true}, b2{}; // Both should trigger warnings
   }
 };
 

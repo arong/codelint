@@ -30,9 +30,11 @@ private:
   bool shouldSkipUnion(const VarDecl* VD);
   bool shouldSkipExtern(const VarDecl* VD);
   bool shouldSkipEnumClass(const VarDecl* VD);
+  bool isEnumZeroValidType(const Type* Ty);
   bool hasExplicitInitializer(const VarDecl* VD);
   bool hasExplicitInitializer(const FieldDecl* FD);
   bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
+  bool hasInitializerListConstructor(const CXXRecordDecl* Record);
 };
 
 } // namespace codelint

@@ -3,6 +3,7 @@
 #include "clang/AST/DeclCXX.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/Lexer.h"
 #include "llvm/ADT/SmallVector.h"
@@ -20,7 +21,7 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
   Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
                              unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
                              unless(hasAncestor(recordDecl(isUnion()))),
-                             unless(hasAncestor(cxxCatchStmt())))
+                             unless(hasParent(cxxCatchStmt())))
                          .bind("uninit"),
                      this);
 
@@ -50,6 +51,10 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
   if (!Result.Context) {
+    return;
+  }
+
+  if (Result.Context->getDiagnostics().hasErrorOccurred()) {
     return;
   }
 
@@ -135,7 +140,37 @@ bool InitCheck::shouldSkipEnumClass(const VarDecl* VD) {
   if (!VD) {
     return false;
   }
-  return VD->getType()->isScopedEnumeralType();
+  if (!VD->getType()->isScopedEnumeralType()) {
+    return false;
+  }
+  return !isEnumZeroValidType(VD->getType().getTypePtr());
+}
+
+bool InitCheck::isEnumZeroValidType(const Type* Ty) {
+  if (!Ty || !Ty->isEnumeralType()) {
+    return false;
+  }
+
+  const EnumDecl* Enum = nullptr;
+  if (const auto* EnumTy = Ty->getAs<EnumType>()) {
+    Enum = EnumTy->getDecl();
+  } else if (const auto* ElabTy = Ty->getAs<ElaboratedType>()) {
+    if (const auto* InnerEnumTy = ElabTy->getNamedType()->getAs<EnumType>()) {
+      Enum = InnerEnumTy->getDecl();
+    }
+  }
+
+  if (!Enum) {
+    return false;
+  }
+
+  for (const auto* EnumConst : Enum->enumerators()) {
+    if (EnumConst->getInitVal().isZero()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 bool InitCheck::hasExplicitInitializer(const FieldDecl* FD) {
@@ -162,6 +197,29 @@ bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
   return SM.isMacroBodyExpansion(Loc) || SM.isMacroArgExpansion(Loc);
 }
 
+bool InitCheck::hasInitializerListConstructor(const CXXRecordDecl* Record) {
+  if (!Record) {
+    return false;
+  }
+
+  for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+    if (Ctor->isExplicit()) {
+      continue;
+    }
+
+    for (const ParmVarDecl* Param : Ctor->parameters()) {
+      const Type* ParamTy = Param->getType().getTypePtr();
+      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>()) {
+        if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
   if (!FD || !Ctx) {
     return;
@@ -180,7 +238,7 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
     return;
   }
 
-  if (FD->getType()->isScopedEnumeralType()) {
+  if (FD->getType()->isScopedEnumeralType() && !isEnumZeroValidType(FD->getType().getTypePtr())) {
     return;
   }
 
@@ -323,10 +381,6 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
       return;
     }
 
-    if (DestTy->isBooleanType() && SrcTy->isBooleanType()) {
-      return;
-    }
-
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
       if (CCE->isListInitialization()) {
         auto& SM = Ctx->getSourceManager();
@@ -338,6 +392,47 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
             << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc),
                                             "");
         return;
+      }
+
+      if (CCE->getConstructor()) {
+        const CXXRecordDecl* Record = CCE->getConstructor()->getParent();
+        if (Record) {
+          for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+            if (Ctor->isExplicit()) {
+              continue;
+            }
+            for (const ParmVarDecl* Param : Ctor->parameters()) {
+              const Type* ParamTy = Param->getType().getTypePtr();
+              if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>()) {
+                if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
+                  auto TemplateArgs = TST->template_arguments();
+                  if (!TemplateArgs.empty()) {
+                    const TemplateArgument& Arg = TemplateArgs[0];
+                    QualType InitListElemType = Arg.getAsType();
+                    const Type* ArgTy = InitListElemType.getTypePtr();
+
+                    if (CCE->getNumArgs() > 0) {
+                      const Expr* ArgExpr = CCE->getArg(0);
+                      const Type* ExprTy = ArgExpr->getType().getTypePtr();
+                      if (ExprTy->isIntegerType() && ArgTy->isIntegerType()) {
+                        return;
+                      }
+                      if (ExprTy->isFloatingType() && ArgTy->isFloatingType()) {
+                        return;
+                      }
+                      if (ExprTy->isPointerType() && ArgTy->isPointerType()) {
+                        return;
+                      }
+                      if (ExprTy == ArgTy) {
+                        return;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
