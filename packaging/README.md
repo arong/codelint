@@ -8,8 +8,6 @@ This directory contains all the tools and scripts needed to create portable AppI
 packaging/
 ├── scripts/              # Packaging scripts
 │   └── create_appimage.py    # AppImage creation script
-├── tools/                # External tools
-│   └── appimagetool          # AppImage creation tool
 └── AppDir/               # Temporary AppDir structure (created during build)
 ```
 
@@ -22,6 +20,17 @@ packaging/
 
    # Verify
    ls build/lib/*.so
+   ```
+
+2. **Install appimagetool** (for AppImage creation):
+   ```bash
+   # Download from GitHub releases
+   wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+   chmod +x appimagetool-x86_64.AppImage
+   sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
+
+   # Or on Ubuntu
+   sudo apt install appimagetool
    ```
 
 ## Usage

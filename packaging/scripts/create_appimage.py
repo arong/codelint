@@ -10,7 +10,7 @@ This script automates the entire AppImage creation process:
 
 Requirements:
 - build/codelint must exist (build the project first with cmake --build build)
-- appimagetool must be available in the packaging/tools directory
+- appimagetool must be available in system PATH
 """
 
 import os
@@ -249,7 +249,7 @@ LLVM version: ${LLVM_VERSION}
     return appdir_path
 
 def create_appimage(appdir_path, output_dir="."):
-    """Create AppImage using appimagetool from tools directory"""
+    """Create AppImage using appimagetool from system PATH"""
     version = get_version()
     arch = subprocess.check_output(["uname", "-m"]).decode().strip()
     appimage_name = f"codelint-{version}-{arch}.AppImage"
@@ -257,11 +257,13 @@ def create_appimage(appdir_path, output_dir="."):
 
     print(f"Creating AppImage: {appimage_path}")
 
-    # Use appimagetool from tools directory
-    appimagetool_path = "packaging/tools/appimagetool"
-    if not os.path.exists(appimagetool_path):
-        print(f"Error: {appimagetool_path} not found!")
-        print("Please download appimagetool to packaging/tools/")
+    # Find appimagetool in system PATH
+    appimagetool_path = shutil.which("appimagetool")
+    if not appimagetool_path:
+        print("Error: appimagetool not found in PATH!")
+        print("Please install appimagetool:")
+        print("  - Download from: https://github.com/AppImage/AppImageKit/releases")
+        print("  - Or install via: sudo apt install appimagetool (on Ubuntu)")
         sys.exit(1)
 
     # Run appimagetool with --appimage-extract-and-run to avoid FUSE dependency
