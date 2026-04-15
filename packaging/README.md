@@ -1,66 +1,47 @@
-# codelint AppImage Packaging Guide
+# codelint Packaging Guide
 
-This directory contains all the tools and scripts needed to create portable AppImage packages for the codelint C++ code analysis tool.
+This directory contains scripts for packaging the codelint clang-tidy plugin.
 
 ## Directory Structure
 
 ```
 packaging/
-├── scripts/              # Packaging scripts
-│   └── create_appimage.py    # AppImage creation script
-└── AppDir/               # Temporary AppDir structure (created during build)
+├── scripts/
+│   ├── bundle_libs.sh       # Bundle plugin with dependencies
+│   └── codelint-wrapper.sh  # Wrapper script for easy usage
 ```
 
 ## Prerequisites
 
-1. **Build the plugin**:
-   ```bash
-   cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm  # macOS
-   cmake --build build
+**Build the plugin**:
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm  # macOS
+cmake --build build
 
-   # Verify
-   ls build/lib/*.so
-   ```
-
-2. **Install appimagetool** (for AppImage creation):
-   ```bash
-   # Download from GitHub releases
-   wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-   chmod +x appimagetool-x86_64.AppImage
-   sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
-
-   # Or on Ubuntu
-   sudo apt install appimagetool
-   ```
+# Verify
+ls build/lib/*.so
+```
 
 ## Usage
 
+### Bundle Plugin with Dependencies
+
 ```bash
-python3 packaging/scripts/create_appimage.py
+bash packaging/scripts/bundle_libs.sh
 ```
 
-Creates a portable plugin package. See "Installation" below for usage with clang-tidy.
-
-This will create a portable package containing the codelint clang-tidy plugin.
+Creates a portable tarball containing the plugin and required libraries.
 
 ## Output
 
-- **Package**: `codelint-VERSION-ARCH.tar.gz` (or .AppImage)
-- **Includes**: `codelint-plugin.so` (+ optional LLVM libs)
-- **Size**: Plugin-only ~2MB, with LLVM ~60MB+
+- **Package**: `codelint-VERSION-ARCH.tar.gz`
+- **Includes**: `codelint-plugin.so` + dependencies
 - **Location**: `package-output/` in project root
-
-## Features
-
-✅ **Plugin** (`*.so`) for clang-tidy
-✅ **Flexible**: Plugin-only or bundle LLVM
-✅ **Portable**: Cross-distribution compatible
-✅ **Easy**: Drop-in installation or `--load` flag
 
 ## Testing
 
 ```bash
-cd package-output &&tar xzf codelint-*.tar.gz
+cd package-output && tar xzf codelint-*.tar.gz
 
 # Test plugin
 clang-tidy --load=lib/codelint-plugin.so --checks='codelint-*' --list-checks
@@ -85,26 +66,6 @@ cp lib/codelint-plugin.so ~/.local/lib/clang-tidy/
 clang-tidy --load=~/.local/lib/clang-tidy/codelint-plugin.so --checks='codelint-*' src/*.cpp
 ```
 
-## Reusing
-
-1. **Rebuild**: `cmake --build build --clean-first`
-2. **Package**: `python3 packaging/scripts/create_appimage.py`
-3. **Automatic**: Detects version, bundles deps
-
-## Customization
-
-### Version Detection
-Edit `get_version()` in `create_appimage.py`.
-
-### Bundle LLVM
-Set `BUNDLE_LLVM=true` in `create_appimage.py`.
-
-### Library Filtering
-Modify library copying logic to customize which libs are bundled.
-
-### Branding
-Update app icon in the script.
-
 ## Troubleshooting
 
 ### "Plugin not found"
@@ -116,8 +77,7 @@ Update app icon in the script.
 - Check: `clang-tidy --version`
 
 ### "Missing libraries"
-- Plugin-only: System libs handled automatically
-- Bundle: Script auto-detects non-system libs
+- Use `bundle_libs.sh` to package dependencies
 
 ## License
 
