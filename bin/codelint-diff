@@ -2,25 +2,35 @@
 """
 codelint-diff - Incremental code linting for modified lines only
 
-This script wraps clang-tidy-diff.py with codelint plugin,
-allowing you to check only newly modified code instead of full project scan.
+USAGE:
+    git diff -U0 [COMMIT] | codelint-diff -p NUM [OPTIONS]
 
-Usage:
-  # Check changes in last commit
-  git diff -U0 HEAD^ | codelint-diff -p1
+DESCRIPTION:
+    Runs codelint on only the lines changed in a git diff.
+    Ideal for: pre-commit hooks, CI/CD, PR reviews, daily development.
 
-  # Check uncommitted changes
-  git diff -U0 | codelint-diff -p1
+OPTIONS:
+    --help              Show this help
+    -p NUM              Strip prefix (0=none, 1=git diff)
+    --fix               Auto-fix issues
+    --checks=PATTERN    Check pattern (default: codelint-*)
+    --path DIR          compile_commands.json dir (default: build)
+    -j N                Parallel jobs
+    -v, --verbose       Show command
 
-  # Check changes between branches
-  git diff -U0 main...HEAD | codelint-diff -p1
+EXAMPLES:
+    git diff -U0 HEAD^ | codelint-diff -p1
+    git diff -U0 | codelint-diff -p1 --fix
+    git diff -U0 main...HEAD | codelint-diff -p1 --path build -j4
 
-  # With auto-fix
-  git diff -U0 HEAD^ | codelint-diff -p1 --fix
+AI INTEGRATION:
+    Workflow: git diff -U0 | codelint-diff -p1 --path build --fix
+    Then: git add -A && git commit
 
-Requirements:
-  - compile_commands.json in build directory
-  - codelint-plugin built (cmake --build build)
+REQUIREMENTS:
+    - compile_commands.json
+    - codelint plugin built
+    - Git repository
 """
 
 import argparse
@@ -31,24 +41,18 @@ from pathlib import Path
 
 
 def find_clang_tidy_diff():
-    """Find clang-tidy-diff.py in system"""
+    """Find clang-tidy-diff.py"""
+    script_dir = Path(__file__).parent
     candidates = [
+        script_dir / "clang-tidy-diff.py",
         "/opt/homebrew/opt/llvm@21/share/clang/clang-tidy-diff.py",
         "/usr/share/clang/clang-tidy-diff.py",
         "/usr/lib/llvm-21/share/clang/clang-tidy-diff.py",
     ]
 
     for path in candidates:
-        if os.path.isfile(path):
-            return path
-
-    result = subprocess.run(
-        ["which", "clang-tidy-diff.py"],
-        capture_output=True,
-        text=True
-    )
-    if result.returncode == 0:
-        return result.stdout.strip()
+        if Path(path).exists():
+            return str(path)
 
     return None
 
@@ -72,72 +76,50 @@ def find_plugin():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run codelint on modified lines only (incremental scan)",
+        prog="codelint-diff",
+        description="Incremental code linting for modified lines only",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__
     )
 
-    parser.add_argument(
-        "-p", metavar="NUM", default=0,
-        help="strip the smallest prefix containing P slashes (default: 0)"
-    )
-    parser.add_argument(
-        "-path", dest="build_path",
-        help="Path to compile_commands.json directory (default: build)"
-    )
-    parser.add_argument(
-        "-fix", action="store_true",
-        help="Apply suggested fixes"
-    )
-    parser.add_argument(
-        "-checks", default="codelint-*",
-        help="Checks filter (default: codelint-*)"
-    )
-    parser.add_argument(
-        "-j", type=int, default=1,
-        help="Number of parallel instances"
-    )
-    parser.add_argument(
-        "--plugin", dest="plugin_path",
-        help="Path to codelint plugin (auto-detected if not specified)"
-    )
-    parser.add_argument(
-        "--clang-tidy-diff", dest="diff_script",
-        help="Path to clang-tidy-diff.py (auto-detected if not specified)"
-    )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true",
-        help="Show detailed command"
-    )
+    parser.add_argument("-p", type=int, default=0,
+                        help="Strip prefix slashes (0=none, 1=git diff)")
+    parser.add_argument("--fix", action="store_true", help="Apply fixes")
+    parser.add_argument("--checks", default="codelint-*", help="Check pattern")
+    parser.add_argument("--path", dest="build_path", default="build",
+                        help="compile_commands.json directory")
+    parser.add_argument("-j", type=int, default=1, help="Parallel jobs")
+    parser.add_argument("--plugin", help="Custom plugin path")
+    parser.add_argument("--clang-tidy-diff", dest="diff_script",
+                        help="Custom clang-tidy-diff.py path")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose")
 
     args, extra_args = parser.parse_known_args()
 
     diff_script = args.diff_script or find_clang_tidy_diff()
     if not diff_script:
-        print("ERROR: clang-tidy-diff.py not found!")
-        print("Install LLVM 21 or specify path with --clang-tidy-diff")
+        print("ERROR: clang-tidy-diff.py not found")
+        print("Install: apt install clang-tidy-21 OR brew install llvm@21")
+        print("Or bundle in release package")
         sys.exit(1)
 
-    plugin_path = args.plugin_path or find_plugin()
+    plugin_path = args.plugin or find_plugin()
     if not plugin_path:
-        print("ERROR: codelint-plugin not found!")
-        print("Build the project first: cmake --build build")
-        print("Or specify path with --plugin")
-        sys.exit(1)
+        print("WARNING: codelint-plugin not found, using system checks only")
+        print("Build: cmake --build build")
 
-    build_path = args.build_path or "build"
+    build_path = args.build_path
     compile_commands = Path(build_path) / "compile_commands.json"
     if not compile_commands.exists():
-        print(f"WARNING: compile_commands.json not found at {compile_commands}")
-        print("Generate it with: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
+        print(f"WARNING: {compile_commands} not found")
+        print("Generate: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
 
-    cmd = [
-        sys.executable, diff_script,
-        "-p", str(args.p),
-        "-path", build_path,
-        "-load", plugin_path,
-        "-checks", args.checks,
-    ]
+    cmd = [sys.executable, diff_script, "-p", str(args.p)]
+
+    if plugin_path:
+        cmd.extend(["-load", plugin_path])
+
+    cmd.extend(["-checks", args.checks, "-path", build_path])
 
     if args.fix:
         cmd.append("-fix")

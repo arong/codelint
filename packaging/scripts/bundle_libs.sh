@@ -169,36 +169,26 @@ fi
 
 cd - > /dev/null
 
-# Step 5: Create wrapper script
-echo "[5/6] Creating wrapper script..."
-cat > "${PACKAGE_DIR}/bin/codelint" << 'WRAPPER_EOF'
-#!/bin/bash
-# codelint - Wrapper script for clang-tidy with codelint plugin
-#
-# Usage: codelint [clang-tidy options] [files]
-#
-# This wrapper automatically loads the codelint plugin and enables codelint-* checks.
-# To use plain clang-tidy without plugin: codelint --raw [options]
+# Step 5: Copy Python wrapper scripts
+echo "[5/6] Copying Python wrapper scripts..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGE_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Set library path to use bundled libraries
-export LD_LIBRARY_PATH="${PACKAGE_ROOT}/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-
-# Check for --raw flag to skip plugin loading
-if [ "$1" == "--raw" ]; then
-    shift
-    exec "${SCRIPT_DIR}/clang-tidy" "$@"
+# Copy codelint wrapper (Python version from project)
+if [ -f "${PROJECT_ROOT}/bin/codelint" ]; then
+    cp "${PROJECT_ROOT}/bin/codelint" "${PACKAGE_DIR}/bin/codelint"
+    chmod +x "${PACKAGE_DIR}/bin/codelint"
+    echo "  Copied: bin/codelint"
+else
+    echo "  WARNING: bin/codelint not found in project"
 fi
 
-# Default: load plugin with codelint checks
-exec "${SCRIPT_DIR}/clang-tidy" \
-    --load="${PACKAGE_ROOT}/lib/codelint-plugin.so" \
-    --checks='codelint-*' \
-    "$@"
-WRAPPER_EOF
-chmod +x "${PACKAGE_DIR}/bin/codelint"
+# Copy codelint-diff wrapper
+if [ -f "${PROJECT_ROOT}/bin/codelint-diff" ]; then
+    cp "${PROJECT_ROOT}/bin/codelint-diff" "${PACKAGE_DIR}/bin/codelint-diff"
+    chmod +x "${PACKAGE_DIR}/bin/codelint-diff"
+    echo "  Copied: bin/codelint-diff"
+else
+    echo "  WARNING: bin/codelint-diff not found in project"
+fi
 
 # Step 5.1: Copy clang-tidy-diff.py for incremental scanning
 echo "[5.1/6] Copying clang-tidy-diff.py..."
@@ -220,72 +210,8 @@ if [ -z "$CLANG_TIDY_DIFF" ]; then
     echo "  WARNING: clang-tidy-diff.py not found (optional)"
 fi
 
-# Step 5.2: Create codelint-diff wrapper for incremental scanning
-echo "[5.2/6] Creating codelint-diff wrapper..."
-cat > "${PACKAGE_DIR}/bin/codelint-diff" << 'DIFF_WRAPPER_EOF'
-#!/usr/bin/env python3
-"""codelint-diff - Incremental linting for modified lines only
-
-Usage:
-  git diff -U0 HEAD^ | codelint-diff -p1
-  git diff -U0 | codelint-diff -p1 --fix
-"""
-
-import os
-import subprocess
-import sys
-from pathlib import Path
-
-def main():
-    script_dir = Path(__file__).parent
-    package_root = script_dir.parent
-
-    diff_script = script_dir / "clang-tidy-diff.py"
-    if not diff_script.exists():
-        print("ERROR: clang-tidy-diff.py not found")
-        sys.exit(1)
-
-    plugin_path = package_root / "lib" / "codelint-plugin.so"
-    if not plugin_path.exists():
-        print("ERROR: codelint-plugin.so not found")
-        sys.exit(1)
-
-    clang_tidy = script_dir / "clang-tidy"
-
-    import argparse
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("-p", default=0)
-    parser.add_argument("-path", dest="build_path", default=None)
-    parser.add_argument("-fix", action="store_true")
-    parser.add_argument("-j", type=int, default=1)
-    args, extra = parser.parse_known_args()
-
-    cmd = [
-        sys.executable, str(diff_script),
-        "-clang-tidy-binary", str(clang_tidy),
-        "-p", str(args.p),
-        "-load", str(plugin_path),
-        "-checks", "codelint-*",
-    ]
-
-    if args.build_path:
-        cmd.extend(["-path", args.build_path])
-    if args.fix:
-        cmd.append("-fix")
-    if args.j > 1:
-        cmd.extend(["-j", str(args.j)])
-    cmd.extend(extra)
-
-    result = subprocess.run(cmd)
-    sys.exit(result.returncode)
-
-if __name__ == "__main__":
-    main()
-DIFF_WRAPPER_EOF
-chmod +x "${PACKAGE_DIR}/bin/codelint-diff"
-
-# Step 5.3: Copy clang-apply-replacements (optional, for batch fixes)
-echo "[5.3/6] Copying clang-apply-replacements..."
+# Step 5.2: Copy clang-apply-replacements (optional)
+echo "[5.2/6] Copying clang-apply-replacements..."
 APPLY_REPL=""
 for candidate in \
     "/usr/lib/llvm-${LLVM_VERSION}/bin/clang-apply-replacements" \
@@ -383,6 +309,37 @@ git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --fix
 
 # Only global/singleton checks
 ./bin/codelint --checks='codelint-global,codelint-singleton' src/*.cpp
+```
+
+### Help & Documentation
+
+```bash
+# Show codelint help
+./bin/codelint --help
+
+# Show codelint-diff help
+./bin/codelint-diff --help
+
+# List available checks
+./bin/codelint --list-checks
+```
+
+## AI Assistant Integration
+
+For AI assistants (Claude, Cursor, Copilot):
+
+1. Always use `--fix` for auto-fixable issues
+2. Use `-p compile_commands.json` for accurate analysis
+3. For PR/commit review: `git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --path build`
+4. Error-level warnings (int->bool) require manual review
+
+Example workflow:
+```bash
+# After making code changes
+git diff -U0 | ./bin/codelint-diff -p1 --path build --fix
+
+# If issues found, review and commit
+git add -A && git commit
 ```
 
 ## Available Checks

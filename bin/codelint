@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""
+codelint - Clang-tidy with codelint plugin for C++ initialization best practices
+
+USAGE:
+    codelint [OPTIONS] [FILES...]
+
+DESCRIPTION:
+    Runs clang-tidy with the codelint plugin automatically loaded.
+    Detects uninitialized variables, unsafe initialization patterns,
+    global variables, and Meyer's Singleton patterns.
+
+OPTIONS:
+    --help              Show this help message
+    --fix               Apply suggested fixes automatically
+    --checks=PATTERN    Filter checks (default: codelint-*)
+    --list-checks       List all available checks
+    --version           Show version information
+    -p PATH             Path to compile_commands.json directory
+    --raw               Run plain clang-tidy without plugin
+    --diff              Run incremental scan (reads git diff from stdin)
+
+CHECKS:
+    codelint-init       Variable initialization style (auto-fixable)
+    codelint-global     Global variable detection
+    codelint-singleton  Meyer's Singleton pattern detection
+
+EXAMPLES:
+    # Check single file
+    codelint src/main.cpp
+
+    # With compilation database
+    codelint -p build src/**/*.cpp
+
+    # Auto-fix issues
+    codelint --fix src/main.cpp
+
+    # List available checks
+    codelint --list-checks
+
+    # Incremental scan (only modified lines)
+    git diff -U0 HEAD^ | codelint --diff -p1
+
+    # Run plain clang-tidy
+    codelint --raw --checks='modernize-*' src/*.cpp
+
+AI ASSISTANT INTEGRATION:
+    For AI assistants (Claude, Cursor, Copilot):
+
+    1. Always use --fix for auto-fixable issues
+    2. Use -p compile_commands.json for accurate analysis
+    3. For PR/commit review: git diff -U0 HEAD^ | codelint --diff -p1
+    4. Error-level warnings (int->bool) require manual review
+
+OUTPUT FORMAT:
+    Standard clang-tidy output format:
+    FILE:LINE:COL: warning: MESSAGE [CHECK-NAME]
+
+    Warnings with fixes include replacement suggestions.
+
+REQUIREMENTS:
+    - compile_commands.json (generate with: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
+    - LLVM/Clang 21+
+
+AUTHOR:
+    Codelint Project - https://github.com/arong/codelint
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def find_plugin():
+    """Find codelint plugin in standard locations."""
+    script_dir = Path(__file__).parent.resolve()
+    candidates = [
+        script_dir.parent / "lib" / "codelint-plugin.so",
+        script_dir.parent / "lib" / "codelint-plugin.dylib",
+        Path.cwd() / "build" / "lib" / "codelint-plugin.so",
+        Path.cwd() / "build" / "lib" / "codelint-plugin.dylib",
+    ]
+    for path in candidates:
+        if path.exists():
+            return str(path)
+    return None
+
+
+def find_clang_tidy():
+    """Find clang-tidy binary."""
+    script_dir = Path(__file__).parent.resolve()
+
+    # Check bundled clang-tidy first
+    bundled = script_dir / "clang-tidy"
+    if bundled.exists():
+        return str(bundled)
+
+    # Check system clang-tidy
+    for version in ["21", "20", "19", "18"]:
+        candidates = [
+            f"/usr/bin/clang-tidy-{version}",
+            f"/usr/lib/llvm-{version}/bin/clang-tidy",
+            f"/opt/homebrew/opt/llvm@{version}/bin/clang-tidy",
+        ]
+        for path in candidates:
+            if Path(path).exists():
+                return path
+
+    # Default system clang-tidy
+    result = subprocess.run(["which", "clang-tidy"], capture_output=True, text=True)
+    if result.returncode == 0:
+        return result.stdout.strip()
+
+    return None
+
+
+def find_diff_script():
+    """Find clang-tidy-diff.py."""
+    script_dir = Path(__file__).parent.resolve()
+
+    # Bundled version
+    bundled = script_dir / "clang-tidy-diff.py"
+    if bundled.exists():
+        return str(bundled)
+
+    # System versions
+    for version in ["21", "20", "19", "18"]:
+        candidates = [
+            f"/usr/lib/llvm-{version}/share/clang/clang-tidy-diff.py",
+            f"/usr/share/clang/clang-tidy-diff.py",
+            f"/opt/homebrew/opt/llvm@{version}/share/clang/clang-tidy-diff.py",
+        ]
+        for path in candidates:
+            if Path(path).exists():
+                return path
+
+    return None
+
+
+def run_diff_mode(args, extra_args):
+    """Run incremental scan using clang-tidy-diff.py."""
+    diff_script = find_diff_script()
+    if not diff_script:
+        print("ERROR: clang-tidy-diff.py not found")
+        print("Install LLVM or bundle it in the release package")
+        sys.exit(1)
+
+    clang_tidy = find_clang_tidy()
+    plugin = find_plugin()
+
+    cmd = [
+        sys.executable, diff_script,
+        "-clang-tidy-binary", clang_tidy,
+        "-p", str(args.p or 0),
+    ]
+
+    if plugin:
+        cmd.extend(["-load", plugin])
+
+    cmd.extend(["-checks", args.checks or "codelint-*"])
+
+    if args.fix:
+        cmd.append("-fix")
+
+    if args.path:
+        cmd.extend(["-path", args.path])
+
+    cmd.extend(extra_args)
+
+    result = subprocess.run(cmd)
+    sys.exit(result.returncode)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="codelint",
+        description="Clang-tidy with codelint plugin for C++ initialization best practices",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__
+    )
+
+    parser.add_argument("files", nargs="*", help="Files to check")
+    parser.add_argument("--help", action="help", help="Show this help message")
+    parser.add_argument("--fix", action="store_true", help="Apply suggested fixes")
+    parser.add_argument("--checks", default="codelint-*", help="Check pattern (default: codelint-*)")
+    parser.add_argument("--list-checks", action="store_true", help="List available checks")
+    parser.add_argument("--version", action="store_true", help="Show version")
+    parser.add_argument("-p", type=int, default=0, help="Strip prefix slashes for diff mode")
+    parser.add_argument("--path", dest="compile_path", help="compile_commands.json directory")
+    parser.add_argument("--raw", action="store_true", help="Run without plugin")
+    parser.add_argument("--diff", action="store_true", help="Incremental scan (read git diff from stdin)")
+    parser.add_argument("--load", dest="plugin_path", help="Custom plugin path")
+    parser.add_argument("-j", type=int, default=1, help="Parallel jobs")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
+    args, extra_args = parser.parse_known_args()
+
+    # Diff mode: read from stdin
+    if args.diff:
+        run_diff_mode(args, extra_args)
+        return
+
+    # Find clang-tidy
+    clang_tidy = find_clang_tidy()
+    if not clang_tidy:
+        print("ERROR: clang-tidy not found")
+        print("Install: apt install clang-tidy-21 or brew install llvm@21")
+        sys.exit(1)
+
+    # Find plugin
+    plugin = args.plugin_path or find_plugin()
+
+    # Build command
+    cmd = [clang_tidy]
+
+    if args.raw:
+        # Plain clang-tidy without plugin
+        if args.checks and args.checks != "codelint-*":
+            cmd.extend(["--checks", args.checks])
+    else:
+        # Load plugin
+        if plugin:
+            cmd.extend(["--load", plugin])
+        cmd.extend(["--checks", args.checks])
+
+    if args.fix:
+        cmd.append("--fix")
+
+    if args.list_checks:
+        cmd.append("--list-checks")
+
+    if args.version:
+        cmd.append("--version")
+
+    if args.compile_path:
+        cmd.extend(["-p", args.compile_path])
+
+    cmd.extend(args.files)
+    cmd.extend(extra_args)
+
+    if args.verbose:
+        print("Command:", " ".join(cmd))
+        if plugin:
+            print("Plugin:", plugin)
+        print()
+
+    result = subprocess.run(cmd)
+    sys.exit(result.returncode)
+
+
+if __name__ == "__main__":
+    main()
