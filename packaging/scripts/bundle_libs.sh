@@ -200,6 +200,111 @@ exec "${SCRIPT_DIR}/clang-tidy" \
 WRAPPER_EOF
 chmod +x "${PACKAGE_DIR}/bin/codelint"
 
+# Step 5.1: Copy clang-tidy-diff.py for incremental scanning
+echo "[5.1/6] Copying clang-tidy-diff.py..."
+CLANG_TIDY_DIFF=""
+for candidate in \
+    "/usr/lib/llvm-${LLVM_VERSION}/share/clang/clang-tidy-diff.py" \
+    "/usr/share/clang/clang-tidy-diff.py" \
+    "/opt/homebrew/opt/llvm@${LLVM_VERSION}/share/clang/clang-tidy-diff.py"
+do
+    if [ -f "$candidate" ]; then
+        cp "$candidate" "${PACKAGE_DIR}/bin/clang-tidy-diff.py"
+        CLANG_TIDY_DIFF="$candidate"
+        echo "  Found: $candidate"
+        break
+    fi
+done
+
+if [ -z "$CLANG_TIDY_DIFF" ]; then
+    echo "  WARNING: clang-tidy-diff.py not found (optional)"
+fi
+
+# Step 5.2: Create codelint-diff wrapper for incremental scanning
+echo "[5.2/6] Creating codelint-diff wrapper..."
+cat > "${PACKAGE_DIR}/bin/codelint-diff" << 'DIFF_WRAPPER_EOF'
+#!/usr/bin/env python3
+"""codelint-diff - Incremental linting for modified lines only
+
+Usage:
+  git diff -U0 HEAD^ | codelint-diff -p1
+  git diff -U0 | codelint-diff -p1 --fix
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+def main():
+    script_dir = Path(__file__).parent
+    package_root = script_dir.parent
+
+    diff_script = script_dir / "clang-tidy-diff.py"
+    if not diff_script.exists():
+        print("ERROR: clang-tidy-diff.py not found")
+        sys.exit(1)
+
+    plugin_path = package_root / "lib" / "codelint-plugin.so"
+    if not plugin_path.exists():
+        print("ERROR: codelint-plugin.so not found")
+        sys.exit(1)
+
+    clang_tidy = script_dir / "clang-tidy"
+
+    import argparse
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-p", default=0)
+    parser.add_argument("-path", dest="build_path", default=None)
+    parser.add_argument("-fix", action="store_true")
+    parser.add_argument("-j", type=int, default=1)
+    args, extra = parser.parse_known_args()
+
+    cmd = [
+        sys.executable, str(diff_script),
+        "-clang-tidy-binary", str(clang_tidy),
+        "-p", str(args.p),
+        "-load", str(plugin_path),
+        "-checks", "codelint-*",
+    ]
+
+    if args.build_path:
+        cmd.extend(["-path", args.build_path])
+    if args.fix:
+        cmd.append("-fix")
+    if args.j > 1:
+        cmd.extend(["-j", str(args.j)])
+    cmd.extend(extra)
+
+    result = subprocess.run(cmd)
+    sys.exit(result.returncode)
+
+if __name__ == "__main__":
+    main()
+DIFF_WRAPPER_EOF
+chmod +x "${PACKAGE_DIR}/bin/codelint-diff"
+
+# Step 5.3: Copy clang-apply-replacements (optional, for batch fixes)
+echo "[5.3/6] Copying clang-apply-replacements..."
+APPLY_REPL=""
+for candidate in \
+    "/usr/lib/llvm-${LLVM_VERSION}/bin/clang-apply-replacements" \
+    "/usr/bin/clang-apply-replacements-${LLVM_VERSION}" \
+    "/usr/bin/clang-apply-replacements" \
+    "/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/clang-apply-replacements"
+do
+    if [ -f "$candidate" ]; then
+        cp "$candidate" "${PACKAGE_DIR}/bin/clang-apply-replacements"
+        APPLY_REPL="$candidate"
+        echo "  Found: $candidate"
+        break
+    fi
+done
+
+if [ -z "$APPLY_REPL" ]; then
+    echo "  WARNING: clang-apply-replacements not found (optional)"
+fi
+
 # Step 6: Create README
 echo "[6/6] Creating README..."
 cat > "${PACKAGE_DIR}/README.md" << 'README_EOF'
@@ -212,6 +317,9 @@ for offline deployment on Ubuntu 22.04.
 
 - `bin/clang-tidy` - clang-tidy binary (LLVM 21)
 - `bin/codelint` - Wrapper script that auto-loads the plugin
+- `bin/codelint-diff` - Incremental scanner for modified lines only
+- `bin/clang-tidy-diff.py` - LLVM's diff-based scanner
+- `bin/clang-apply-replacements` - Batch fix applicator (optional)
 - `lib/codelint-plugin.so` - Codelint clang-tidy plugin
 - `lib/*.so` - Required LLVM/Clang libraries
 
@@ -234,6 +342,24 @@ for offline deployment on Ubuntu 22.04.
 
 # Apply fixes automatically
 ./bin/codelint --fix your_file.cpp
+```
+
+### Incremental Scanning (Recommended for CI/PRs)
+
+Scan only modified lines instead of full project:
+
+```bash
+# Check changes in last commit
+git diff -U0 HEAD^ | ./bin/codelint-diff -p1
+
+# Check uncommitted changes
+git diff -U0 | ./bin/codelint-diff -p1
+
+# Check changes between branches
+git diff -U0 main...HEAD | ./bin/codelint-diff -p1 -path build
+
+# With auto-fix
+git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --fix
 ```
 
 ### Manual Usage
