@@ -21,7 +21,7 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
   Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
                              unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
                              unless(hasAncestor(recordDecl(isUnion()))),
-                             unless(hasAncestor(cxxCatchStmt())))
+                             unless(hasParent(cxxCatchStmt())))
                          .bind("uninit"),
                      this);
 
@@ -394,9 +394,44 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
         return;
       }
 
-      if (const CXXRecordDecl* Record = CCE->getConstructor()->getParent()) {
-        if (hasInitializerListConstructor(Record)) {
-          return;
+      if (CCE->getConstructor()) {
+        const CXXRecordDecl* Record = CCE->getConstructor()->getParent();
+        if (Record) {
+          for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+            if (Ctor->isExplicit()) {
+              continue;
+            }
+            for (const ParmVarDecl* Param : Ctor->parameters()) {
+              const Type* ParamTy = Param->getType().getTypePtr();
+              if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>()) {
+                if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
+                  auto TemplateArgs = TST->template_arguments();
+                  if (!TemplateArgs.empty()) {
+                    const TemplateArgument& Arg = TemplateArgs[0];
+                    QualType InitListElemType = Arg.getAsType();
+                    const Type* ArgTy = InitListElemType.getTypePtr();
+
+                    if (CCE->getNumArgs() > 0) {
+                      const Expr* ArgExpr = CCE->getArg(0);
+                      const Type* ExprTy = ArgExpr->getType().getTypePtr();
+                      if (ExprTy->isIntegerType() && ArgTy->isIntegerType()) {
+                        return;
+                      }
+                      if (ExprTy->isFloatingType() && ArgTy->isFloatingType()) {
+                        return;
+                      }
+                      if (ExprTy->isPointerType() && ArgTy->isPointerType()) {
+                        return;
+                      }
+                      if (ExprTy == ArgTy) {
+                        return;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
