@@ -37,19 +37,19 @@
 - **语言标准**: C++20
 - **分析方式**: Clang AST Matchers
 
-### 1.4 使用场景
+### 1.4 示例
 
 ```cpp
-// 问题：未初始化变量
+// 未初始化变量
 int count;
 process(count);  // 未定义行为
 
 // Codelint 修复后
-int count{};  // 明确初始化为 0
+int count{};
 ```
 
 ```cpp
-// 问题：等号初始化
+// 等号初始化
 int x = 5;
 
 // Codelint 修复为 brace init
@@ -57,22 +57,11 @@ int x{5};
 ```
 
 ```cpp
-// 问题：危险类型转换（需手动修复）
+// 危险类型转换（需手动修复）
 bool success = Init();  // int → bool
 
 // Codelint 报告 Error，由开发者决定如何修复
-bool success{true};  // 或改为 explicit comparison
-```
-
-### 1.4 示例
-
-```cpp
-// 未初始化变量
-int count;
-process(count);
-
-// 修复后
-int count{};
+bool success{true};
 ```
 
 ---
@@ -152,16 +141,13 @@ class Widget {
 
 #### 类成员初始化检查
 
-Codelint 检测构造函数中未初始化的成员变量：
-
 ```cpp
 class Widget {
   int id;
   std::string name;
 
-  Widget() {}           // ❌ 警告: 'id', 'name' 未初始化
-
-  Widget() : id{}, name{} {}  // ✅ 正确
+  Widget() {}           // 警告：成员未初始化
+  Widget() : id{}, name{} {}  // 正确
 };
 ```
 
@@ -171,20 +157,25 @@ class Widget {
 
 ### 3.1 架构
 
-```
-┌─────────────────────────────────────┐
-│         clang-tidy                  │
-├─────────────────────────────────────┤
-│     CodelintModule                  │
-│     - registerCheck<InitCheck>      │
-├─────────────────────────────────────┤
-│           InitCheck                 │
-└─────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│      Clang AST Matchers             │
-└─────────────────────────────────────┘
+```plantuml
+@startuml
+skinparam componentStyle rectangle
+skinparam defaultFontSize 13
+
+package "clang-tidy" {
+  component [CodelintModule\nregisterCheck<InitCheck>] as module
+  component [InitCheck\nregisterMatchers() + check()] as init
+}
+
+package "Clang" {
+  component [AST Matchers] as matchers
+  component [FixItHint API] as fixit
+}
+
+module --> init
+init --> matchers : 匹配代码模式
+init --> fixit : 生成修复
+@enduml
 ```
 
 ### 3.2 工作流程
@@ -264,7 +255,6 @@ cmake --build build
 ### 5.3 运行
 
 ```bash
-# 基本用法
 clang-tidy \
   --load=build/lib/codelint-plugin.dylib \
   --checks=codelint-init \
@@ -285,132 +275,6 @@ HeaderFilterRegex: '.*'
 
 ```cpp
 int x;  // NOLINT(codelint-init)
-```
-
-### 5.3 运行
-
-#### 方式 1: 直接调用 clang-tidy
-
-```bash
-clang-tidy \
-  --load=build/lib/codelint-plugin.dylib \
-  --checks=codelint-init \
-  --fix \
-  src/**/*.cpp
-```
-
-#### 方式 2: 使用 .clang-tidy 配置文件
-
-在项目根目录创建 `.clang-tidy`:
-
-```yaml
-# .clang-tidy
----
-Checks: 'codelint-init'
-HeaderFilterRegex: '.*'
-WarningsAsErrors: 'codelint-init'
-CheckOptions:
-  - key: InitCheck.StrictBool
-    value: true
-```
-
-然后运行:
-
-```bash
-clang-tidy \
-  --load=build/lib/codelint-plugin.dylib \
-  -p build \
-  src/**/*.cpp
-```
-
-#### 方式 3: 集成到构建系统
-
-**CMake 集成:**
-
-```cmake
-# CMakeLists.txt
-find_program(CLANG_TIDY clang-tidy)
-if(CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY
-    ${CLANG_TIDY}
-    --load=${PROJECT_SOURCE_DIR}/build/lib/codelint-plugin.dylib
-    --checks=codelint-init
-  )
-endif()
-```
-
-**Makefile 集成:**
-
-```makefile
-.PHONY: lint
-lint:
-	clang-tidy --load=./build/lib/codelint-plugin.dylib \
-	           --checks=codelint-init \
-	           --fix \
-	           $(shell find src -name '*.cpp')
-```
-
-### 5.4 配置选项
-
-Codelint 支持通过 `.clang-tidy` 配置行为:
-
-```yaml
-# .clang-tidy
-Checks: 'codelint-init'
-CheckOptions:
-  # 严格布尔转换检查 (默认: true)
-  - key: InitCheck.StrictBool
-    value: true
-
-  # 启用 U 后缀检查 (默认: true)
-  - key: InitCheck.CheckUnsignedSuffix
-    value: true
-
-  # 头文件也检查 (默认: true)
-  - key: InitCheck.CheckHeaders
-    value: true
-```
-
-### 5.5 典型工作流
-
-```bash
-# 1. 首次扫描 - 了解问题分布
-clang-tidy --load=... --checks=codelint-init src/*.cpp > report.txt
-
-# 2. 自动修复 - 处理所有可修复问题
-clang-tidy --load=... --checks=codelint-init --fix src/*.cpp
-
-# 3. 人工审查 - 处理 Error 级别问题
-# (bool conversion, narrowing 等需手动处理)
-
-# 4. 提交前检查 - 确保无新增问题
-git diff --name-only | xargs \
-  clang-tidy --load=... --checks=codelint-init --error-on-warnings
-```
-
-### 5.6 故障排查
-
-**问题 1: 插件加载失败**
-
-```
-error: unable to load plugin 'build/lib/codelint-plugin.dylib'
-```
-
-解决方案:
-- 确认 LLVM 版本匹配 (必须 21)
-- 确认插件已编译完成
-- 检查路径是否正确
-
-**问题 2: 误报问题**
-
-如果 Codelint 报告了你认为是误报的问题:
-
-1. 检查是否在跳过列表中
-2. 如果是合理场景，提交 Issue 请求加入跳过列表
-3. 临时方案：使用 `// NOLINT(codelint-init)` 抑制
-
-```cpp
-int x;  // NOLINT(codelint-init) - 特殊原因
 ```
 
 ---
