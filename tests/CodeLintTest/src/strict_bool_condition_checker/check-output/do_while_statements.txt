@@ -1,0 +1,9 @@
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/strict_bool_condition_checker/src/do_while_statements.cpp:6:12: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
+    6 |   } while (x);
+      |            ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/strict_bool_condition_checker/src/do_while_statements.cpp:8:12: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
+    8 |   } while (1);
+      |            ^
+/Users/aronic/Documents/codelint/tests/CodeLintTest/src/strict_bool_condition_checker/src/do_while_statements.cpp:10:12: warning: condition must be bool type, but got 'nullptr_t' [codelint-strict-bool-condition]
+   10 |   } while (nullptr);
+      |            ^

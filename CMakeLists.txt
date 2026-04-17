@@ -45,6 +45,7 @@ add_llvm_library(codelint-plugin SHARED
     src/codelint_plugin/checks/InitCheck.cpp
     src/codelint_plugin/checks/GlobalCheck.cpp
     src/codelint_plugin/checks/SingletonCheck.cpp
+    src/codelint_plugin/checks/StrictBoolConditionCheck.cpp
 
     LINK_COMPONENTS
     support
