@@ -169,36 +169,67 @@ fi
 
 cd - > /dev/null
 
-# Step 5: Create wrapper script
-echo "[5/6] Creating wrapper script..."
-cat > "${PACKAGE_DIR}/bin/codelint" << 'WRAPPER_EOF'
-#!/bin/bash
-# codelint - Wrapper script for clang-tidy with codelint plugin
-#
-# Usage: codelint [clang-tidy options] [files]
-#
-# This wrapper automatically loads the codelint plugin and enables codelint-* checks.
-# To use plain clang-tidy without plugin: codelint --raw [options]
+# Step 5: Copy Python wrapper scripts
+echo "[5/6] Copying Python wrapper scripts..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGE_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Set library path to use bundled libraries
-export LD_LIBRARY_PATH="${PACKAGE_ROOT}/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-
-# Check for --raw flag to skip plugin loading
-if [ "$1" == "--raw" ]; then
-    shift
-    exec "${SCRIPT_DIR}/clang-tidy" "$@"
+# Copy codelint wrapper (Python version from project)
+if [ -f "${PROJECT_ROOT}/bin/codelint" ]; then
+    cp "${PROJECT_ROOT}/bin/codelint" "${PACKAGE_DIR}/bin/codelint"
+    chmod +x "${PACKAGE_DIR}/bin/codelint"
+    echo "  Copied: bin/codelint"
+else
+    echo "  WARNING: bin/codelint not found in project"
 fi
 
-# Default: load plugin with codelint checks
-exec "${SCRIPT_DIR}/clang-tidy" \
-    --load="${PACKAGE_ROOT}/lib/codelint-plugin.so" \
-    --checks='codelint-*' \
-    "$@"
-WRAPPER_EOF
-chmod +x "${PACKAGE_DIR}/bin/codelint"
+# Copy codelint-diff wrapper
+if [ -f "${PROJECT_ROOT}/bin/codelint-diff" ]; then
+    cp "${PROJECT_ROOT}/bin/codelint-diff" "${PACKAGE_DIR}/bin/codelint-diff"
+    chmod +x "${PACKAGE_DIR}/bin/codelint-diff"
+    echo "  Copied: bin/codelint-diff"
+else
+    echo "  WARNING: bin/codelint-diff not found in project"
+fi
+
+# Step 5.1: Copy clang-tidy-diff.py for incremental scanning
+echo "[5.1/6] Copying clang-tidy-diff.py..."
+CLANG_TIDY_DIFF=""
+for candidate in \
+    "/usr/lib/llvm-${LLVM_VERSION}/share/clang/clang-tidy-diff.py" \
+    "/usr/share/clang/clang-tidy-diff.py" \
+    "/opt/homebrew/opt/llvm@${LLVM_VERSION}/share/clang/clang-tidy-diff.py"
+do
+    if [ -f "$candidate" ]; then
+        cp "$candidate" "${PACKAGE_DIR}/bin/clang-tidy-diff.py"
+        CLANG_TIDY_DIFF="$candidate"
+        echo "  Found: $candidate"
+        break
+    fi
+done
+
+if [ -z "$CLANG_TIDY_DIFF" ]; then
+    echo "  WARNING: clang-tidy-diff.py not found (optional)"
+fi
+
+# Step 5.2: Copy clang-apply-replacements (optional)
+echo "[5.2/6] Copying clang-apply-replacements..."
+APPLY_REPL=""
+for candidate in \
+    "/usr/lib/llvm-${LLVM_VERSION}/bin/clang-apply-replacements" \
+    "/usr/bin/clang-apply-replacements-${LLVM_VERSION}" \
+    "/usr/bin/clang-apply-replacements" \
+    "/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/clang-apply-replacements"
+do
+    if [ -f "$candidate" ]; then
+        cp "$candidate" "${PACKAGE_DIR}/bin/clang-apply-replacements"
+        APPLY_REPL="$candidate"
+        echo "  Found: $candidate"
+        break
+    fi
+done
+
+if [ -z "$APPLY_REPL" ]; then
+    echo "  WARNING: clang-apply-replacements not found (optional)"
+fi
 
 # Step 6: Create README
 echo "[6/6] Creating README..."
@@ -212,6 +243,9 @@ for offline deployment on Ubuntu 22.04.
 
 - `bin/clang-tidy` - clang-tidy binary (LLVM 21)
 - `bin/codelint` - Wrapper script that auto-loads the plugin
+- `bin/codelint-diff` - Incremental scanner for modified lines only
+- `bin/clang-tidy-diff.py` - LLVM's diff-based scanner
+- `bin/clang-apply-replacements` - Batch fix applicator (optional)
 - `lib/codelint-plugin.so` - Codelint clang-tidy plugin
 - `lib/*.so` - Required LLVM/Clang libraries
 
@@ -236,6 +270,24 @@ for offline deployment on Ubuntu 22.04.
 ./bin/codelint --fix your_file.cpp
 ```
 
+### Incremental Scanning (Recommended for CI/PRs)
+
+Scan only modified lines instead of full project:
+
+```bash
+# Check changes in last commit
+git diff -U0 HEAD^ | ./bin/codelint-diff -p1
+
+# Check uncommitted changes
+git diff -U0 | ./bin/codelint-diff -p1
+
+# Check changes between branches
+git diff -U0 main...HEAD | ./bin/codelint-diff -p1 -path build
+
+# With auto-fix
+git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --fix
+```
+
 ### Manual Usage
 
 ```bash
@@ -257,6 +309,37 @@ for offline deployment on Ubuntu 22.04.
 
 # Only global/singleton checks
 ./bin/codelint --checks='codelint-global,codelint-singleton' src/*.cpp
+```
+
+### Help & Documentation
+
+```bash
+# Show codelint help
+./bin/codelint --help
+
+# Show codelint-diff help
+./bin/codelint-diff --help
+
+# List available checks
+./bin/codelint --list-checks
+```
+
+## AI Assistant Integration
+
+For AI assistants (Claude, Cursor, Copilot):
+
+1. Always use `--fix` for auto-fixable issues
+2. Use `-p compile_commands.json` for accurate analysis
+3. For PR/commit review: `git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --path build`
+4. Error-level warnings (int->bool) require manual review
+
+Example workflow:
+```bash
+# After making code changes
+git diff -U0 | ./bin/codelint-diff -p1 --path build --fix
+
+# If issues found, review and commit
+git add -A && git commit
 ```
 
 ## Available Checks

@@ -85,7 +85,8 @@ Codelint intelligently skips these cases where modification is unsafe or intenti
 | Category | Example | Reason |
 |----------|---------|--------|
 | **For loops** | `for (int i = 0; i < n; i++)` | C-style idiom |
-| **Catch blocks** | `catch (int e)` | Exception handling |
+| **Catch parameters** | `catch (const Exception& e)` | Exception parameter initialized by catch |
+| **Catch block variables** | `std::string copy = msg;` inside catch | ✅ Still checked (not skipped) |
 | **Macro definitions** | Variables inside `#define` | Cannot modify macros |
 | **Auto types** | `auto x = getValue()` | Type deduction required |
 | **Extern declarations** | `extern int x;` | Definition elsewhere |
@@ -98,8 +99,26 @@ Codelint intelligently skips these cases where modification is unsafe or intenti
 | **= {} syntax** | `int x = {};` | Already brace init |
 | **Narrowing conversions** | `int x = 3.14;` | Cannot use {} (warns only) |
 | **Type widening** | `float f = 5` | Safe implicit conversion |
+| **initializer_list constructors** | `MyArray arr = 1` (class has `initializer_list<int>`) | Brace init would change constructor selection |
 
-### 6. Constructor Member Initialization
+### 6. initializer_list Constructor Handling
+
+Classes with `std::initializer_list` constructors require special care:
+
+```cpp
+class MyArray {
+  MyArray(std::initializer_list<int> list);  // initializer_list constructor
+  MyArray(int value);                         // regular constructor
+};
+
+MyArray arr = 1;   // ❌ SKIPPED - brace init would call initializer_list constructor
+MyArray arr2{10};  // ✅ OK - explicit brace init, user's choice
+
+std::string s = "hello";  // ✅ FIXED to std::string s{"hello"}
+// std::string has initializer_list<char>, but "hello" is const char*, not initializer_list
+```
+
+### 7. Constructor Member Initialization
 
 ```cpp
 class Widget {
