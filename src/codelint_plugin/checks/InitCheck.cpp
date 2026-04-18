@@ -86,17 +86,20 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
-  if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("uninit")) {
+  if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("uninit"); VD != nullptr) {
     checkUninitialized(VD, Result.Context);
-  } else if (const auto* FD = Result.Nodes.getNodeAs<clang::FieldDecl>("uninit_field")) {
+  } else if (const auto* FD = Result.Nodes.getNodeAs<clang::FieldDecl>("uninit_field");
+             FD != nullptr) {
     checkUninitializedField(FD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals"); VD != nullptr) {
     checkEqualsInit(VD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("unsigned")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("unsigned"); VD != nullptr) {
     checkUnsignedSuffix(VD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals_brace")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals_brace");
+             VD != nullptr) {
     checkEqualsBraceInit(VD, Result.Context);
-  } else if (const auto* Ctor = Result.Nodes.getNodeAs<clang::CXXConstructorDecl>("constructor")) {
+  } else if (const auto* Ctor = Result.Nodes.getNodeAs<clang::CXXConstructorDecl>("constructor");
+             Ctor != nullptr) {
     checkUninitializedMemberVariablesInConstructors(Ctor, Result.Context);
   }
 }
@@ -118,7 +121,7 @@ bool InitCheck::isAutoType(const VarDecl* VD) {
   // Use TypeSourceInfo to detect auto in the source code
   // Even after deduction, getContainedAutoTypeLoc() returns the AutoTypeLoc
   // if the variable was declared with auto
-  if (auto* TSI = VD->getTypeSourceInfo()) {
+  if (auto* TSI = VD->getTypeSourceInfo(); TSI != nullptr) {
     AutoTypeLoc ATL{TSI->getTypeLoc().getContainedAutoTypeLoc()};
     return !ATL.isNull();
   }
@@ -130,7 +133,7 @@ bool InitCheck::shouldSkipUnion(const VarDecl* VD) {
     return false;
   }
   const auto* DC = VD->getDeclContext();
-  if (const auto* RD = dyn_cast<RecordDecl>(DC)) {
+  if (const auto* RD = dyn_cast<RecordDecl>(DC); RD != nullptr) {
     return RD->isUnion();
   }
   return false;
@@ -164,7 +167,7 @@ bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
 
   const Expr* InitExpr{Init->IgnoreImplicit()};
 
-  if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
+  if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr); CCE != nullptr) {
     if (CCE->isListInitialization()) {
       return true;
     }
@@ -174,7 +177,7 @@ bool InitCheck::hasExplicitInitializer(const VarDecl* VD) {
     return false;
   }
 
-  if (const auto* TOE = dyn_cast<CXXTemporaryObjectExpr>(InitExpr)) {
+  if (const auto* TOE = dyn_cast<CXXTemporaryObjectExpr>(InitExpr); TOE != nullptr) {
     return true;
   }
 
@@ -197,10 +200,11 @@ bool InitCheck::isEnumZeroValidType(const Type* Ty) {
   }
 
   const EnumDecl* Enum{nullptr};
-  if (const auto* EnumTy = Ty->getAs<EnumType>()) {
+  if (const auto* EnumTy = Ty->getAs<EnumType>(); EnumTy != nullptr) {
     Enum = EnumTy->getDecl();
-  } else if (const auto* ElabTy = Ty->getAs<ElaboratedType>()) {
-    if (const auto* InnerEnumTy = ElabTy->getNamedType()->getAs<EnumType>()) {
+  } else if (const auto* ElabTy = Ty->getAs<ElaboratedType>(); ElabTy != nullptr) {
+    if (const auto* InnerEnumTy = ElabTy->getNamedType()->getAs<EnumType>();
+        InnerEnumTy != nullptr) {
       Enum = InnerEnumTy->getDecl();
     }
   }
@@ -254,7 +258,7 @@ bool InitCheck::hasInitializerListConstructor(const CXXRecordDecl* Record) {
 
     for (const ParmVarDecl* Param : Ctor->parameters()) {
       const Type* ParamTy = Param->getType().getTypePtr();
-      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>()) {
+      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
         if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
           return true;
         }
@@ -275,7 +279,7 @@ bool InitCheck::hasNonTrivialDefaultConstructor(QualType QT) const {
     return hasNonTrivialDefaultConstructor(QualType(ElementType, 0));
   }
 
-  if (const auto* RD = QT->getAsCXXRecordDecl()) {
+  if (const auto* RD = QT->getAsCXXRecordDecl(); RD != nullptr) {
     if (RD->hasDefinition()) {
       return RD->hasNonTrivialDefaultConstructor();
     }
@@ -375,7 +379,7 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
   SourceLocation EndLoc{};
 
   if (VD->getType()->isArrayType()) {
-    if (auto* TSI = VD->getTypeSourceInfo()) {
+    if (auto* TSI = VD->getTypeSourceInfo(); TSI != nullptr) {
       TypeLoc TL{TSI->getTypeLoc()};
       while (TL.getAs<ArrayTypeLoc>()) {
         ArrayTypeLoc ATL{TL.getAs<ArrayTypeLoc>()};
@@ -445,7 +449,7 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   bool IsCallInit{(InitStyle == VarDecl::CallInit)};
   if (IsCallInit) {
     const Expr* InitExpr{Init->IgnoreImplicit()};
-    if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
+    if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr); CCE != nullptr) {
       if (CCE->isListInitialization()) {
         return;
       }
@@ -471,7 +475,7 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
       return;
     }
 
-    if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr)) {
+    if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr); CCE != nullptr) {
       if (CCE->isListInitialization()) {
         auto& SM = Ctx->getSourceManager();
         auto LangOpts = Ctx->getLangOpts();
@@ -484,16 +488,16 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
         return;
       }
 
-      if (CCE->getConstructor()) {
+      if (CCE->getConstructor() != nullptr) {
         const CXXRecordDecl* Record{CCE->getConstructor()->getParent()};
-        if (Record) {
+        if (Record != nullptr) {
           for (const CXXConstructorDecl* Ctor : Record->ctors()) {
             if (Ctor->isExplicit()) {
               continue;
             }
             for (const ParmVarDecl* Param : Ctor->parameters()) {
               const Type* ParamTy = Param->getType().getTypePtr();
-              if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>()) {
+              if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
                 if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
                   auto TemplateArgs = TST->template_arguments();
                   if (!TemplateArgs.empty()) {
@@ -705,7 +709,7 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
 
   SourceLocation BraceStartLoc{};
   if (VD->getType()->isArrayType()) {
-    if (auto* TSI = VD->getTypeSourceInfo()) {
+    if (auto* TSI = VD->getTypeSourceInfo(); TSI != nullptr) {
       TypeLoc TL{TSI->getTypeLoc()};
       while (TL.getAs<ArrayTypeLoc>()) {
         ArrayTypeLoc ATL{TL.getAs<ArrayTypeLoc>()};
@@ -766,7 +770,7 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
     // Check if this field is initialized in the constructor's initializer list
     bool InitializedInConstructor = false;
     for (const auto& Init : Ctor->inits()) {
-      if (const FieldDecl* InitField = Init->getMember()) {
+      if (const FieldDecl* InitField = Init->getMember(); InitField != nullptr) {
         if (InitField == Field) {
           InitializedInConstructor = true;
           break;

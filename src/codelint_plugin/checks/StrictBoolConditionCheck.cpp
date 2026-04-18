@@ -34,19 +34,21 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
 
   const clang::Expr* Cond{nullptr};
 
-  if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt")) {
+  if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt"); IS != nullptr) {
     Cond = IS->getCond();
-  } else if (const auto* WS = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt")) {
+  } else if (const auto* WS = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt");
+             WS != nullptr) {
     Cond = WS->getCond();
-  } else if (const auto* FS = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt")) {
+  } else if (const auto* FS = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt"); FS != nullptr) {
     Cond = FS->getCond();
-  } else if (const auto* DS = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt")) {
+  } else if (const auto* DS = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt"); DS != nullptr) {
     Cond = DS->getCond();
-  } else if (const auto* CO = Result.Nodes.getNodeAs<clang::ConditionalOperator>("condOp")) {
+  } else if (const auto* CO = Result.Nodes.getNodeAs<clang::ConditionalOperator>("condOp");
+             CO != nullptr) {
     Cond = CO->getCond();
   }
 
-  if (Cond) {
+  if (Cond != nullptr) {
     checkCondition(Cond, Result.Context);
   }
 }
@@ -82,7 +84,7 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
     return true;
   }
 
-  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E)) {
+  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E); ICE != nullptr) {
     clang::CastKind Kind{ICE->getCastKind()};
     if (Kind == clang::CK_IntegralToBoolean || Kind == clang::CK_PointerToBoolean ||
         Kind == clang::CK_FloatingToBoolean) {
