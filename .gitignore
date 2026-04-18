@@ -1,3 +1,4 @@
+# Build artifacts
 build/
 *.o
 *.so
@@ -5,13 +6,31 @@ build/
 *.dylib
 *.exe
 *.profraw
+*.profdata
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-*.gz
+Thumbs.db
+
+# Packaging
 packaging/AppDir/
 *.AppImage
-!packaging/tools/appimagetool
-*.AppImage
+*.gz
+
+# AI / Tooling
 .cache
 .sisyphus
-.idea/
+
+# Test / Coverage
 coverage_report/
+
+# Keep these (not ignored)
+# !packaging/tools/appimagetool
+# compile_commands.json - may be useful for clang-tidy
