@@ -231,7 +231,7 @@ run_fix_test() {
     local temp_file=$(mktemp /tmp/codelint_fix.XXXXXX.cpp)
     cp "$src_file" "$temp_file"
 
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix --fix-errors "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
 
     # Apply clang-format to both files to eliminate formatting differences
     local temp_formatted=$(mktemp /tmp/codelint_formatted.XXXXXX.cpp)
