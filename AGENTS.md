@@ -168,6 +168,28 @@ git commit --no-verify -m "emergency fix"
 
 ---
 
+## 📋 PR Merge Checklist (CRITICAL)
+
+**ALWAYS test the release workflow before merging!**
+
+Release workflow is triggered by tags only. Test it with a test tag:
+
+```bash
+git checkout develop
+git tag v0.X.X-test
+git push origin v0.X.X-test
+gh run watch --exit-status
+gh release delete v0.X.X-test --cleanup-tag --yes
+```
+
+**Checklist before merge:**
+- [ ] Code Check workflow passes
+- [ ] Test tag release workflow passes
+- [ ] Package tested (`./bin/codelint --version`, `--list-checks`)
+- [ ] Test release cleaned up
+
+---
+
 ## 🔧 LLVM/Clang Tool Paths (CRITICAL)
 
 **This project uses LLVM 21 from Homebrew. All LLVM tools must use this specific path.**

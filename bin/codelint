@@ -182,7 +182,6 @@ def main():
     )
 
     parser.add_argument("files", nargs="*", help="Files to check")
-    parser.add_argument("--help", action="help", help="Show this help message")
     parser.add_argument("--fix", action="store_true", help="Apply suggested fixes")
     parser.add_argument("--checks", default="codelint-*", help="Check pattern (default: codelint-*)")
     parser.add_argument("--list-checks", action="store_true", help="List available checks")
