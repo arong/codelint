@@ -162,18 +162,21 @@ jobs:
           # Run codelint checks (check only, no auto-fix in CI)
           # Safety measures:
           # 1. NO --fix or --fix-errors (prevents modifying any files)
-          # 2. header-filter='codelint/.*' only matches project headers
+          # 2. Only check src/ files, ignore system headers
           # 3. Excludes tests/ directory (only source code)
           clang-tidy-21 \
             --load=build/lib/codelint-plugin.so \
             --checks='codelint-*' \
             -p build \
-            --header-filter='codelint/.*' \
+            --header-filter='src/.*' \
             $src_files 2>&1 | tee codelint_output.txt
           
-          # Check for codelint warnings
-          if grep -q "\[codelint-" codelint_output.txt; then
+          # Filter out warnings from system headers (outside project directory)
+          project_warnings=$(grep "\[codelint-" codelint_output.txt | grep "/__w/codelint/codelint/src/")
+          
+          if [ -n "$project_warnings" ]; then
             echo "::error::Codelint found issues!"
+            echo "$project_warnings"
             echo "Please fix the issues or run 'python3 scripts/self_check.py' locally"
             exit 1
           fi
