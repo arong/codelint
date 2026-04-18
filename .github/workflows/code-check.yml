@@ -166,7 +166,7 @@ jobs:
           # 3. Excludes tests/ directory (only source code)
           clang-tidy-21 \
             --load=build/lib/codelint-plugin.so \
-            --checks='codelint-init' \
+            --checks='-*,codelint-init' \
             -p build \
             --header-filter='src/.*' \
             $src_files 2>&1 | tee codelint_output.txt
