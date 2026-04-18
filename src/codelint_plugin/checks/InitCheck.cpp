@@ -585,15 +585,27 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
   }
 
   for (char C : ValueText) {
-    if (C == 'U' || C == 'u') {
+    if (C == 'U' || C == 'u' || C == 'L' || C == 'l') {
       return;
     }
   }
 
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
 
-  diag(Init->getBeginLoc(), "unsigned integer literal should have 'U' suffix")
-      << FixItHint::CreateInsertion(InitEnd, "U");
+  QualType VarType = VD->getType();
+  const clang::Type* CanonicalType = VarType.getTypePtr()->getCanonicalTypeInternal().getTypePtr();
+
+  bool NeedsLongSuffix = false;
+  if (CanonicalType->isSpecificBuiltinType(clang::BuiltinType::ULong) ||
+      CanonicalType->isSpecificBuiltinType(clang::BuiltinType::ULongLong) ||
+      CanonicalType->isSpecificBuiltinType(clang::BuiltinType::UInt128)) {
+    NeedsLongSuffix = true;
+  }
+
+  std::string Suffix = NeedsLongSuffix ? "UL" : "U";
+
+  diag(Init->getBeginLoc(), "unsigned integer literal should have '%0' suffix")
+      << Suffix << FixItHint::CreateInsertion(InitEnd, Suffix);
 }
 
 void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {

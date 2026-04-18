@@ -6,7 +6,7 @@ unsigned global2{};
 
 int global3{1};
 unsigned global4{2U};
-uint64_t global5{5};
+uint64_t global5{5UL};
 
 int global6{};
 unsigned int global7{};
@@ -39,7 +39,5 @@ int Init() {
 }
 
 void test_bool_from_int() {
-  bool ret = Init();
-  bool flag = 1;
   bool ok{true};
 }
