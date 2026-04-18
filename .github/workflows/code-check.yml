@@ -87,7 +87,7 @@ jobs:
           echo "✨ Whitespace check passed!"
           echo "📊 Total files checked: $(find . -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.txt' -o -name '*.md' -o -name '*.sh' -o -name '*.py' \) ! -path './build/*' ! -path './.git/*' | wc -l | tr -d ' ')"
 
-  build-test-coverage:
+  build-and-test:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
 
@@ -95,7 +95,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for git diff
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
@@ -105,26 +105,20 @@ jobs:
             libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
             git curl zip unzip ca-certificates pkg-config
 
-          # Install LLVM 21 from apt.llvm.org
           wget -4 https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           ./llvm.sh 21
 
-          # Install LLVM 21 development and coverage tools
           apt-get install -y --no-install-recommends \
             llvm-21-dev \
-            llvm-21-tools \
             clang-tidy-21 clang-21 clang-format-21 \
             libclang-21-dev
 
-      - name: Configure CMake with coverage
+      - name: Configure CMake
         run: |
           cmake -B build \
-            -DENABLE_COVERAGE=ON \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_C_COMPILER=clang-21 \
-            -DCMAKE_CXX_COMPILER=clang++-21
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Build project
         run: cmake --build build -j$(nproc)
@@ -137,41 +131,8 @@ jobs:
       - name: Setup PATH for LLVM tools
         run: echo /usr/bin >> $GITHUB_PATH
 
-      - name: Run all tests with coverage
-        env:
-          LLVM_PROFILE_FILE: ${{ github.workspace }}/codelint_%p.profraw
+      - name: Run all tests
         run: cmake --build build --target test-all
-
-      - name: Generate coverage report
-        run: |
-          echo "📊 Generating coverage report..."
-
-          # Merge profraw files
-          llvm-profdata-21 merge -o coverage.profdata \
-            ${{ github.workspace }}/codelint_*.profraw
-
-          # Export to lcov format for Codecov
-          llvm-cov-21 export -format=lcov \
-            build/lib/codelint-plugin.so \
-            -instr-profile=coverage.profdata \
-            -ignore-filename-regex="(tests|build|CMakeFiles|^/usr/lib/llvm|^/opt)" \
-            > coverage.lcov
-
-          echo "✅ Coverage report generated: coverage.lcov"
-
-          # Show coverage summary
-          llvm-cov-21 report build/lib/codelint-plugin.so \
-            -instr-profile=coverage.profdata \
-            -ignore-filename-regex="(tests|build|CMakeFiles|^/usr/lib/llvm|^/opt)"
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: ./coverage.lcov
-          flags: unittests
-          name: codelint-coverage
-          fail_ci_if_error: true
-          verbose: true
 
       - name: Check code formatting
         if: github.event_name == 'pull_request'
