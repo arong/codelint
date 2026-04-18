@@ -785,6 +785,11 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
 
   // Report diagnostics for uninitialized members
   for (const FieldDecl* Field : UninitializedMembers) {
+    // Skip fields in system headers
+    if (Ctx->getSourceManager().isInSystemHeader(Field->getLocation())) {
+      continue;
+    }
+
     const auto Loc = Field->getLocation();
     if (hasNonTrivialDefaultConstructor(Field->getType())) {
       diag(Loc, "member variable '%0' is not explicitly initialized in constructor")
