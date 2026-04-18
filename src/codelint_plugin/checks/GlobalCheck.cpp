@@ -42,8 +42,8 @@ void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
   }
 
   auto& SM = Result.Context->getSourceManager();
-  SourceLocation SpellingLoc{SM.getSpellingLoc(VD->getLocation())};
-  if (SM.isInSystemHeader(SpellingLoc)) {
+  SourceLocation ExpansionLoc{SM.getExpansionLoc(VD->getLocation())};
+  if (!SM.isInMainFile(ExpansionLoc)) {
     return;
   }
 

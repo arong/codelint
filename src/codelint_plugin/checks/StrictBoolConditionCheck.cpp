@@ -61,8 +61,8 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   }
 
   auto& SM = Ctx->getSourceManager();
-  SourceLocation SpellingLoc{SM.getSpellingLoc(Cond->getBeginLoc())};
-  if (SM.isInSystemHeader(SpellingLoc)) {
+  SourceLocation ExpansionLoc{SM.getExpansionLoc(Cond->getBeginLoc())};
+  if (!SM.isInMainFile(ExpansionLoc)) {
     return;
   }
 
