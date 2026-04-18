@@ -11,7 +11,7 @@ Codelint is a **clang-tidy plugin** that enforces modern C++ initialization best
 | Uninitialized variables | Undefined behavior, crashes | Auto-fix with `{}` initialization |
 | `int x = 5` style | Less explicit, allows narrowing | Auto-fix to `int x{5}` |
 | `bool b = 1` | Dangerous implicit conversion | **Error warning** - force explicit |
-| Missing `U` suffix | Silent signed/unsigned bugs | Auto-fix with `U` suffix |
+| Missing `U`/`UL` suffix | Silent signed/unsigned bugs | Auto-fix with correct suffix |
 | Uninitialized class members | Partial initialization bugs | Constructor initializer check |
 
 ### Real-World Example
@@ -24,6 +24,7 @@ void process() {
   int count;              // ❌ uninitialized - undefined behavior
   int value = 3.14;       // ❌ narrowing conversion
   unsigned u = 100;       // ❌ missing U suffix
+  uint64_t big = 42;      // ❌ missing UL suffix
   bool ret = Init();      // ❌ ERROR: integer to bool is dangerous
 }
 
@@ -31,7 +32,8 @@ void process() {
 void process() {
   int count{};            // ✅ explicitly initialized
   int value{3};           // ✅ explicit integer (user fixed narrowing)
-  unsigned u{100U};       // ✅ proper U suffix
+  unsigned u{100U};       // ✅ proper U suffix for 32-bit
+  uint64_t big{42UL};     // ✅ proper UL suffix for 64-bit
   bool ret{true};         // ✅ explicit bool (user fixed conversion)
 }
 ```
@@ -77,11 +79,19 @@ int x = 5;              // → int x{5};
 std::string s = "hi";   // → std::string s{"hi"};
 ```
 
-### 3. Unsigned Suffix → `U`
+### 3. Unsigned Suffix → `U` or `UL`
+
+Codelint automatically adds the correct suffix based on type size:
+
+| Type | Suffix | Example |
+|------|--------|---------|
+| `unsigned`, `unsigned int` | `U` | `unsigned u{1U}` |
+| `uint64_t`, `unsigned long` | `UL` | `uint64_t val{42UL}` |
 
 ```cpp
 unsigned u = 1;         // → unsigned u{1U};
-uint64_t val = 42;      // → uint64_t val{42U};
+uint64_t val = 42;      // → uint64_t val{42UL};
+unsigned long big = 100; // → unsigned long big{100UL};
 ```
 
 ### 4. Bool from Integer → Error
