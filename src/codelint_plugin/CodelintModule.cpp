@@ -23,4 +23,4 @@ public:
 
 // Register the module
 static clang::tidy::ClangTidyModuleRegistry::Add<clang::tidy::codelint::CodelintModule>
-    X("codelint-module", "Adds codelint checks: init, global, singleton");
+    X("codelint-module", "Adds codelint checks: init, global, singleton"); // NOLINT
