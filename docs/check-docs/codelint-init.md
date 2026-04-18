@@ -7,11 +7,12 @@ Checks for proper variable initialization style in C++ code.
 This check enforces modern C++ initialization best practices:
 
 1. **Uninitialized variables** - Variables must be explicitly initialized
-2. **Brace initialization** - Prefer `{}` over `=` syntax
-3. **Unsigned suffix** - Add `U` suffix to unsigned integer literals
-4. **Macro skip** - Automatically skips variables defined inside macros
-5. **C-style arrays** - Provides specific warning for uninitialized arrays
-6. **Equals-brace syntax** - Suggests `{}` instead of `= {}` syntax
+2. **Brace initialization** - Prefer `{}` over `=` syntax (except for `auto`)
+3. **Auto type handling** - Auto types should use `=` assignment, not `{}`
+4. **Unsigned suffix** - Add `U` suffix to unsigned integer literals
+5. **Macro skip** - Automatically skips variables defined inside macros
+6. **C-style arrays** - Provides specific warning for uninitialized arrays
+7. **Equals-brace syntax** - Suggests `{}` instead of `= {}` syntax for non-auto types
 
 ## Examples
 
@@ -29,7 +30,7 @@ void f() {
 }
 ```
 
-### Example 2: Equals to brace initialization
+### Example 2: Equals to brace initialization (non-auto types)
 
 ```cpp
 // Before
@@ -39,7 +40,23 @@ int value = 42;
 int value{42};
 ```
 
-### Example 3: Unsigned suffix
+### Example 3: Auto type - brace to equals conversion
+
+Auto types use type deduction and should use `=` assignment syntax:
+
+```cpp
+// Before
+auto x{42};
+auto* p{&value};
+const auto* cp{&value};
+
+// After
+auto x = 42;
+auto* p = &value;
+const auto* cp = &value;
+```
+
+### Example 4: Unsigned suffix
 
 ```cpp
 // Before
@@ -49,7 +66,7 @@ unsigned int count = 5;
 unsigned int count = 5U;
 ```
 
-### Example 4: C-style array initialization
+### Example 5: C-style array initialization
 
 ```cpp
 // Before
@@ -59,7 +76,7 @@ int arr[5];
 int arr[5]{};
 ```
 
-### Example 5: Equals-brace to pure brace
+### Example 6: Equals-brace to pure brace (non-auto types)
 
 ```cpp
 // Before
@@ -71,7 +88,17 @@ int arr[5]{};
 int values[3]{1, 2, 3};
 ```
 
-### Example 6: Macro definitions (skipped)
+### Example 7: Auto types with equals (correct - no warning)
+
+```cpp
+// These will NOT trigger warnings - correct auto usage
+auto x = 42;
+auto* p = &value;
+const auto* cp = &value;
+auto& ref = value;
+```
+
+### Example 8: Macro definitions (skipped)
 
 ```cpp
 // These will NOT trigger warnings
@@ -82,16 +109,34 @@ MACRO_VAR;
 DECLARE(int, my_var);
 ```
 
+## Auto Type Handling
+
+Auto types require special handling because they use type deduction:
+
+| Syntax | Auto Type | Non-Auto Type |
+|--------|-----------|---------------|
+| `auto x = 42` | ✅ Correct | - |
+| `auto x{42}` | ❌ Warn → `auto x = 42` | - |
+| `int x = 42` | - | ❌ Warn → `int x{42}` |
+| `int x{42}` | - | ✅ Correct |
+
+**Why auto types use `=` instead of `{}`:**
+
+1. `auto x{42}` deduces to `std::initializer_list<int>` in some contexts
+2. `auto x = 42` is the conventional and clearer syntax for type deduction
+3. Brace initialization with auto can lead to surprising type deductions
+
 ## Skipped Cases
 
 The check intentionally skips:
 
-- **Auto declarations** - `auto x = 5;` requires `=` syntax
 - **For loop variables** - `for (int i = 0; ...)` pattern
 - **Union members** - Union initialization has special semantics
 - **Extern declarations** - `extern int x;` is a declaration, not definition
 - **Exception variables** - `catch (const auto& e)` pattern
 - **Macro definitions** - Variables inside `#define` macros are not modified
+- **Auto references** - `auto& ref = x;` uses `=` correctly
+- **Multiple initializer list values** - `auto x = {1, 2, 3}` (no single-value conversion)
 
 ## Limitations
 
