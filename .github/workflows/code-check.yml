@@ -97,6 +97,11 @@ jobs:
         with:
           fetch-depth: 0  # Required for git diff
 
+      - name: Fetch base branch for PR diff
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+
       - name: Install dependencies
         run: |
           apt-get update
@@ -171,7 +176,7 @@ jobs:
           # Check for codelint warnings
           if grep -q "\[codelint-" codelint_output.txt; then
             echo "::error::Codelint found issues!"
-            echo "Please fix the issues or run './scripts/self-check.sh' locally"
+            echo "Please fix the issues or run 'python3 scripts/self_check.py' locally"
             exit 1
           fi
           
