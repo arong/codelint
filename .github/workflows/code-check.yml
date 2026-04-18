@@ -143,9 +143,36 @@ jobs:
             grep '\.cpp$\|\.hpp$\|\.h$' | \
             xargs -r clang-format-21 --dry-run --Werror
 
-      - name: Run clang-tidy
+      - name: Run clang-tidy with codelint plugin
         if: github.event_name == 'pull_request'
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | \
-            grep '\.cpp$' | \
-            xargs -r clang-tidy-21 -p build --config-file=.clang-tidy
+          echo "🔍 Running codelint checks..."
+          
+          # Get changed files (exclude tests)
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.cpp$' | grep -v '^tests/')
+          
+          if [ -z "$changed_files" ]; then
+            echo "✅ No source files changed, skipping codelint"
+            exit 0
+          fi
+          
+          # Run codelint checks (check only, no auto-fix in CI)
+          # Safety measures:
+          # 1. NO --fix or --fix-errors (prevents modifying any files)
+          # 2. header-filter='codelint/.*' only matches project headers
+          # 3. Excludes tests/ directory (only source code)
+          clang-tidy-21 \
+            --load=build/lib/codelint-plugin.so \
+            --checks='codelint-*' \
+            -p build \
+            --header-filter='codelint/.*' \
+            $changed_files 2>&1 | tee codelint_output.txt
+          
+          # Check for codelint warnings
+          if grep -q "\[codelint-" codelint_output.txt; then
+            echo "::error::Codelint found issues!"
+            echo "Please fix the issues or run './scripts/self-check.sh' locally"
+            exit 1
+          fi
+          
+          echo "✅ No codelint issues found"
