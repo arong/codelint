@@ -105,6 +105,9 @@ jobs:
             libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
             git curl zip unzip ca-certificates pkg-config
 
+          # Configure git safe directory for container
+          git config --global --add safe.directory /__w/codelint/codelint
+
           # Install LLVM 21 from apt.llvm.org
           wget -4 https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
@@ -115,11 +118,6 @@ jobs:
             llvm-21-dev \
             clang-tidy-21 clang-21 clang-format-21 \
             libclang-21-dev
-
-      - name: Fetch base branch for PR diff
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
 
       - name: Configure CMake
         run: |
@@ -144,8 +142,8 @@ jobs:
       - name: Check code formatting
         if: github.event_name == 'pull_request'
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | \
-            grep '\.cpp$\|\.hpp$\|\.h$' | \
+          echo "🔍 Checking C++ formatting..."
+          find src -name '*.cpp' -o -name '*.h' | \
             xargs -r clang-format-21 --dry-run --Werror
 
       - name: Run clang-tidy with codelint plugin
@@ -153,11 +151,11 @@ jobs:
         run: |
           echo "🔍 Running codelint checks..."
           
-          # Get changed files (exclude tests)
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.cpp$' | grep -v '^tests/')
+          # Check all source files (exclude tests)
+          src_files=$(find src -name '*.cpp')
           
-          if [ -z "$changed_files" ]; then
-            echo "✅ No source files changed, skipping codelint"
+          if [ -z "$src_files" ]; then
+            echo "✅ No source files found, skipping codelint"
             exit 0
           fi
           
@@ -171,7 +169,7 @@ jobs:
             --checks='codelint-*' \
             -p build \
             --header-filter='codelint/.*' \
-            $changed_files 2>&1 | tee codelint_output.txt
+            $src_files 2>&1 | tee codelint_output.txt
           
           # Check for codelint warnings
           if grep -q "\[codelint-" codelint_output.txt; then
