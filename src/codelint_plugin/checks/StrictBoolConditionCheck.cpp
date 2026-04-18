@@ -56,6 +56,10 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     return;
   }
 
+  if (Ctx->getSourceManager().isInSystemHeader(Cond->getBeginLoc())) {
+    return;
+  }
+
   if (isBoolType(Cond)) {
     return;
   }

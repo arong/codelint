@@ -31,6 +31,10 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
     return;
   }
 
+  if (Result.Context->getSourceManager().isInSystemHeader(FD->getLocation())) {
+    return;
+  }
+
   diag(FD->getLocation(), "Meyer's Singleton pattern detected in '%0'") << FD->getName();
 }
 

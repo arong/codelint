@@ -18,6 +18,8 @@ public:
   }
 
 private:
+  bool isInSystemHeader(SourceLocation Loc, ASTContext* Ctx);
+
   void checkUninitialized(const VarDecl* VD, ASTContext* Ctx);
   void checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx);
   void checkEqualsInit(const VarDecl* VD, ASTContext* Ctx);

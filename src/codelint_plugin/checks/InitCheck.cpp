@@ -12,6 +12,13 @@
 namespace clang::tidy {
 namespace codelint {
 
+bool InitCheck::isInSystemHeader(SourceLocation Loc, ASTContext* Ctx) {
+  if (!Ctx) {
+    return false;
+  }
+  return Ctx->getSourceManager().isInSystemHeader(Loc);
+}
+
 using clang::ast_matchers::autoType;
 using clang::ast_matchers::cxxCatchStmt;
 using clang::ast_matchers::cxxConstructorDecl;
@@ -583,6 +590,10 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
+  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+    return;
+  }
+
   const auto Name = VD->getName();
   if (Name.empty()) {
     return;
@@ -634,6 +645,10 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
 
 void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
   if (!VD || !Ctx) {
+    return;
+  }
+
+  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
     return;
   }
 
