@@ -111,14 +111,18 @@ jobs:
 
           apt-get install -y --no-install-recommends \
             llvm-21-dev \
+            llvm-21-tools \
             clang-tidy-21 clang-21 clang-format-21 \
             libclang-21-dev
 
       - name: Configure CMake
         run: |
           cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            -DENABLE_COVERAGE=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_C_COMPILER=clang-21 \
+            -DCMAKE_CXX_COMPILER=clang++-21
 
       - name: Build project
         run: cmake --build build -j$(nproc)
@@ -147,3 +151,36 @@ jobs:
           git diff --name-only origin/${{ github.base_ref }}...HEAD | \
             grep '\.cpp$' | \
             xargs -r clang-tidy-21 -p build --config-file=.clang-tidy
+
+      - name: Generate coverage report
+        run: |
+          echo "📊 Generating coverage report..."
+
+          ls -la *.profraw || echo "No profraw files in root"
+
+          llvm-profdata-21 merge -o coverage.profdata *.profraw || true
+
+          if [ -f coverage.profdata ]; then
+            llvm-cov-21 export -format=lcov \
+              build/lib/codelint-plugin.so \
+              -instr-profile=coverage.profdata \
+              -ignore-filename-regex="(tests|build|CMakeFiles|^/usr/lib/llvm|^/opt)" \
+              > coverage.lcov
+
+            llvm-cov-21 report build/lib/codelint-plugin.so \
+              -instr-profile=coverage.profdata \
+              -ignore-filename-regex="(tests|build|CMakeFiles|^/usr/lib/llvm|^/opt)"
+
+            echo "✅ Coverage report generated"
+          else
+            echo "⚠️ No coverage data found"
+          fi
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.lcov
+          flags: unittests
+          name: codelint-coverage
+          fail_ci_if_error: false
+          verbose: true
