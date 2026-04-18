@@ -635,6 +635,10 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
     return;
   }
 
+  if (Ctx->getSourceManager().isInSystemHeader(Ctor->getLocation())) {
+    return;
+  }
+
   const CXXRecordDecl* Record = Ctor->getParent();
   if (!Record) {
     return;
@@ -681,10 +685,7 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
       diag(Loc, "member variable '%0' is not explicitly initialized in constructor")
           << Field->getName();
     } else {
-      diag(Loc,
-           "member variable '%0' is not explicitly initialized in constructor (undefined "
-           "behavior for trivial types)",
-           DiagnosticIDs::Error)
+      diag(Loc, "member variable '%0' is not initialized in constructor", DiagnosticIDs::Error)
           << Field->getName();
     }
   }
