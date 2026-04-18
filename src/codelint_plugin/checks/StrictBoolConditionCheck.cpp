@@ -6,6 +6,8 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 #include <llvm/Support/Casting.h>
 
 namespace clang::tidy {
@@ -58,7 +60,9 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(Cond->getBeginLoc())) {
+  auto& SM = Ctx->getSourceManager();
+  SourceLocation SpellingLoc = SM.getSpellingLoc(Cond->getBeginLoc());
+  if (SM.isInSystemHeader(SpellingLoc)) {
     return;
   }
 

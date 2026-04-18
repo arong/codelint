@@ -16,7 +16,9 @@ bool InitCheck::isInSystemHeader(SourceLocation Loc, ASTContext* Ctx) {
   if (!Ctx) {
     return false;
   }
-  return Ctx->getSourceManager().isInSystemHeader(Loc);
+  auto& SM = Ctx->getSourceManager();
+  SourceLocation SpellingLoc = SM.getSpellingLoc(Loc);
+  return SM.isInSystemHeader(SpellingLoc);
 }
 
 using clang::ast_matchers::autoType;

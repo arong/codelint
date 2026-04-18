@@ -3,6 +3,8 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 
 namespace clang::tidy {
 namespace codelint {
@@ -31,7 +33,9 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
     return;
   }
 
-  if (Result.Context->getSourceManager().isInSystemHeader(FD->getLocation())) {
+  auto& SM = Result.Context->getSourceManager();
+  SourceLocation SpellingLoc = SM.getSpellingLoc(FD->getLocation());
+  if (SM.isInSystemHeader(SpellingLoc)) {
     return;
   }
 
