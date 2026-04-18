@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clang-tidy/ClangTidyCheck.h"
+#include <clang-tidy/ClangTidyCheck.h>
 
 namespace clang::tidy {
 namespace codelint {

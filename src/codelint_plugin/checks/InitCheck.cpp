@@ -12,61 +12,61 @@
 namespace clang::tidy {
 namespace codelint {
 
+using clang::ast_matchers::autoType;
+using clang::ast_matchers::cxxCatchStmt;
+using clang::ast_matchers::cxxConstructorDecl;
+using clang::ast_matchers::cxxForRangeStmt;
+using clang::ast_matchers::expr;
+using clang::ast_matchers::fieldDecl;
+using clang::ast_matchers::forStmt;
+using clang::ast_matchers::hasAncestor;
+using clang::ast_matchers::hasCanonicalType;
+using clang::ast_matchers::hasInitializer;
+using clang::ast_matchers::hasParent;
+using clang::ast_matchers::hasType;
+using clang::ast_matchers::initListExpr;
+using clang::ast_matchers::integerLiteral;
+using clang::ast_matchers::isImplicit;
+using clang::ast_matchers::isUnion;
+using clang::ast_matchers::isUnsignedInteger;
+using clang::ast_matchers::parmVarDecl;
+using clang::ast_matchers::recordDecl;
+using clang::ast_matchers::unless;
+using clang::ast_matchers::varDecl;
+
 void InitCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
     return;
   }
 
-  Finder->addMatcher(
-      ast_matchers::varDecl(
-          ast_matchers::unless(ast_matchers::parmVarDecl()),
-          ast_matchers::unless(ast_matchers::hasType(ast_matchers::autoType())),
-          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::cxxForRangeStmt())),
-          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::forStmt())),
-          ast_matchers::unless(
-              ast_matchers::hasAncestor(ast_matchers::recordDecl(ast_matchers::isUnion()))),
-          ast_matchers::unless(ast_matchers::hasParent(ast_matchers::cxxCatchStmt())))
-          .bind("uninit"),
-      this);
+  Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
+                             unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
+                             unless(hasAncestor(recordDecl(isUnion()))),
+                             unless(hasParent(cxxCatchStmt())))
+                         .bind("uninit"),
+                     this);
+
+  Finder->addMatcher(fieldDecl(unless(hasAncestor(recordDecl(isUnion())))).bind("uninit_field"),
+                     this);
+
+  Finder->addMatcher(varDecl(hasInitializer(expr()), unless(hasInitializer(initListExpr())),
+                             unless(hasType(autoType())), unless(parmVarDecl()),
+                             unless(hasParent(cxxCatchStmt())), unless(hasAncestor(forStmt())),
+                             unless(hasAncestor(cxxForRangeStmt())))
+                         .bind("equals"),
+                     this);
 
   Finder->addMatcher(
-      ast_matchers::fieldDecl(ast_matchers::unless(ast_matchers::hasAncestor(
-                                  ast_matchers::recordDecl(ast_matchers::isUnion()))))
-          .bind("uninit_field"),
-      this);
-
-  Finder->addMatcher(
-      ast_matchers::varDecl(
-          ast_matchers::hasInitializer(ast_matchers::expr()),
-          ast_matchers::unless(ast_matchers::hasInitializer(ast_matchers::initListExpr())),
-          ast_matchers::unless(ast_matchers::hasType(ast_matchers::autoType())),
-          ast_matchers::unless(ast_matchers::parmVarDecl()),
-          ast_matchers::unless(ast_matchers::hasParent(ast_matchers::cxxCatchStmt())),
-          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::forStmt())),
-          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::cxxForRangeStmt())))
-          .bind("equals"),
-      this);
-
-  Finder->addMatcher(
-      ast_matchers::varDecl(
-          ast_matchers::hasType(ast_matchers::hasCanonicalType(ast_matchers::isUnsignedInteger())),
-          ast_matchers::hasInitializer(ast_matchers::integerLiteral()))
+      varDecl(hasType(hasCanonicalType(isUnsignedInteger())), hasInitializer(integerLiteral()))
           .bind("unsigned"),
       this);
 
-  Finder->addMatcher(
-      ast_matchers::varDecl(
-          ast_matchers::hasInitializer(ast_matchers::initListExpr()),
-          ast_matchers::unless(ast_matchers::parmVarDecl()),
-          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::forStmt())),
-          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::cxxForRangeStmt())))
-          .bind("equals_brace"),
-      this);
+  Finder->addMatcher(varDecl(hasInitializer(initListExpr()), unless(parmVarDecl()),
+                             unless(hasAncestor(forStmt())), unless(hasAncestor(cxxForRangeStmt())))
+                         .bind("equals_brace"),
+                     this);
 
-  Finder->addMatcher(
-      ast_matchers::cxxConstructorDecl(ast_matchers::unless(ast_matchers::isImplicit()))
-          .bind("constructor"),
-      this);
+  Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
 }
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
