@@ -21,10 +21,10 @@ tests/CodeLintTest/src/init_checker/src/integer.cpp:9:10: warning: variable shou
 tests/CodeLintTest/src/init_checker/src/integer.cpp:34:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization [codelint-init]
    34 |   int d = 3.14;
       |       ^
-tests/CodeLintTest/src/init_checker/src/integer.cpp:42:8: error: assigning integer to bool is dangerous; use explicit comparison or bool literal [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:42:8: error: assigning integer to bool is dangerous; use explicit comparison [codelint-init]
    42 |   bool ret = Init();
       |        ^
-tests/CodeLintTest/src/init_checker/src/integer.cpp:43:8: error: assigning integer to bool is dangerous; use explicit comparison or bool literal [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:43:8: error: assigning integer to bool is dangerous; use explicit comparison [codelint-init]
    43 |   bool flag = 1;
       |        ^
 tests/CodeLintTest/src/init_checker/src/integer.cpp:44:8: warning: variable should use '{}' syntax for initialization [codelint-init]
