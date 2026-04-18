@@ -74,10 +74,23 @@ int arr[10]{};          // ✅ fixed: array initialized
 
 ### 2. Equals Syntax → Brace Initialization
 
+**For non-auto types:**
 ```cpp
 int x = 5;              // → int x{5};
 std::string s = "hi";   // → std::string s{"hi"};
 ```
+
+**For auto types (opposite):**
+```cpp
+auto x{42};             // → auto x = 42;  (brace to equals)
+auto* p{&value};        // → auto* p = &value;
+const auto* cp{&value}; // → const auto* cp = &value;
+```
+
+**Why auto types are different:**
+- `auto x{42}` can deduce to `std::initializer_list<int>` in some contexts
+- `auto x = 42` is clearer and conventional for type deduction
+- Brace initialization with auto can lead to surprising type deductions
 
 ### 3. Unsigned Suffix → `U` or `UL`
 
@@ -114,7 +127,9 @@ Codelint intelligently skips these cases where modification is unsafe or intenti
 | **Catch parameters** | `catch (const Exception& e)` | Exception parameter initialized by catch |
 | **Catch block variables** | `std::string copy = msg;` inside catch | ✅ Still checked (not skipped) |
 | **Macro definitions** | Variables inside `#define` | Cannot modify macros |
-| **Auto types** | `auto x = getValue()` | Type deduction required |
+| **Auto with equals** | `auto x = getValue()` | ✅ Correct - no warning |
+| **Auto with braces** | `auto x{42}` | ❌ Warn → `auto x = 42` |
+| **Auto references** | `auto& ref = x` | ✅ Correct - uses `=` |
 | **Extern declarations** | `extern int x;` | Definition elsewhere |
 | **Union members** | `union { int a; }` | Union special handling |
 | **Enum class** | `enum class Color { Red }` | Scoped enum |

@@ -303,6 +303,7 @@ run_check_output_test() {
         /warning:/ { found=0 }
         /error:/ { found=0 }
         /Suppressed/ { found=0 }
+        /Found compiler/ { found=0 }
         found && count > 0 { print; count-- }
         found && count == 0 { found=0 }
     ' "$temp_full" > "$temp_output"

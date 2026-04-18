@@ -1,0 +1,16 @@
+tests/CodeLintTest/src/init_checker/src/auto_brace.cpp:5:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+    5 |   int value = 10;
+      |       ^     ~
+      |            {    }
+tests/CodeLintTest/src/init_checker/src/auto_brace.cpp:8:8: warning: auto type should use '=' assignment instead of brace initialization [codelint-init]
+    8 |   auto x{42};
+      |        ^~~~~
+      |          = 42
+tests/CodeLintTest/src/init_checker/src/auto_brace.cpp:11:9: warning: auto type should use '=' assignment instead of brace initialization [codelint-init]
+   11 |   auto* p{&value};
+      |         ^~~~~~~~~
+      |           = &value
+tests/CodeLintTest/src/init_checker/src/auto_brace.cpp:12:15: warning: auto type should use '=' assignment instead of brace initialization [codelint-init]
+   12 |   const auto* cp{&value};
+      |               ^ ~~~~~~~~
+      |                  = &value

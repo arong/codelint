@@ -3,9 +3,10 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 void GlobalCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
@@ -39,12 +40,13 @@ void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
-  if (Result.Context->getSourceManager().isInSystemHeader(VD->getLocation())) {
+  const auto& SM = Result.Context->getSourceManager();
+  if (const SourceLocation ExpansionLoc{SM.getExpansionLoc(VD->getLocation())};
+      !SM.isInMainFile(ExpansionLoc)) {
     return;
   }
 
   diag(VD->getLocation(), "global variable '%0' detected") << VD->getName();
 }
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

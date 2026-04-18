@@ -3,9 +3,10 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 void SingletonCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   Finder->addMatcher(
@@ -31,8 +32,13 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
     return;
   }
 
+  auto& SM = Result.Context->getSourceManager();
+  SourceLocation ExpansionLoc{SM.getExpansionLoc(FD->getLocation())};
+  if (!SM.isInMainFile(ExpansionLoc)) {
+    return;
+  }
+
   diag(FD->getLocation(), "Meyer's Singleton pattern detected in '%0'") << FD->getName();
 }
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

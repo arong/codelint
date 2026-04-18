@@ -2,8 +2,7 @@
 
 #include <clang-tidy/ClangTidyCheck.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 class InitCheck : public ClangTidyCheck {
 public:
@@ -18,6 +17,8 @@ public:
   }
 
 private:
+  bool isInSystemHeader(SourceLocation Loc, ASTContext* Ctx);
+
   void checkUninitialized(const VarDecl* VD, ASTContext* Ctx);
   void checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx);
   void checkEqualsInit(const VarDecl* VD, ASTContext* Ctx);
@@ -27,6 +28,7 @@ private:
                                                        ASTContext* Ctx);
 
   bool shouldSkipAuto(const VarDecl* VD);
+  bool isAutoType(const VarDecl* VD);
   bool shouldSkipUnion(const VarDecl* VD);
   bool shouldSkipExtern(const VarDecl* VD);
   bool shouldSkipEnumClass(const VarDecl* VD);
@@ -34,9 +36,7 @@ private:
   bool hasExplicitInitializer(const VarDecl* VD);
   bool hasExplicitInitializer(const FieldDecl* FD);
   bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
-  bool hasInitializerListConstructor(const CXXRecordDecl* Record);
   bool hasNonTrivialDefaultConstructor(QualType QT) const;
 };
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

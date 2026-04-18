@@ -6,10 +6,11 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceLocation.h>
+#include <clang/Basic/SourceManager.h>
 #include <llvm/Support/Casting.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
@@ -32,21 +33,23 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
     return;
   }
 
-  const clang::Expr* Cond = nullptr;
+  const Expr* Cond{nullptr};
 
-  if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt")) {
+  if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt"); IS != nullptr) {
     Cond = IS->getCond();
-  } else if (const auto* WS = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt")) {
+  } else if (const auto* WS = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt");
+             WS != nullptr) {
     Cond = WS->getCond();
-  } else if (const auto* FS = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt")) {
+  } else if (const auto* FS = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt"); FS != nullptr) {
     Cond = FS->getCond();
-  } else if (const auto* DS = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt")) {
+  } else if (const auto* DS = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt"); DS != nullptr) {
     Cond = DS->getCond();
-  } else if (const auto* CO = Result.Nodes.getNodeAs<clang::ConditionalOperator>("condOp")) {
+  } else if (const auto* CO = Result.Nodes.getNodeAs<clang::ConditionalOperator>("condOp");
+             CO != nullptr) {
     Cond = CO->getCond();
   }
 
-  if (Cond) {
+  if (Cond != nullptr) {
     checkCondition(Cond, Result.Context);
   }
 }
@@ -56,12 +59,18 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     return;
   }
 
+  const auto& SM = Ctx->getSourceManager();
+  if (const SourceLocation ExpansionLoc{SM.getExpansionLoc(Cond->getBeginLoc())};
+      !SM.isInMainFile(ExpansionLoc)) {
+    return;
+  }
+
   if (isBoolType(Cond)) {
     return;
   }
 
-  const clang::Expr* TrueCond = Cond->IgnoreImpCasts();
-  clang::QualType CondType = TrueCond->getType();
+  const clang::Expr* TrueCond{Cond->IgnoreImpCasts()};
+  const clang::QualType CondType{TrueCond->getType()};
 
   diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'") << CondType.getAsString();
 }
@@ -71,15 +80,14 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
     return false;
   }
 
-  const clang::Expr* TrueExpr = E->IgnoreImpCasts();
-  clang::QualType Ty = TrueExpr->getType();
+  const clang::Expr* TrueExpr{E->IgnoreImpCasts()};
 
-  if (Ty->isBooleanType()) {
+  if (const clang::QualType Ty{TrueExpr->getType()}; Ty->isBooleanType()) {
     return true;
   }
 
-  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E)) {
-    clang::CastKind Kind = ICE->getCastKind();
+  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E); ICE != nullptr) {
+    const clang::CastKind Kind{ICE->getCastKind()};
     if (Kind == clang::CK_IntegralToBoolean || Kind == clang::CK_PointerToBoolean ||
         Kind == clang::CK_FloatingToBoolean) {
       return false;
@@ -89,5 +97,4 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
   return false;
 }
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

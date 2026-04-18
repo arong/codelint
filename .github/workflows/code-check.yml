@@ -105,6 +105,9 @@ jobs:
             libzstd-dev libxml2-dev libedit-dev libncurses-dev zlib1g-dev \
             git curl zip unzip ca-certificates pkg-config
 
+          # Configure git safe directory for container
+          git config --global --add safe.directory /__w/codelint/codelint
+
           # Install LLVM 21 from apt.llvm.org
           wget -4 https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
@@ -139,13 +142,32 @@ jobs:
       - name: Check code formatting
         if: github.event_name == 'pull_request'
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | \
-            grep '\.cpp$\|\.hpp$\|\.h$' | \
+          echo "🔍 Checking C++ formatting..."
+          find src -name '*.cpp' -o -name '*.h' | \
             xargs -r clang-format-21 --dry-run --Werror
 
-      - name: Run clang-tidy
+      - name: Run clang-tidy with codelint plugin
         if: github.event_name == 'pull_request'
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | \
-            grep '\.cpp$' | \
-            xargs -r clang-tidy-21 -p build --config-file=.clang-tidy
+          echo "🔍 Running codelint checks..."
+          
+          # Check all source files (exclude tests)
+          src_files=$(find src -name '*.cpp')
+          
+          if [ -z "$src_files" ]; then
+            echo "✅ No source files found, skipping codelint"
+            exit 0
+          fi
+          
+          # Run codelint checks (check only, no auto-fix in CI)
+          # Safety measures:
+          # 1. NO --fix or --fix-errors (prevents modifying any files)
+          # 2. Only check src/ files
+          # 3. Excludes tests/ directory (only source code)
+          clang-tidy-21 \
+            --load=build/lib/codelint-plugin.so \
+            --checks='codelint-*' \
+            -p build \
+            $src_files 2>&1 | tee codelint_output.txt
+          
+          echo "✅ Codelint checks completed"

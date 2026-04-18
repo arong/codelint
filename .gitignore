@@ -1,18 +1,33 @@
+# Build artifacts
 build/
+cmake-build-debug/
 *.o
 *.so
 *.a
 *.dylib
 *.exe
+*.profraw
+*.profdata
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-third_party/
-compile_commands.jsoncodelint-*.tar.gz
-codelint-*/
+Thumbs.db
+
+# Packaging
 packaging/AppDir/
 *.AppImage
-!packaging/tools/appimagetool
-codelint-dev-x86_64.AppImage
+*.gz
+
+# AI / Tooling
 .cache
 .sisyphus
-.idea/
+
+# Test / Coverage
 coverage_report/
