@@ -1,80 +1,80 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:8:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:8:7: error: field is not initialized [codelint-init]
     8 |   int x;
       |       ^
       |        {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:9:10: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:9:10: error: field is not initialized [codelint-init]
     9 |   double y;
       |          ^
       |           {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:11:9: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:11:9: error: variable is not initialized [codelint-init]
    11 | CStruct cs1;
       |         ^
       |            {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:15:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:15:7: error: field is not initialized [codelint-init]
    15 |   int value;
       |       ^
       |            {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:19:18: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:19:18: error: variable is not initialized [codelint-init]
    19 | StructWithMethod swm1;
       |                  ^
       |                      {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:24:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:24:7: error: field is not initialized [codelint-init]
    24 |   int value;
       |       ^
       |            {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:25:15: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:25:15: warning: field is not explicitly initialized [codelint-init]
    25 |   std::string name;
       |               ^
       |                   {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:29:11: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:29:11: warning: variable is not explicitly initialized [codelint-init]
    29 | TestClass tc1;
       |           ^
       |              {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:37:11: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:37:11: error: variable is not initialized [codelint-init]
    37 | UnionType ut1;
       |           ^
       |              {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:42:9: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:42:9: error: field is not initialized [codelint-init]
    42 |     int x;
       |         ^
       |          {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:43:9: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:43:9: error: field is not initialized [codelint-init]
    43 |     int y;
       |         ^
       |          {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:44:5: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:44:5: error: field is not initialized [codelint-init]
    44 |   } inner;
       |     ^
       |          {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:45:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:45:7: error: field is not initialized [codelint-init]
    45 |   int outer_val;
       |       ^
       |                {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:46:3: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:46:3: error: variable is not initialized [codelint-init]
    46 | } outer1;
       |   ^
       |         {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:50:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:50:7: error: field is not initialized [codelint-init]
    50 |   int tag;
       |       ^
       |          {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:55:5: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:55:5: error: field is not initialized [codelint-init]
    55 |   } u;
       |     ^
       |      {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:56:3: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:56:3: error: variable is not initialized [codelint-init]
    56 | } swu1;
       |   ^
       |       {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:63:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:63:7: error: field is not initialized [codelint-init]
    63 |   int base_val;
       |       ^
       |               {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:69:7: warning: field is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:69:7: error: field is not initialized [codelint-init]
    69 |   int derived_val;
       |       ^
       |                  {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/struct_class.cpp:71:14: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/struct_class.cpp:71:14: warning: variable is not explicitly initialized [codelint-init]
    71 | DerivedClass dc1;
       |              ^
       |                 {}

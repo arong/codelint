@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clang-tidy/ClangTidyCheck.h"
+#include <clang-tidy/ClangTidyCheck.h>
 
 namespace clang::tidy {
 namespace codelint {
@@ -35,6 +35,7 @@ private:
   bool hasExplicitInitializer(const FieldDecl* FD);
   bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
   bool hasInitializerListConstructor(const CXXRecordDecl* Record);
+  bool hasNonTrivialDefaultConstructor(QualType QT) const;
 };
 
 } // namespace codelint

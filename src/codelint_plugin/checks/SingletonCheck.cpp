@@ -1,24 +1,27 @@
 #include "codelint/checks/SingletonCheck.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Basic/Diagnostic.h"
+
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Basic/Diagnostic.h>
 
 namespace clang::tidy {
 namespace codelint {
 
-using namespace ast_matchers;
-
-void SingletonCheck::registerMatchers(MatchFinder* Finder) {
+void SingletonCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   Finder->addMatcher(
-      functionDecl(
-          returns(referenceType()),
-          has(compoundStmt(hasDescendant(varDecl(isStaticStorageClass()).bind("staticLocal")),
-                           hasDescendant(returnStmt(
-                               has(declRefExpr(to(varDecl(equalsBoundNode("staticLocal"))))))))))
+      ast_matchers::functionDecl(
+          ast_matchers::returns(ast_matchers::referenceType()),
+          ast_matchers::has(ast_matchers::compoundStmt(
+              ast_matchers::hasDescendant(
+                  ast_matchers::varDecl(ast_matchers::isStaticStorageClass()).bind("staticLocal")),
+              ast_matchers::hasDescendant(ast_matchers::returnStmt(
+                  ast_matchers::has(ast_matchers::declRefExpr(ast_matchers::to(
+                      ast_matchers::varDecl(ast_matchers::equalsBoundNode("staticLocal"))))))))))
           .bind("singletonFunc"),
       this);
 }
 
-void SingletonCheck::check(const MatchFinder::MatchResult& Result) {
+void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
   if (Result.Context->getDiagnostics().hasErrorOccurred()) {
     return;
   }

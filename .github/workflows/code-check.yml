@@ -106,14 +106,14 @@ jobs:
             git curl zip unzip ca-certificates pkg-config
 
           # Install LLVM 21 from apt.llvm.org
-          wget https://apt.llvm.org/llvm.sh
+          wget -4 https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           ./llvm.sh 21
 
           # Install LLVM 21 development packages
           apt-get install -y --no-install-recommends \
             llvm-21-dev \
-            clang-tidy-21 clang-21 \
+            clang-tidy-21 clang-21 clang-format-21 \
             libclang-21-dev
 
       - name: Configure CMake
@@ -130,7 +130,7 @@ jobs:
           mkdir -p tests/CodeLintTest/build
           cp build/compile_commands.json tests/CodeLintTest/build/
 
-      - name: Setup PATH for clang-tidy-21
+      - name: Setup PATH for LLVM tools
         run: echo /usr/bin >> $GITHUB_PATH
 
       - name: Run all tests

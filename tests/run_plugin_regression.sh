@@ -187,9 +187,10 @@ FAIL_COUNT=0
 get_check_flag() {
     local checker="$1"
     case "$checker" in
-        "init_checker")    echo "codelint-init,-codelint-global,-codelint-singleton" ;;
+        "init_checker")    echo "codelint-init,-codelint-global,-codelint-singleton,-codelint-strict-bool-condition" ;;
         "global_checker")  echo "-*,codelint-global" ;;
         "singleton_checker") echo "-*,codelint-singleton" ;;
+        "strict_bool_condition_checker") echo "-*,codelint-strict-bool-condition" ;;
         *) echo "" ;;
     esac
 }
@@ -230,7 +231,7 @@ run_fix_test() {
     local temp_file=$(mktemp /tmp/codelint_fix.XXXXXX.cpp)
     cp "$src_file" "$temp_file"
 
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix --fix-errors "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
 
     # Apply clang-format to both files to eliminate formatting differences
     local temp_formatted=$(mktemp /tmp/codelint_formatted.XXXXXX.cpp)
@@ -294,9 +295,13 @@ run_check_output_test() {
 
     awk '
         /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
+        /error: .* \[codelint-init\]/ { found=1; count=4; print; next }
         /warning: .* \[codelint-global\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-singleton\]/ { found=1; count=3; print; next }
+        /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
+        /error: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
         /warning:/ { found=0 }
+        /error:/ { found=0 }
         /Suppressed/ { found=0 }
         found && count > 0 { print; count-- }
         found && count == 0 { found=0 }
@@ -353,7 +358,7 @@ run_source_issue_test() {
     fi
 
     local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
-    local issue_count=$(echo "$output" | grep -E "warning:.*\[codelint-.*\]" | wc -l | awk '{print $1}')
+    local issue_count=$(echo "$output" | grep -E "(warning|error):.*\[codelint-.*\]" | wc -l | awk '{print $1}')
 
     local expected_issues=0
     if [ -f "$TEST_DIR/check-output/${test_name}.txt" ] && [ -s "$TEST_DIR/check-output/${test_name}.txt" ]; then
@@ -397,14 +402,14 @@ run_fixed_issue_test() {
 
     local filtered_output=$(echo "$output" | grep -v "assigning integer to bool")
     local filtered_output=$(echo "$filtered_output" | grep -v "narrowing conversion")
-    local issue_count=$(echo "$filtered_output" | grep -E "warning:.*\[codelint-.*\]" | wc -l | awk '{print $1}')
+    local issue_count=$(echo "$filtered_output" | grep -E "(warning|error):.*\[codelint-.*\]" | wc -l | awk '{print $1}')
 
     if [ "$issue_count" -eq 0 ]; then
         echo "PASS: $checker/$test_name fixed file has 0 issues"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
         echo "FAIL: $checker/$test_name fixed file has $issue_count issues (expected 0)"
-        echo "$filtered_output" | grep "warning:.*\[codelint-.*\]" | head -3
+        echo "$filtered_output" | grep -E "(warning|error):.*\[codelint-.*\]" | head -3
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 }
@@ -435,7 +440,7 @@ run_compilation_error_test() {
         has_compilation_error=1
     fi
 
-    local codelint_warnings=$(grep "warning:.*\[codelint-.*\]" "$temp_full" 2>/dev/null | wc -l | tr -d ' ')
+    local codelint_warnings=$(grep -E "(warning|error):.*\[codelint-.*\]" "$temp_full" 2>/dev/null | wc -l | tr -d ' ')
 
     rm -f "$temp_full"
 
@@ -452,7 +457,7 @@ run_compilation_error_test() {
 }
 
 # Run tests for each checker
-CHECKERS=("init_checker" "global_checker" "singleton_checker")
+CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker")
 
 for CHECKER in "${CHECKERS[@]}"; do
     TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$CHECKER"

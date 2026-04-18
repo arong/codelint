@@ -1,19 +1,40 @@
 #include "codelint/checks/InitCheck.h"
-#include "clang/AST/Decl.h"
-#include "clang/AST/DeclCXX.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
-#include "clang/Basic/Diagnostic.h"
-#include "clang/Basic/SourceManager.h"
-#include "clang/Lex/Lexer.h"
-#include "llvm/ADT/SmallVector.h"
 
-using namespace clang::ast_matchers;
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/Lex/Lexer.h>
+#include <llvm/ADT/SmallVector.h>
 
 namespace clang::tidy {
 namespace codelint {
 
-void InitCheck::registerMatchers(MatchFinder* Finder) {
+using clang::ast_matchers::autoType;
+using clang::ast_matchers::cxxCatchStmt;
+using clang::ast_matchers::cxxConstructorDecl;
+using clang::ast_matchers::cxxForRangeStmt;
+using clang::ast_matchers::expr;
+using clang::ast_matchers::fieldDecl;
+using clang::ast_matchers::forStmt;
+using clang::ast_matchers::hasAncestor;
+using clang::ast_matchers::hasCanonicalType;
+using clang::ast_matchers::hasInitializer;
+using clang::ast_matchers::hasParent;
+using clang::ast_matchers::hasType;
+using clang::ast_matchers::initListExpr;
+using clang::ast_matchers::integerLiteral;
+using clang::ast_matchers::isImplicit;
+using clang::ast_matchers::isUnion;
+using clang::ast_matchers::isUnsignedInteger;
+using clang::ast_matchers::parmVarDecl;
+using clang::ast_matchers::recordDecl;
+using clang::ast_matchers::unless;
+using clang::ast_matchers::varDecl;
+
+void InitCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
     return;
   }
@@ -58,17 +79,17 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
-  if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("uninit")) {
+  if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("uninit")) {
     checkUninitialized(VD, Result.Context);
-  } else if (const auto* FD = Result.Nodes.getNodeAs<FieldDecl>("uninit_field")) {
+  } else if (const auto* FD = Result.Nodes.getNodeAs<clang::FieldDecl>("uninit_field")) {
     checkUninitializedField(FD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals")) {
     checkEqualsInit(VD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("unsigned")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("unsigned")) {
     checkUnsignedSuffix(VD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals_brace")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals_brace")) {
     checkEqualsBraceInit(VD, Result.Context);
-  } else if (const auto* Ctor = Result.Nodes.getNodeAs<CXXConstructorDecl>("constructor")) {
+  } else if (const auto* Ctor = Result.Nodes.getNodeAs<clang::CXXConstructorDecl>("constructor")) {
     checkUninitializedMemberVariablesInConstructors(Ctor, Result.Context);
   }
 }
@@ -220,6 +241,25 @@ bool InitCheck::hasInitializerListConstructor(const CXXRecordDecl* Record) {
   return false;
 }
 
+bool InitCheck::hasNonTrivialDefaultConstructor(QualType QT) const {
+  if (QT.isNull()) {
+    return false;
+  }
+
+  if (QT->isArrayType()) {
+    const Type* ElementType = QT->getArrayElementTypeNoTypeQual();
+    return hasNonTrivialDefaultConstructor(QualType(ElementType, 0));
+  }
+
+  if (const auto* RD = QT->getAsCXXRecordDecl()) {
+    if (RD->hasDefinition()) {
+      return RD->hasNonTrivialDefaultConstructor();
+    }
+  }
+
+  return false;
+}
+
 void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
   if (!FD || !Ctx) {
     return;
@@ -227,6 +267,10 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
 
   const auto Name = FD->getName();
   if (Name.empty()) {
+    return;
+  }
+
+  if (Ctx->getSourceManager().isInSystemHeader(FD->getLocation())) {
     return;
   }
 
@@ -252,7 +296,12 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
   const auto Loc = FD->getLocation();
   const auto EndLoc = Lexer::getLocForEndOfToken(FD->getLocation(), 0, SM, LangOpts);
 
-  diag(Loc, "field is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+  if (hasNonTrivialDefaultConstructor(FD->getType())) {
+    diag(Loc, "field is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+  } else {
+    diag(Loc, "field is not initialized", DiagnosticIDs::Error)
+        << FixItHint::CreateInsertion(EndLoc, "{}");
+  }
 }
 
 void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
@@ -275,6 +324,10 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
+  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+    return;
+  }
+
   if (hasExplicitInitializer(VD)) {
     return;
   }
@@ -286,8 +339,8 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
 
     const auto Loc = VD->getLocation();
 
-    diag(Loc, "reference variable is not initialized and must be bound to a value")
-        << DiagnosticIDs::Error;
+    diag(Loc, "reference variable is not initialized and must be bound to a value",
+         DiagnosticIDs::Error);
     return;
   }
 
@@ -319,15 +372,30 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
 
   // Check if this is a C-style array and provide a more specific message
   if (VD->getType()->isArrayType()) {
-    diag(Loc, "C-style array should be initialized with braces '{}'")
-        << FixItHint::CreateInsertion(EndLoc, "{}");
+    if (hasNonTrivialDefaultConstructor(VD->getType())) {
+      diag(Loc, "C-style array should be initialized with braces '{}'")
+          << FixItHint::CreateInsertion(EndLoc, "{}");
+    } else {
+      diag(Loc, "C-style array is not initialized", DiagnosticIDs::Error)
+          << FixItHint::CreateInsertion(EndLoc, "{}");
+    }
   } else {
-    diag(Loc, "variable is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
+    if (hasNonTrivialDefaultConstructor(VD->getType())) {
+      diag(Loc, "variable is not explicitly initialized")
+          << FixItHint::CreateInsertion(EndLoc, "{}");
+    } else {
+      diag(Loc, "variable is not initialized", DiagnosticIDs::Error)
+          << FixItHint::CreateInsertion(EndLoc, "{}");
+    }
   }
 }
 
 void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   if (!VD || !Ctx) {
+    return;
+  }
+
+  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
     return;
   }
 
@@ -369,15 +437,13 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
 
     if (DestTy->isIntegerType() && SrcTy->isFloatingType()) {
       diag(VD->getLocation(),
-           "narrowing conversion from floating to integer; cannot use '{}' initialization")
-          << DiagnosticIDs::Warning;
+           "narrowing conversion from floating to integer; cannot use '{}' initialization");
       return;
     }
 
     if (DestTy->isBooleanType() && SrcTy->isIntegerType() && !SrcTy->isBooleanType()) {
-      diag(VD->getLocation(),
-           "assigning integer to bool is dangerous; use explicit comparison or bool literal")
-          << DiagnosticIDs::Error;
+      diag(VD->getLocation(), "assigning integer to bool is dangerous; use explicit comparison",
+           DiagnosticIDs::Error);
       return;
     }
 
@@ -449,25 +515,31 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
 
   std::string ClosingBrace = "}";
-  const Type* Ty = VD->getType().getTypePtr();
-  bool isUnsignedInt = Ty->isSpecificBuiltinType(BuiltinType::UInt) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::UShort) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::UChar) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::Char8) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::Char16) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::Char32) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::UInt128);
+  const clang::Type* CanonicalTy =
+      VD->getType().getTypePtr()->getCanonicalTypeInternal().getTypePtr();
+
+  bool IsUnsignedInt = CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UInt) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UShort) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UChar) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::Char8) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::Char16) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::Char32);
+
+  bool IsUnsignedLong = CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::ULong) ||
+                        CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::ULongLong) ||
+                        CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UInt128);
+
   const Expr* InitExpr = Init->IgnoreImplicit();
-  if (isUnsignedInt && isa<IntegerLiteral>(InitExpr)) {
-    bool hasSuffix = false;
+  if ((IsUnsignedInt || IsUnsignedLong) && isa<IntegerLiteral>(InitExpr)) {
+    bool HasSuffix = false;
     for (char C : Value) {
-      if (C == 'U' || C == 'u') {
-        hasSuffix = true;
+      if (C == 'U' || C == 'u' || C == 'L' || C == 'l') {
+        HasSuffix = true;
         break;
       }
     }
-    if (!hasSuffix) {
-      ClosingBrace = "U}";
+    if (!HasSuffix) {
+      ClosingBrace = IsUnsignedLong ? "UL}" : "U}";
     }
   }
 
@@ -520,15 +592,27 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
   }
 
   for (char C : ValueText) {
-    if (C == 'U' || C == 'u') {
+    if (C == 'U' || C == 'u' || C == 'L' || C == 'l') {
       return;
     }
   }
 
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
 
-  diag(Init->getBeginLoc(), "unsigned integer literal should have 'U' suffix")
-      << FixItHint::CreateInsertion(InitEnd, "U");
+  QualType VarType = VD->getType();
+  const clang::Type* CanonicalType = VarType.getTypePtr()->getCanonicalTypeInternal().getTypePtr();
+
+  bool NeedsLongSuffix = false;
+  if (CanonicalType->isSpecificBuiltinType(clang::BuiltinType::ULong) ||
+      CanonicalType->isSpecificBuiltinType(clang::BuiltinType::ULongLong) ||
+      CanonicalType->isSpecificBuiltinType(clang::BuiltinType::UInt128)) {
+    NeedsLongSuffix = true;
+  }
+
+  std::string Suffix = NeedsLongSuffix ? "UL" : "U";
+
+  diag(Init->getBeginLoc(), "unsigned integer literal should have '%0' suffix")
+      << Suffix << FixItHint::CreateInsertion(InitEnd, Suffix);
 }
 
 void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
@@ -593,6 +677,10 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
     return;
   }
 
+  if (Ctx->getSourceManager().isInSystemHeader(Ctor->getLocation())) {
+    return;
+  }
+
   const CXXRecordDecl* Record = Ctor->getParent();
   if (!Record) {
     return;
@@ -635,8 +723,13 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
   // Report diagnostics for uninitialized members
   for (const FieldDecl* Field : UninitializedMembers) {
     const auto Loc = Field->getLocation();
-    diag(Loc, "member variable '%0' is not explicitly initialized in constructor")
-        << Field->getName();
+    if (hasNonTrivialDefaultConstructor(Field->getType())) {
+      diag(Loc, "member variable '%0' is not explicitly initialized in constructor")
+          << Field->getName();
+    } else {
+      diag(Loc, "member variable '%0' is not initialized in constructor", DiagnosticIDs::Error)
+          << Field->getName();
+    }
   }
 }
 

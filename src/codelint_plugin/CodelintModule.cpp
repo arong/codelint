@@ -3,6 +3,7 @@
 #include "codelint/checks/GlobalCheck.h"
 #include "codelint/checks/InitCheck.h"
 #include "codelint/checks/SingletonCheck.h"
+#include "codelint/checks/StrictBoolConditionCheck.h"
 
 namespace clang::tidy {
 namespace codelint {
@@ -13,6 +14,7 @@ public:
     CheckFactories.registerCheck<InitCheck>("codelint-init");
     CheckFactories.registerCheck<GlobalCheck>("codelint-global");
     CheckFactories.registerCheck<SingletonCheck>("codelint-singleton");
+    CheckFactories.registerCheck<StrictBoolConditionCheck>("codelint-strict-bool-condition");
   }
 };
 

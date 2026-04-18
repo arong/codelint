@@ -39,7 +39,5 @@ int Init() {
 }
 
 void test_bool_from_int() {
-  bool ret = Init();
-  bool flag = 1;
   bool ok = true;
 }

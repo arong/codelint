@@ -1,38 +1,38 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:7:5: warning: C-style array should be initialized with braces '{}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:7:5: error: C-style array is not initialized [codelint-init]
     7 | int arr1d[10];
       |     ^
       |              {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:10:5: warning: C-style array should be initialized with braces '{}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:10:5: error: C-style array is not initialized [codelint-init]
    10 | int arr2d[3][4];
       |     ^
       |                {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:11:5: warning: C-style array should be initialized with braces '{}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:11:5: error: C-style array is not initialized [codelint-init]
    11 | int arr3d[2][3][4];
       |     ^
       |                   {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:15:7: warning: C-style array should be initialized with braces '{}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:15:7: error: C-style array is not initialized [codelint-init]
    15 |   int local_arr[5];
       |       ^
       |                   {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:16:10: warning: C-style array should be initialized with braces '{}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:16:10: error: C-style array is not initialized [codelint-init]
    16 |   double local_arr2d[2][3];
       |          ^
       |                           {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:7: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:7: error: variable is not initialized [codelint-init]
    21 |   int x1, x2, x3;
       |       ^
       |         {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:11: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:11: error: variable is not initialized [codelint-init]
    21 |   int x1, x2, x3;
       |           ^
       |             {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:15: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:15: error: variable is not initialized [codelint-init]
    21 |   int x1, x2, x3;
       |               ^
       |                 {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:24:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:24:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
    24 |   int arr[3] = {1, 2, 3};
       |       ^      ~
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/c_array.cpp:25:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:25:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
    25 |   int arr2[] = {1, 2, 3};
       |       ^      ~
