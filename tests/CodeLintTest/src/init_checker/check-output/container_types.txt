@@ -1,46 +1,774 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:15:18: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:15:18: warning: variable is not explicitly initialized [codelint-init]
    15 | std::vector<int> vec1;
       |                  ^
       |                      {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:16:17: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:16:17: warning: variable is not explicitly initialized [codelint-init]
    16 | std::deque<int> deque1;
       |                 ^
       |                       {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:17:20: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:17:20: error: variable is not initialized [codelint-init]
    17 | std::array<int, 5> arr1;
       |                    ^
       |                        {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:20:20: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:20:20: warning: variable is not explicitly initialized [codelint-init]
    20 | std::map<int, int> map1;
       |                    ^
       |                        {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:21:15: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:21:15: warning: variable is not explicitly initialized [codelint-init]
    21 | std::set<int> set1;
       |               ^
       |                   {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:22:30: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:22:30: warning: variable is not explicitly initialized [codelint-init]
    22 | std::unordered_map<int, int> umap1;
       |                              ^
       |                                   {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:25:21: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:25:21: warning: variable is not explicitly initialized [codelint-init]
    25 | std::pair<int, int> pair1;
       |                     ^
       |                          {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:26:25: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:26:25: warning: variable is not explicitly initialized [codelint-init]
    26 | std::tuple<int, double> tpl1;
       |                         ^
       |                             {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:29:20: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:29:20: warning: variable is not explicitly initialized [codelint-init]
    29 |   std::vector<int> local_vec;
       |                    ^
       |                             {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:30:22: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:30:22: warning: variable is not explicitly initialized [codelint-init]
    30 |   std::map<int, int> local_map;
       |                      ^
       |                               {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:32:24: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:32:24: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
    32 |   std::vector<uint8_t> vec = {1, 2, 3};
       |                        ^   ~
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/container_types.cpp:34:37: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:34:37: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
    34 |   std::vector<std::vector<uint8_t>> island = {
       |                                     ^      ~
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__algorithm/inplace_merge.h:45:14: error: member variable '__p_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   45 |   _Predicate __p_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__algorithm/shuffle.h:53:17: error: member variable '__state_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   53 |   uint_fast64_t __state_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__algorithm/shuffle.h:54:17: error: member variable '__inc_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   54 |   uint_fast64_t __inc_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__atomic/atomic.h:42:34: error: member variable '__a_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   42 |   mutable __cxx_atomic_impl<_Tp> __a_;
+      |                                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__atomic/atomic_flag.h:29:47: error: member variable '__a_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   29 |   __cxx_atomic_impl<_LIBCPP_ATOMIC_FLAG_TYPE> __a_;
+      |                                               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__atomic/support/c11.h:38:16: error: member variable '__a_value' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   38 |   _Atomic(_Tp) __a_value;
+      |                ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__bit_reference:124:21: error: member variable '__seg_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  124 |   __storage_pointer __seg_;
+      |                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__bit_reference:125:18: error: member variable '__mask_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  125 |   __storage_type __mask_;
+      |                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__bit_reference:216:21: error: member variable '__seg_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  216 |   __storage_pointer __seg_;
+      |                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__bit_reference:217:18: error: member variable '__mask_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  217 |   __storage_type __mask_;
+      |                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__bit_reference:258:18: error: member variable '__word_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  258 |   __storage_type __word_[_Np];
+      |                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__chrono/duration.h:196:7: error: member variable '__rep_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  196 |   rep __rep_;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__chrono/time_point.h:44:12: error: member variable '__d_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   44 |   duration __d_;
+      |            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__exception/exception_ptr.h:61:9: error: member variable '__ptr_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   61 |   void* __ptr_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/boyer_moore_searcher.h:69:31: error: member variable '__table_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   69 |   std::array<value_type, 256> __table_;
+      |                               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/function.h:194:53: error: member variable '__buf_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  194 |   typename aligned_storage<3 * sizeof(void*)>::type __buf_;
+      |                                                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/function.h:198:11: error: member variable '__f_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  198 |   __func* __f_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/function.h:432:20: error: member variable '__buf_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  432 |   __policy_storage __buf_;
+      |                    ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/function.h:436:16: error: member variable '__func_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  436 |   _ErasedFunc* __func_;
+      |                ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/function.h:616:10: error: member variable '__f_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  616 |   __func __f_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/perfect_forward.h:41:24: error: member variable '__bound_args_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   41 |   tuple<_BoundArgs...> __bound_args_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__functional/reference_wrapper.h:44:9: error: member variable '__f_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   44 |   type* __f_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:96:18: error: member variable '__next_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   96 |   __next_pointer __next_;
+      |                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:131:10: error: member variable '__hash_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  131 |   size_t __hash_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:138:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  138 |   union {
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:428:10: error: member variable '__bucket_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  428 |   size_t __bucket_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:429:10: error: member variable '__bucket_count_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  429 |   size_t __bucket_count_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:499:10: error: member variable '__bucket_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  499 |   size_t __bucket_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:500:10: error: member variable '__bucket_count_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  500 |   size_t __bucket_count_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:581:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  581 |   _LIBCPP_COMPRESSED_PAIR(size_type, __size_, allocator_type, __alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:622:19: error: member variable '__na_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  622 |   allocator_type& __na_;
+      |                   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:625:8: error: member variable '__value_constructed' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  625 |   bool __value_constructed;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:742:17: error: member variable '__bucket_list_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  742 |   __bucket_list __bucket_list_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:743:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  743 |   _LIBCPP_COMPRESSED_PAIR(__first_node, __first_node_, __node_allocator, __node_alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:744:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  744 |   _LIBCPP_COMPRESSED_PAIR(size_type, __size_, hasher, __hasher_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__hash_table:745:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  745 |   _LIBCPP_COMPRESSED_PAIR(float, __max_load_factor_, key_equal, __key_eq_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/back_insert_iterator.h:39:15: error: member variable 'container' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   39 |   _Container* container;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/bounded_iter.h:264:13: error: member variable '__current_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  264 |   _Iterator __current_;       // current iterator
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/bounded_iter.h:265:13: error: member variable '__begin_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  265 |   _Iterator __begin_, __end_; // valid range represented as [begin, end]
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/bounded_iter.h:265:23: error: member variable '__end_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  265 |   _Iterator __begin_, __end_; // valid range represented as [begin, end]
+      |                       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/istream_iterator.h:49:7: error: member variable '__value_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   49 |   _Tp __value_;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/reverse_iterator.h:64:9: error: member variable '__t_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   64 |   _Iter __t_; // no longer used as of LWG #2360, not removed due to ABI break
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/reverse_iterator.h:73:9: error: member variable 'current' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   73 |   _Iter current;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/static_bounded_iter.h:51:13: error: member variable '__current_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   51 |   _Iterator __current_; // current iterator
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/static_bounded_iter.h:52:13: error: member variable '__begin_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   52 |   _Iterator __begin_;   // start of the valid range, which is [__begin_, __begin_ + _Size)
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/static_bounded_iter.h:68:13: error: member variable '__current_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   68 |   _Iterator __current_; // current iterator
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__iterator/static_bounded_iter.h:278:51: error: member variable '__storage_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  278 |   __static_bounded_iter_storage<_Iterator, _Size> __storage_;
+      |                                                   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:118:10: error: member variable '__locale_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  118 |   __imp* __locale_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:150:11: error: member variable '__id_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  150 |   int32_t __id_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:260:24: error: member variable '__l_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  260 |   __locale::__locale_t __l_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:279:24: error: member variable '__l_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  279 |   __locale::__locale_t __l_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:526:15: error: member variable '__tab_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  526 |   const mask* __tab_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:527:8: error: member variable '__del_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  527 |   bool __del_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:612:24: error: member variable '__l_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  612 |   __locale::__locale_t __l_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:629:24: error: member variable '__l_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  629 |   __locale::__locale_t __l_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:820:24: error: member variable '__l_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  820 |   __locale::__locale_t __l_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:1429:13: error: member variable '__decimal_point_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1429 |   char_type __decimal_point_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:1430:13: error: member variable '__thousands_sep_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1430 |   char_type __thousands_sep_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:1459:13: error: member variable '__decimal_point_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1459 |   char_type __decimal_point_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale:1460:13: error: member variable '__thousands_sep_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1460 |   char_type __thousands_sep_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:137:13: error: member variable '__decimal_point_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  137 |   char_type __decimal_point_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:138:13: error: member variable '__thousands_sep_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  138 |   char_type __thousands_sep_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:140:15: error: member variable '__curr_symbol_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  140 |   string_type __curr_symbol_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:141:15: error: member variable '__positive_sign_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  141 |   string_type __positive_sign_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:142:15: error: member variable '__negative_sign_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  142 |   string_type __negative_sign_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:143:7: error: member variable '__frac_digits_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  143 |   int __frac_digits_;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:144:11: error: member variable '__pos_format_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  144 |   pattern __pos_format_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/money.h:145:11: error: member variable '__neg_format_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  145 |   pattern __neg_format_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:564:24: error: member variable '__loc_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  564 |   __locale::__locale_t __loc_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:576:15: error: member variable '__weeks_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  576 |   string_type __weeks_[14];
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:577:15: error: member variable '__months_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  577 |   string_type __months_[24];
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:578:15: error: member variable '__am_pm_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  578 |   string_type __am_pm_[2];
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:579:15: error: member variable '__c_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  579 |   string_type __c_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:580:15: error: member variable '__r_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  580 |   string_type __r_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:581:15: error: member variable '__x_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  581 |   string_type __x_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:582:15: error: member variable '__X_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  582 |   string_type __X_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/time.h:656:24: error: member variable '__loc_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  656 |   __locale::__locale_t __loc_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:43:9: error: member variable '__extbuf_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   43 |   char* __extbuf_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:44:15: error: member variable '__extbufnext_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   44 |   const char* __extbufnext_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:45:15: error: member variable '__extbufend_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   45 |   const char* __extbufend_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:46:8: error: member variable '__extbuf_min_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   46 |   char __extbuf_min_[8];
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:47:10: error: member variable '__ebs_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   47 |   size_t __ebs_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:48:14: error: member variable '__intbuf_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   48 |   char_type* __intbuf_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:49:10: error: member variable '__ibs_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   49 |   size_t __ibs_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:50:14: error: member variable '__bufptr_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   50 |   streambuf* __bufptr_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:51:13: error: member variable '__cv_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   51 |   _Codecvt* __cv_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:52:14: error: member variable '__st_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   52 |   state_type __st_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:53:22: error: member variable '__cm_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   53 |   ios_base::openmode __cm_;
+      |                      ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:54:8: error: member variable '__owns_eb_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   54 |   bool __owns_eb_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:55:8: error: member variable '__owns_ib_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   55 |   bool __owns_ib_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wbuffer_convert.h:56:8: error: member variable '__always_noconv_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   56 |   bool __always_noconv_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wstring_convert.h:42:15: error: member variable '__byte_err_string_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   42 |   byte_string __byte_err_string_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wstring_convert.h:43:15: error: member variable '__wide_err_string_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   43 |   wide_string __wide_err_string_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wstring_convert.h:44:13: error: member variable '__cvtptr_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   44 |   _Codecvt* __cvtptr_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wstring_convert.h:45:14: error: member variable '__cvtstate_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   45 |   state_type __cvtstate_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__locale_dir/wstring_convert.h:46:10: error: member variable '__cvtcount_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   46 |   size_t __cvtcount_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/allocation_guard.h:100:10: error: member variable '__alloc_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  100 |   _Alloc __alloc_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/allocation_guard.h:101:9: error: member variable '__n_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  101 |   _Size __n_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/allocation_guard.h:102:12: error: member variable '__ptr_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  102 |   _Pointer __ptr_;
+      |            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_count.h:76:8: error: member variable '__shared_owners_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   76 |   long __shared_owners_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:97:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   97 |   _LIBCPP_COMPRESSED_TRIPLE(_Tp, __ptr_, _Dp, __deleter_, _Alloc, __alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:111:7: note: expanded from macro '_LIBCPP_COMPRESSED_TRIPLE'
+  111 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:202:31: error: member variable '__buffer_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  202 |     _ALIGNAS_TYPE(_Data) char __buffer_[sizeof(_Data)];
+      |                               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:326:24: error: member variable '__cntrl_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  326 |   __shared_weak_count* __cntrl_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:847:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  847 |   union {
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:925:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  925 |   union {
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:1221:17: error: member variable '__ptr_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1221 |   element_type* __ptr_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:1222:24: error: member variable '__cntrl_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1222 |   __shared_weak_count* __cntrl_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:1439:25: error: member variable '__weak_this_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1439 |   mutable weak_ptr<_Tp> __weak_this_;
+      |                         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/shared_ptr.h:1483:9: error: member variable '__lx_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1483 |   void* __lx_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/temp_value.h:31:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   31 |   union {
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/unique_ptr.h:152:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  152 |   _LIBCPP_COMPRESSED_PAIR(pointer, __ptr_, deleter_type, __deleter_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/unique_ptr.h:423:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  423 |   _LIBCPP_COMPRESSED_PAIR(pointer, __ptr_, deleter_type, __deleter_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/unique_ptr.h:429:44: error: member variable '__checker_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  429 |   _LIBCPP_NO_UNIQUE_ADDRESS _BoundsChecker __checker_;
+      |                                            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory_resource/polymorphic_allocator.h:217:20: error: member variable '__res_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  217 |   memory_resource* __res_;
+      |                    ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__mutex/lock_guard.h:27:15: error: member variable '__m_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   27 |   mutex_type& __m_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__mutex/once_flag.h:67:15: error: member variable '__state_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   67 |   _State_type __state_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__mutex/unique_lock.h:33:15: error: member variable '__m_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   33 |   mutex_type* __m_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__mutex/unique_lock.h:34:8: error: member variable '__owns_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   34 |   bool __owns_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__node_handle:100:28: error: member variable '__alloc_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  100 |   optional<allocator_type> __alloc_;
+      |                            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:43:12: error: member variable '__e_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   43 |   _Engine& __e_;
+      |            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:44:10: error: member variable '__w_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   44 |   size_t __w_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:45:10: error: member variable '__w0_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   45 |   size_t __w0_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:46:10: error: member variable '__n_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   46 |   size_t __n_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:47:10: error: member variable '__n0_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   47 |   size_t __n0_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:48:24: error: member variable '__y0_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   48 |   _Working_result_type __y0_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:49:24: error: member variable '__y1_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   49 |   _Working_result_type __y1_;
+      |                        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:50:23: error: member variable '__mask0_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   50 |   _Engine_result_type __mask0_;
+      |                       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:51:23: error: member variable '__mask1_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   51 |   _Engine_result_type __mask1_;
+      |                       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:145:17: error: member variable '__a_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  145 |     result_type __a_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__random/uniform_int_distribution.h:146:17: error: member variable '__b_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  146 |     result_type __b_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__split_buffer:81:11: error: member variable '__first_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   81 |   pointer __first_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__split_buffer:82:11: error: member variable '__begin_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   82 |   pointer __begin_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__split_buffer:83:11: error: member variable '__end_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   83 |   pointer __end_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__split_buffer:84:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   84 |   _LIBCPP_COMPRESSED_PAIR(pointer, __cap_, allocator_type, __alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__system_error/error_code.h:43:7: error: member variable '__val_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   43 |   int __val_;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__system_error/error_code.h:44:25: error: member variable '__cat_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   44 |   const error_category* __cat_;
+      |                         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__system_error/error_condition.h:50:7: error: member variable '__val_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   50 |   int __val_;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__system_error/error_condition.h:51:25: error: member variable '__cat_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   51 |   const error_category* __cat_;
+      |                         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:565:11: error: member variable '__right_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  565 |   pointer __right_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:566:22: error: member variable '__parent_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  566 |   __end_node_pointer __parent_;
+      |                      ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:567:8: error: member variable '__is_black_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  567 |   bool __is_black_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:583:21: error: member variable '__value_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  583 |   __node_value_type __value_;
+      |                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:601:19: error: member variable '__na_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  601 |   allocator_type& __na_;
+      |                   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:604:8: error: member variable '__value_constructed' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  604 |   bool __value_constructed;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:853:22: error: member variable '__begin_node_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  853 |   __end_node_pointer __begin_node_;
+      |                      ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:854:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  854 |   _LIBCPP_COMPRESSED_PAIR(__end_node_t, __end_node_, __node_allocator, __node_alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:855:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  855 |   _LIBCPP_COMPRESSED_PAIR(size_type, __size_, value_compare, __value_comp_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:1228:13: error: member variable '__t_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1228 |     __tree* __t_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:1229:20: error: member variable '__cache_root_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1229 |     __node_pointer __cache_root_;
+      |                    ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__tree:1230:20: error: member variable '__cache_elem_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1230 |     __node_pointer __cache_elem_;
+      |                    ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__utility/exception_guard.h:89:13: error: member variable '__rollback_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   89 |   _Rollback __rollback_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__utility/exception_guard.h:90:8: error: member variable '__completed_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   90 |   bool __completed_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__utility/no_destroy.h:48:27: error: member variable '__obj_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   48 |   _ALIGNAS_TYPE(_Tp) char __obj_[sizeof(_Tp)];
+      |                           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__utility/pair.h:98:7: error: member variable 'first' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   98 |   _T1 first;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__utility/pair.h:99:7: error: member variable 'second' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   99 |   _T2 second;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__utility/scope_guard.h:27:9: error: member variable '__func_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   27 |   _Func __func_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__vector/vector.h:752:13: error: member variable '__v_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  752 |     vector& __v_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__vector/vector.h:753:13: error: member variable '__pos_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  753 |     pointer __pos_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__vector/vector.h:754:25: error: member variable '__new_end_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  754 |     const_pointer const __new_end_;
+      |                         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__vector/vector_bool.h:100:21: error: member variable '__begin_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  100 |   __storage_pointer __begin_;
+      |                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__vector/vector_bool.h:101:13: error: member variable '__size_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  101 |   size_type __size_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__vector/vector_bool.h:102:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  102 |   _LIBCPP_COMPRESSED_PAIR(size_type, __cap_, __storage_allocator, __alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/deque:295:18: error: member variable '__m_iter_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  295 |   __map_iterator __m_iter_;
+      |                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/deque:296:11: error: member variable '__ptr_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  296 |   pointer __ptr_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/deque:607:9: error: member variable '__map_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  607 |   __map __map_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/deque:608:13: error: member variable '__start_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  608 |   size_type __start_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/deque:609:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  609 |   _LIBCPP_COMPRESSED_PAIR(size_type, __size_, allocator_type, __alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/initializer_list:63:14: error: member variable '__begin_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   63 |   const _Ep* __begin_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/initializer_list:64:10: error: member variable '__size_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   64 |   size_t __size_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:390:12: error: member variable '__fmtflags_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  390 |   fmtflags __fmtflags_;
+      |            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:391:14: error: member variable '__precision_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  391 |   streamsize __precision_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:392:14: error: member variable '__width_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  392 |   streamsize __width_;
+      |              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:393:11: error: member variable '__rdstate_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  393 |   iostate __rdstate_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:394:11: error: member variable '__exceptions_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  394 |   iostate __exceptions_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:395:9: error: member variable '__rdbuf_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  395 |   void* __rdbuf_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:396:9: error: member variable '__loc_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  396 |   void* __loc_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:397:19: error: member variable '__fn_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  397 |   event_callback* __fn_;
+      |                   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:398:8: error: member variable '__index_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  398 |   int* __index_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:399:10: error: member variable '__event_size_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  399 |   size_t __event_size_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:400:10: error: member variable '__event_cap_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  400 |   size_t __event_cap_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:408:9: error: member variable '__iarray_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  408 |   long* __iarray_;
+      |         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:409:10: error: member variable '__iarray_size_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  409 |   size_t __iarray_size_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:410:10: error: member variable '__iarray_cap_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  410 |   size_t __iarray_cap_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:411:10: error: member variable '__parray_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  411 |   void** __parray_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:412:10: error: member variable '__parray_size_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  412 |   size_t __parray_size_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:413:10: error: member variable '__parray_cap_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  413 |   size_t __parray_cap_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:629:42: error: member variable '__tie_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  629 |   basic_ostream<char_type, traits_type>* __tie_;
+      |                                          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/ios:636:21: error: member variable '__fill_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  636 |   mutable _FillType __fill_;
+      |                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/iosfwd:171:18: error: member variable '__stream_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  171 |   __stream_type& __stream_;
+      |                  ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/iosfwd:172:12: error: member variable '__fmtflags_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  172 |   fmtflags __fmtflags_;
+      |            ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/iosfwd:173:10: error: member variable '__fill_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  173 |   _CharT __fill_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/map:758:17: error: member variable '__i_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  758 |   _TreeIterator __i_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/map:811:17: error: member variable '__i_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  811 |   _TreeIterator __i_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/map:902:10: error: member variable '__tree_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  902 |   __base __tree_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/map:1570:10: error: member variable '__tree_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1570 |   __base __tree_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/mutex:222:30: error: member variable '__m_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  222 |   __libcpp_recursive_mutex_t __m_;
+      |                              ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/mutex:243:8: error: member variable '__locked_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  243 |   bool __locked_;
+      |        ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/mutex:280:10: error: member variable '__count_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  280 |   size_t __count_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/mutex:442:15: error: member variable '__m_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  442 |   mutex_type& __m_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/mutex:486:15: error: member variable '__t_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  486 |   _MutexTuple __t_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/optional:293:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  293 |   union {
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/optional:329:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  329 |   union {
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/set:594:10: error: member variable '__tree_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  594 |   __base __tree_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/set:1054:10: error: member variable '__tree_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1054 |   __base __tree_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/stdexcept:60:15: error: member variable '__imp_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   60 |   const char* __imp_;
+      |               ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/stdexcept:83:27: error: member variable '__imp_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+   83 |   std::__libcpp_refstring __imp_;
+      |                           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/stdexcept:107:27: error: member variable '__imp_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  107 |   std::__libcpp_refstring __imp_;
+      |                           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/string:903:3: error: member variable '' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  903 |   _LIBCPP_COMPRESSED_PAIR(__rep, __rep_, allocator_type, __alloc_);
+      |   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/__memory/compressed_pair.h:102:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  102 |       struct {                                                                                                         \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/string:2282:19: error: member variable '__str_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 2282 |     basic_string& __str_;
+      |                   ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/string_view:700:21: error: member variable '__data_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  700 |   const value_type* __data_;
+      |                     ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/string_view:701:13: error: member variable '__size_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  701 |   size_type __size_;
+      |             ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/tuple:311:7: error: member variable '__value_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  311 |   _Hp __value_;
+      |       ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/tuple:535:10: error: member variable '__base_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  535 |   _BaseT __base_;
+      |          ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/typeinfo:303:25: error: member variable '__type_name' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  303 |   __impl::__type_name_t __type_name;
+      |                         ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/unordered_map:841:17: error: member variable '__i_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  841 |   _HashIterator __i_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/unordered_map:892:17: error: member variable '__i_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  892 |   _HashIterator __i_;
+      |                 ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/unordered_map:973:11: error: member variable '__table_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  973 |   __table __table_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/unordered_map:1782:11: error: member variable '__table_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1782 |   __table __table_;
+      |           ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:707:1: error: member variable '__dummy' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  707 | _LIBCPP_VARIANT_UNION(_Trait::_TriviallyAvailable,
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:700:14: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  700 |         char __dummy;                                                                                                  \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:707:1: error: member variable '__head' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  707 | _LIBCPP_VARIANT_UNION(_Trait::_TriviallyAvailable,
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:701:28: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  701 |         __alt<_Index, _Tp> __head;                                                                                     \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:707:1: error: member variable '__tail' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  707 | _LIBCPP_VARIANT_UNION(_Trait::_TriviallyAvailable,
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:702:60: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  702 |         __union<destructible_trait, _Index + 1, _Types...> __tail;                                                     \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:709:1: error: member variable '__dummy' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  709 | _LIBCPP_VARIANT_UNION(
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:700:14: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  700 |         char __dummy;                                                                                                  \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:709:1: error: member variable '__head' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  709 | _LIBCPP_VARIANT_UNION(
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:701:28: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  701 |         __alt<_Index, _Tp> __head;                                                                                     \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:709:1: error: member variable '__tail' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  709 | _LIBCPP_VARIANT_UNION(
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:702:60: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  702 |         __union<destructible_trait, _Index + 1, _Types...> __tail;                                                     \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:711:1: error: member variable '__dummy' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  711 | _LIBCPP_VARIANT_UNION(_Trait::_Unavailable, _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 ~__union() = delete);
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:700:14: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  700 |         char __dummy;                                                                                                  \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:711:1: error: member variable '__head' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  711 | _LIBCPP_VARIANT_UNION(_Trait::_Unavailable, _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 ~__union() = delete);
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:701:28: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  701 |         __alt<_Index, _Tp> __head;                                                                                     \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:711:1: error: member variable '__tail' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+  711 | _LIBCPP_VARIANT_UNION(_Trait::_Unavailable, _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 ~__union() = delete);
+      | ^
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:702:60: note: expanded from macro '_LIBCPP_VARIANT_UNION'
+  702 |         __union<destructible_trait, _Index + 1, _Types...> __tail;                                                     \
+/opt/homebrew/Cellar/llvm@21/21.1.8/bin/../include/c++/v1/variant:1322:39: error: member variable '__impl_' is not explicitly initialized in constructor (undefined behavior for trivial types) [codelint-init]
+ 1322 |   __variant_detail::__impl<_Types...> __impl_;
+      |                                       ^

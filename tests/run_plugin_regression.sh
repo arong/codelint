@@ -295,10 +295,13 @@ run_check_output_test() {
 
     awk '
         /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
+        /error: .* \[codelint-init\]/ { found=1; count=4; print; next }
         /warning: .* \[codelint-global\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-singleton\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
+        /error: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
         /warning:/ { found=0 }
+        /error:/ { found=0 }
         /Suppressed/ { found=0 }
         found && count > 0 { print; count-- }
         found && count == 0 { found=0 }
@@ -355,7 +358,7 @@ run_source_issue_test() {
     fi
 
     local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
-    local issue_count=$(echo "$output" | grep -E "warning:.*\[codelint-.*\]" | wc -l | awk '{print $1}')
+    local issue_count=$(echo "$output" | grep -E "(warning|error):.*\[codelint-.*\]" | wc -l | awk '{print $1}')
 
     local expected_issues=0
     if [ -f "$TEST_DIR/check-output/${test_name}.txt" ] && [ -s "$TEST_DIR/check-output/${test_name}.txt" ]; then
@@ -399,14 +402,14 @@ run_fixed_issue_test() {
 
     local filtered_output=$(echo "$output" | grep -v "assigning integer to bool")
     local filtered_output=$(echo "$filtered_output" | grep -v "narrowing conversion")
-    local issue_count=$(echo "$filtered_output" | grep -E "warning:.*\[codelint-.*\]" | wc -l | awk '{print $1}')
+    local issue_count=$(echo "$filtered_output" | grep -E "(warning|error):.*\[codelint-.*\]" | wc -l | awk '{print $1}')
 
     if [ "$issue_count" -eq 0 ]; then
         echo "PASS: $checker/$test_name fixed file has 0 issues"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
         echo "FAIL: $checker/$test_name fixed file has $issue_count issues (expected 0)"
-        echo "$filtered_output" | grep "warning:.*\[codelint-.*\]" | head -3
+        echo "$filtered_output" | grep -E "(warning|error):.*\[codelint-.*\]" | head -3
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 }
@@ -437,7 +440,7 @@ run_compilation_error_test() {
         has_compilation_error=1
     fi
 
-    local codelint_warnings=$(grep "warning:.*\[codelint-.*\]" "$temp_full" 2>/dev/null | wc -l | tr -d ' ')
+    local codelint_warnings=$(grep -E "(warning|error):.*\[codelint-.*\]" "$temp_full" 2>/dev/null | wc -l | tr -d ' ')
 
     rm -f "$temp_full"
 

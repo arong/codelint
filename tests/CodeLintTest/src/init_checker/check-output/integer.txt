@@ -1,33 +1,33 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:4:5: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:4:5: error: variable is not initialized [codelint-init]
     4 | int global1;
       |     ^
       |            {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:5:10: warning: variable is not explicitly initialized [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:5:10: error: variable is not initialized [codelint-init]
     5 | unsigned global2;
       |          ^
       |                 {}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:7:5: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:7:5: warning: variable should use '{}' syntax for initialization [codelint-init]
     7 | int global3 = 1;
       |     ^       ~
       |            {   }
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:8:10: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:8:10: warning: variable should use '{}' syntax for initialization [codelint-init]
     8 | unsigned global4 = 2;
       |          ^       ~
       |                 {   U}
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:9:10: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:9:10: warning: variable should use '{}' syntax for initialization [codelint-init]
     9 | uint64_t global5 = 5;
       |          ^       ~
       |                 {   }
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:34:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:34:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization [codelint-init]
    34 |   int d = 3.14;
       |       ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:42:8: warning: assigning integer to bool is dangerous; use explicit comparison or bool literal [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:42:8: error: assigning integer to bool is dangerous; use explicit comparison or bool literal [codelint-init]
    42 |   bool ret = Init();
       |        ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:43:8: warning: assigning integer to bool is dangerous; use explicit comparison or bool literal [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:43:8: error: assigning integer to bool is dangerous; use explicit comparison or bool literal [codelint-init]
    43 |   bool flag = 1;
       |        ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/init_checker/src/integer.cpp:44:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:44:8: warning: variable should use '{}' syntax for initialization [codelint-init]
    44 |   bool ok = true;
       |        ^  ~
       |          {      }

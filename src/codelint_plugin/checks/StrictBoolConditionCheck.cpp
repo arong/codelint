@@ -57,8 +57,8 @@ void StrictBoolConditionCheck::checkCondition(const Expr* Cond, ASTContext* Ctx)
   const Expr* TrueCond = Cond->IgnoreImpCasts();
   QualType CondType = TrueCond->getType();
 
-  diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'")
-      << CondType.getAsString() << DiagnosticIDs::Error;
+  diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'", DiagnosticIDs::Error)
+      << CondType.getAsString();
 }
 
 bool StrictBoolConditionCheck::isBoolType(const Expr* E) {
