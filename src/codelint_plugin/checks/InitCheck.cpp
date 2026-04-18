@@ -35,25 +35,38 @@ void InitCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
           .bind("uninit_field"),
       this);
 
-  Finder->addMatcher(varDecl(hasInitializer(expr()), unless(hasInitializer(initListExpr())),
-                             unless(hasType(autoType())), unless(parmVarDecl()),
-                             unless(hasParent(cxxCatchStmt())), unless(hasAncestor(forStmt())),
-                             unless(hasAncestor(cxxForRangeStmt())))
-                         .bind("equals"),
-                     this);
+  Finder->addMatcher(
+      ast_matchers::varDecl(
+          ast_matchers::hasInitializer(ast_matchers::expr()),
+          ast_matchers::unless(ast_matchers::hasInitializer(ast_matchers::initListExpr())),
+          ast_matchers::unless(ast_matchers::hasType(ast_matchers::autoType())),
+          ast_matchers::unless(ast_matchers::parmVarDecl()),
+          ast_matchers::unless(ast_matchers::hasParent(ast_matchers::cxxCatchStmt())),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::forStmt())),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::cxxForRangeStmt())))
+          .bind("equals"),
+      this);
 
   Finder->addMatcher(
-      varDecl(hasType(hasCanonicalType(isUnsignedInteger())), hasInitializer(integerLiteral()))
+      ast_matchers::varDecl(
+          ast_matchers::hasType(ast_matchers::hasCanonicalType(ast_matchers::isUnsignedInteger())),
+          ast_matchers::hasInitializer(ast_matchers::integerLiteral()))
           .bind("unsigned"),
       this);
 
-  Finder->addMatcher(varDecl(hasInitializer(initListExpr()), unless(parmVarDecl()),
-                             unless(hasAncestor(forStmt())), unless(hasAncestor(cxxForRangeStmt())))
-                         .bind("equals_brace"),
-                     this);
+  Finder->addMatcher(
+      ast_matchers::varDecl(
+          ast_matchers::hasInitializer(ast_matchers::initListExpr()),
+          ast_matchers::unless(ast_matchers::parmVarDecl()),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::forStmt())),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::cxxForRangeStmt())))
+          .bind("equals_brace"),
+      this);
 
-  // Matcher for C++ constructors to check member initialization
-  Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
+  Finder->addMatcher(
+      ast_matchers::cxxConstructorDecl(ast_matchers::unless(ast_matchers::isImplicit()))
+          .bind("constructor"),
+      this);
 }
 
 void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
@@ -65,17 +78,17 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
-  if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("uninit")) {
+  if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("uninit")) {
     checkUninitialized(VD, Result.Context);
-  } else if (const auto* FD = Result.Nodes.getNodeAs<FieldDecl>("uninit_field")) {
+  } else if (const auto* FD = Result.Nodes.getNodeAs<clang::FieldDecl>("uninit_field")) {
     checkUninitializedField(FD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals")) {
     checkEqualsInit(VD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("unsigned")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("unsigned")) {
     checkUnsignedSuffix(VD, Result.Context);
-  } else if (const auto* VD = Result.Nodes.getNodeAs<VarDecl>("equals_brace")) {
+  } else if (const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("equals_brace")) {
     checkEqualsBraceInit(VD, Result.Context);
-  } else if (const auto* Ctor = Result.Nodes.getNodeAs<CXXConstructorDecl>("constructor")) {
+  } else if (const auto* Ctor = Result.Nodes.getNodeAs<clang::CXXConstructorDecl>("constructor")) {
     checkUninitializedMemberVariablesInConstructors(Ctor, Result.Context);
   }
 }
