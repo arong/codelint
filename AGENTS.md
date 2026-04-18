@@ -168,6 +168,69 @@ git commit --no-verify -m "emergency fix"
 
 ---
 
+## 📋 PR Merge Checklist (CRITICAL)
+
+### Before Merging PR to main
+
+**ALWAYS test the release workflow before merging!**
+
+The release workflow (`Build and Release`) is triggered by **tags only**. If a PR breaks the release process, you won know until after merge when a production tag is pushed - this is unacceptable.
+
+### Required Pre-Merge Test
+
+1. **Create a test tag on develop branch:**
+   ```bash
+   git checkout develop
+   git tag v0.X.X-test
+   git push origin v0.X.X-test
+   ```
+
+2. **Monitor the release workflow:**
+   ```bash
+   gh run watch --exit-status
+   ```
+
+3. **Verify all steps pass:**
+   - ✅ Build plugin
+   - ✅ Create offline package
+   - ✅ Test package functionality (`./bin/codelint --version`)
+   - ✅ Upload package artifact
+   - ✅ Create GitHub Release
+
+4. **Clean up test release:**
+   ```bash
+   gh release delete v0.X.X-test --cleanup-tag --yes
+   ```
+
+### Why This Rule?
+
+| Scenario | Without Test Tag | With Test Tag |
+|----------|------------------|---------------|
+| Release broken on main | ❌ Production broken, no rollback | ✅ Detected before merge |
+| Time to fix | ❌ Hours (after production tag pushed) | ✅ Minutes (before merge) |
+| User impact | ❌ Broken releases visible to users | ✅ Zero user impact |
+
+### Lessons Learned
+
+**Issue**: PR #14 merged to main, but release workflow failed due to argparse `--help` conflict in `bin/codelint`. The release v0.1.4 was broken.
+
+**Root Cause**: Code Check workflow only tested clang-tidy functionality, not the Python wrapper script used in release package.
+
+**Fix**: Added `--list-checks` test in release workflow AND mandatory pre-merge test tag validation.
+
+### Checklist for AI
+
+Before marking a PR as ready for merge:
+
+- [ ] Code Check workflow passes (clang-tidy, tests)
+- [ ] **Test tag pushed and release workflow verified**
+- [ ] Package functionality tested (`--version`, `--list-checks`)
+- [ ] Test release cleaned up
+
+**REMEMBER**: A broken release is worse than a delayed merge. Always test before merging!
+
+---
+
 ## 🔧 LLVM/Clang Tool Paths (CRITICAL)
 
 **This project uses LLVM 21 from Homebrew. All LLVM tools must use this specific path.**
