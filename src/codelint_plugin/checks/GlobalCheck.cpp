@@ -1,22 +1,24 @@
 #include "codelint/checks/GlobalCheck.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
-#include "clang/Basic/Diagnostic.h"
+
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Basic/Diagnostic.h>
 
 namespace clang::tidy {
 namespace codelint {
-
-using namespace clang::ast_matchers;
 
 void GlobalCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
     return;
   }
 
-  Finder->addMatcher(varDecl(hasGlobalStorage(), unless(isStaticLocal()), unless(parmVarDecl()),
-                             unless(hasAncestor(recordDecl())))
-                         .bind("globalVar"),
-                     this);
+  Finder->addMatcher(
+      ast_matchers::varDecl(
+          ast_matchers::hasGlobalStorage(), ast_matchers::unless(ast_matchers::isStaticLocal()),
+          ast_matchers::unless(ast_matchers::parmVarDecl()),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::recordDecl())))
+          .bind("globalVar"),
+      this);
 }
 
 void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {

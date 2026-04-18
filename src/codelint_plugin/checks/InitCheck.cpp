@@ -1,32 +1,39 @@
 #include "codelint/checks/InitCheck.h"
-#include "clang/AST/Decl.h"
-#include "clang/AST/DeclCXX.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
-#include "clang/Basic/Diagnostic.h"
-#include "clang/Basic/SourceManager.h"
-#include "clang/Lex/Lexer.h"
-#include "llvm/ADT/SmallVector.h"
 
-using namespace clang::ast_matchers;
+#include <clang/AST/Decl.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/SourceManager.h>
+#include <clang/Lex/Lexer.h>
+#include <llvm/ADT/SmallVector.h>
 
 namespace clang::tidy {
 namespace codelint {
 
-void InitCheck::registerMatchers(MatchFinder* Finder) {
+void InitCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
     return;
   }
 
-  Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
-                             unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
-                             unless(hasAncestor(recordDecl(isUnion()))),
-                             unless(hasParent(cxxCatchStmt())))
-                         .bind("uninit"),
-                     this);
+  Finder->addMatcher(
+      ast_matchers::varDecl(
+          ast_matchers::unless(ast_matchers::parmVarDecl()),
+          ast_matchers::unless(ast_matchers::hasType(ast_matchers::autoType())),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::cxxForRangeStmt())),
+          ast_matchers::unless(ast_matchers::hasAncestor(ast_matchers::forStmt())),
+          ast_matchers::unless(
+              ast_matchers::hasAncestor(ast_matchers::recordDecl(ast_matchers::isUnion()))),
+          ast_matchers::unless(ast_matchers::hasParent(ast_matchers::cxxCatchStmt())))
+          .bind("uninit"),
+      this);
 
-  Finder->addMatcher(fieldDecl(unless(hasAncestor(recordDecl(isUnion())))).bind("uninit_field"),
-                     this);
+  Finder->addMatcher(
+      ast_matchers::fieldDecl(ast_matchers::unless(ast_matchers::hasAncestor(
+                                  ast_matchers::recordDecl(ast_matchers::isUnion()))))
+          .bind("uninit_field"),
+      this);
 
   Finder->addMatcher(varDecl(hasInitializer(expr()), unless(hasInitializer(initListExpr())),
                              unless(hasType(autoType())), unless(parmVarDecl()),
@@ -421,8 +428,7 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
     }
 
     if (DestTy->isBooleanType() && SrcTy->isIntegerType() && !SrcTy->isBooleanType()) {
-      diag(VD->getLocation(),
-           "assigning integer to bool is dangerous; use explicit comparison or bool literal",
+      diag(VD->getLocation(), "assigning integer to bool is dangerous; use explicit comparison",
            DiagnosticIDs::Error);
       return;
     }
