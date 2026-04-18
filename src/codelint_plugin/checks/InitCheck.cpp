@@ -17,7 +17,7 @@ bool InitCheck::isInSystemHeader(SourceLocation Loc, ASTContext* Ctx) {
     return false;
   }
   auto& SM = Ctx->getSourceManager();
-  SourceLocation SpellingLoc = SM.getSpellingLoc(Loc);
+  SourceLocation SpellingLoc{SM.getSpellingLoc(Loc)};
   return SM.isInSystemHeader(SpellingLoc);
 }
 
@@ -300,7 +300,7 @@ void InitCheck::checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx) {
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(FD->getLocation())) {
+  if (isInSystemHeader(FD->getLocation(), Ctx)) {
     return;
   }
 
@@ -354,7 +354,7 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+  if (isInSystemHeader(VD->getLocation(), Ctx)) {
     return;
   }
 
@@ -425,7 +425,7 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+  if (isInSystemHeader(VD->getLocation(), Ctx)) {
     return;
   }
 
@@ -596,7 +596,7 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+  if (isInSystemHeader(VD->getLocation(), Ctx)) {
     return;
   }
 
@@ -654,7 +654,7 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+  if (isInSystemHeader(VD->getLocation(), Ctx)) {
     return;
   }
 
@@ -742,7 +742,7 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
     return;
   }
 
-  if (Ctx->getSourceManager().isInSystemHeader(Ctor->getLocation())) {
+  if (isInSystemHeader(Ctor->getLocation(), Ctx)) {
     return;
   }
 
@@ -788,7 +788,7 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
   // Report diagnostics for uninitialized members
   for (const FieldDecl* Field : UninitializedMembers) {
     // Skip fields in system headers
-    if (Ctx->getSourceManager().isInSystemHeader(Field->getLocation())) {
+    if (isInSystemHeader(Field->getLocation(), Ctx)) {
       continue;
     }
 

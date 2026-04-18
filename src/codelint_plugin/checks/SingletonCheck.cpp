@@ -34,7 +34,7 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
   }
 
   auto& SM = Result.Context->getSourceManager();
-  SourceLocation SpellingLoc = SM.getSpellingLoc(FD->getLocation());
+  SourceLocation SpellingLoc{SM.getSpellingLoc(FD->getLocation())};
   if (SM.isInSystemHeader(SpellingLoc)) {
     return;
   }
