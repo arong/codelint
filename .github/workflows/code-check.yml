@@ -164,20 +164,23 @@ jobs:
           # 1. NO --fix or --fix-errors (prevents modifying any files)
           # 2. Only check src/ files, ignore system headers
           # 3. Excludes tests/ directory (only source code)
+          # Note: We use '|| true' to prevent exit on clang-tidy errors
+          #       (clang-tidy returns non-zero even for system header errors)
           clang-tidy-21 \
             --load=build/lib/codelint-plugin.so \
             --checks='codelint-*' \
             -p build \
-            $src_files 2>&1 | tee codelint_output.txt
+            $src_files 2>&1 | tee codelint_output.txt || true
           
           # Filter out warnings from system headers (outside project directory)
+          # Only check for warnings in our project files
           project_warnings=$(grep "\[codelint-" codelint_output.txt | grep "/__w/codelint/codelint/src/")
           
           if [ -n "$project_warnings" ]; then
-            echo "::error::Codelint found issues!"
+            echo "::error::Codelint found issues in project files!"
             echo "$project_warnings"
             echo "Please fix the issues or run 'python3 scripts/self_check.py' locally"
             exit 1
           fi
           
-          echo "✅ No codelint issues found"
+          echo "✅ No codelint issues found in project files"
