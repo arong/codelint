@@ -514,25 +514,31 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SM, LangOpts);
 
   std::string ClosingBrace = "}";
-  const Type* Ty = VD->getType().getTypePtr();
-  bool isUnsignedInt = Ty->isSpecificBuiltinType(BuiltinType::UInt) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::UShort) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::UChar) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::Char8) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::Char16) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::Char32) ||
-                       Ty->isSpecificBuiltinType(BuiltinType::UInt128);
+  const clang::Type* CanonicalTy =
+      VD->getType().getTypePtr()->getCanonicalTypeInternal().getTypePtr();
+
+  bool IsUnsignedInt = CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UInt) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UShort) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UChar) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::Char8) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::Char16) ||
+                       CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::Char32);
+
+  bool IsUnsignedLong = CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::ULong) ||
+                        CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::ULongLong) ||
+                        CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UInt128);
+
   const Expr* InitExpr = Init->IgnoreImplicit();
-  if (isUnsignedInt && isa<IntegerLiteral>(InitExpr)) {
-    bool hasSuffix = false;
+  if ((IsUnsignedInt || IsUnsignedLong) && isa<IntegerLiteral>(InitExpr)) {
+    bool HasSuffix = false;
     for (char C : Value) {
-      if (C == 'U' || C == 'u') {
-        hasSuffix = true;
+      if (C == 'U' || C == 'u' || C == 'L' || C == 'l') {
+        HasSuffix = true;
         break;
       }
     }
-    if (!hasSuffix) {
-      ClosingBrace = "U}";
+    if (!HasSuffix) {
+      ClosingBrace = IsUnsignedLong ? "UL}" : "U}";
     }
   }
 
