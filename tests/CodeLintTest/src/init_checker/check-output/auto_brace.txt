@@ -14,4 +14,3 @@ tests/CodeLintTest/src/init_checker/src/auto_brace.cpp:12:15: warning: auto type
    12 |   const auto* cp{&value};
       |               ^ ~~~~~~~~
       |                  = &value
-
