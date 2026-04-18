@@ -374,6 +374,10 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
+  if (Ctx->getSourceManager().isInSystemHeader(VD->getLocation())) {
+    return;
+  }
+
   const auto Name = VD->getName();
   if (Name.empty()) {
     return;
