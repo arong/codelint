@@ -66,6 +66,7 @@ void InitCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
                          .bind("equals_brace"),
                      this);
 
+  // Matcher for C++ constructors to check member initialization
   Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
 }
 

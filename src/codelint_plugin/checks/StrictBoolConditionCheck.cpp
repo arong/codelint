@@ -12,8 +12,9 @@ namespace clang::tidy {
 namespace codelint {
 
 void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
-  if (!Finder)
+  if (!Finder) {
     return;
+  }
 
   Finder->addMatcher(ast_matchers::ifStmt().bind("ifStmt"), this);
   Finder->addMatcher(ast_matchers::whileStmt().bind("whileStmt"), this);
@@ -23,11 +24,13 @@ void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finde
 }
 
 void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
-  if (!Result.Context)
+  if (!Result.Context) {
     return;
+  }
 
-  if (Result.Context->getDiagnostics().hasErrorOccurred())
+  if (Result.Context->getDiagnostics().hasErrorOccurred()) {
     return;
+  }
 
   const clang::Expr* Cond = nullptr;
 
@@ -49,11 +52,13 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
 }
 
 void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::ASTContext* Ctx) {
-  if (!Cond || !Ctx)
+  if (!Cond || !Ctx) {
     return;
+  }
 
-  if (isBoolType(Cond))
+  if (isBoolType(Cond)) {
     return;
+  }
 
   const clang::Expr* TrueCond = Cond->IgnoreImpCasts();
   clang::QualType CondType = TrueCond->getType();
@@ -62,14 +67,16 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
 }
 
 bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
-  if (!E)
+  if (!E) {
     return false;
+  }
 
   const clang::Expr* TrueExpr = E->IgnoreImpCasts();
   clang::QualType Ty = TrueExpr->getType();
 
-  if (Ty->isBooleanType())
+  if (Ty->isBooleanType()) {
     return true;
+  }
 
   if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E)) {
     clang::CastKind Kind = ICE->getCastKind();
