@@ -98,7 +98,24 @@ bool InitCheck::shouldSkipAuto(const VarDecl* VD) {
   if (!VD) {
     return false;
   }
-  return VD->getType()->isUndeducedAutoType();
+  // Check if type contains auto (including auto*, const auto*, auto&, etc.)
+  // getContainedAutoType() returns the AutoType if the type uses auto deduction,
+  // even if the top-level type is a pointer or reference to auto.
+  return VD->getType()->getContainedAutoType() != nullptr;
+}
+
+bool InitCheck::isAutoType(const VarDecl* VD) {
+  if (!VD) {
+    return false;
+  }
+  // Use TypeSourceInfo to detect auto in the source code
+  // Even after deduction, getContainedAutoTypeLoc() returns the AutoTypeLoc
+  // if the variable was declared with auto
+  if (auto* TSI = VD->getTypeSourceInfo()) {
+    AutoTypeLoc ATL = TSI->getTypeLoc().getContainedAutoTypeLoc();
+    return !ATL.isNull();
+  }
+  return false;
 }
 
 bool InitCheck::shouldSkipUnion(const VarDecl* VD) {
@@ -172,7 +189,7 @@ bool InitCheck::isEnumZeroValidType(const Type* Ty) {
     return false;
   }
 
-  const EnumDecl* Enum = nullptr;
+  const EnumDecl* Enum{nullptr};
   if (const auto* EnumTy = Ty->getAs<EnumType>()) {
     Enum = EnumTy->getDecl();
   } else if (const auto* ElabTy = Ty->getAs<ElaboratedType>()) {
@@ -212,7 +229,7 @@ bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
   }
 
   auto& SM = Ctx->getSourceManager();
-  SourceLocation Loc = VD->getLocation();
+  SourceLocation Loc{VD->getLocation()};
 
   // Check if the declaration is inside a macro expansion
   return SM.isMacroBodyExpansion(Loc) || SM.isMacroArgExpansion(Loc);
@@ -348,13 +365,13 @@ void InitCheck::checkUninitialized(const VarDecl* VD, ASTContext* Ctx) {
   auto LangOpts = Ctx->getLangOpts();
 
   const auto Loc = VD->getLocation();
-  SourceLocation EndLoc;
+  SourceLocation EndLoc{};
 
   if (VD->getType()->isArrayType()) {
     if (auto* TSI = VD->getTypeSourceInfo()) {
-      TypeLoc TL = TSI->getTypeLoc();
+      TypeLoc TL{TSI->getTypeLoc()};
       while (TL.getAs<ArrayTypeLoc>()) {
-        ArrayTypeLoc ATL = TL.getAs<ArrayTypeLoc>();
+        ArrayTypeLoc ATL{TL.getAs<ArrayTypeLoc>()};
         TL = ATL.getElementLoc();
         EndLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
       }
@@ -461,7 +478,7 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
       }
 
       if (CCE->getConstructor()) {
-        const CXXRecordDecl* Record = CCE->getConstructor()->getParent();
+        const CXXRecordDecl* Record{CCE->getConstructor()->getParent()};
         if (Record) {
           for (const CXXConstructorDecl* Ctor : Record->ctors()) {
             if (Ctor->isExplicit()) {
@@ -474,12 +491,12 @@ void InitCheck::checkEqualsInit(const VarDecl* VD, ASTContext* Ctx) {
                   auto TemplateArgs = TST->template_arguments();
                   if (!TemplateArgs.empty()) {
                     const TemplateArgument& Arg = TemplateArgs[0];
-                    QualType InitListElemType = Arg.getAsType();
-                    const Type* ArgTy = InitListElemType.getTypePtr();
+                    QualType InitListElemType{Arg.getAsType()};
+                    const Type* ArgTy{InitListElemType.getTypePtr()};
 
                     if (CCE->getNumArgs() > 0) {
-                      const Expr* ArgExpr = CCE->getArg(0);
-                      const Type* ExprTy = ArgExpr->getType().getTypePtr();
+                      const Expr* ArgExpr{CCE->getArg(0)};
+                      const Type* ExprTy{ArgExpr->getType().getTypePtr()};
                       if (ExprTy->isIntegerType() && ArgTy->isIntegerType()) {
                         return;
                       }
@@ -625,16 +642,13 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
     return;
   }
 
-  if (VD->getInitStyle() != VarDecl::CInit) {
-    return;
-  }
-
   const auto* Init = VD->getInit();
   if (!Init) {
     return;
   }
 
-  if (!isa<InitListExpr>(Init)) {
+  const auto* ILE = dyn_cast<InitListExpr>(Init);
+  if (!ILE) {
     return;
   }
 
@@ -645,26 +659,55 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
   auto& SM = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
 
-  SourceLocation VarEndLoc;
+  auto VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+
+  // For auto types, brace initialization should use '=' assignment instead
+  // e.g., auto x{1} or auto x = {1} should become auto x = 1
+  if (isAutoType(VD)) {
+    if (ILE->getNumInits() == 1) {
+      const Expr* SingleInit = ILE->getInit(0);
+      auto BraceEndLoc = Lexer::getLocForEndOfToken(ILE->getRBraceLoc(), 0, SM, LangOpts);
+
+      diag(VD->getLocation(), "auto type should use '=' assignment instead of brace initialization")
+          << FixItHint::CreateReplacement(
+                 CharSourceRange::getCharRange(VarEndLoc, BraceEndLoc),
+                 " = " +
+                     Lexer::getSourceText(
+                         CharSourceRange::getTokenRange(SingleInit->getSourceRange()), SM, LangOpts)
+                         .str());
+    } else {
+      diag(VD->getLocation(),
+           "auto type should use '=' assignment instead of brace initialization");
+    }
+    return;
+  }
+
+  // For non-auto types with CInit style (= {}), suggest removing '=' to use direct brace init
+  // e.g., int x = {1} should become int x{1}
+  if (VD->getInitStyle() != VarDecl::CInit) {
+    return;
+  }
+
+  SourceLocation BraceStartLoc;
   if (VD->getType()->isArrayType()) {
     if (auto* TSI = VD->getTypeSourceInfo()) {
       TypeLoc TL = TSI->getTypeLoc();
       while (TL.getAs<ArrayTypeLoc>()) {
         ArrayTypeLoc ATL = TL.getAs<ArrayTypeLoc>();
         TL = ATL.getElementLoc();
-        VarEndLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
+        BraceStartLoc = ATL.getRBracketLoc().isValid() ? ATL.getRBracketLoc() : VD->getLocation();
       }
-      if (VarEndLoc.isInvalid()) {
-        VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+      if (BraceStartLoc.isInvalid()) {
+        BraceStartLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
       }
     } else {
-      VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+      BraceStartLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
     }
   } else {
-    VarEndLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
+    BraceStartLoc = Lexer::getLocForEndOfToken(VD->getLocation(), 0, SM, LangOpts);
   }
 
-  VarEndLoc = Lexer::getLocForEndOfToken(VarEndLoc, 0, SM, LangOpts);
+  BraceStartLoc = Lexer::getLocForEndOfToken(BraceStartLoc, 0, SM, LangOpts);
   auto InitStartLoc = Init->getBeginLoc();
 
   diag(VD->getLocation(), "initializer should use '{}' syntax instead of '= {}'")

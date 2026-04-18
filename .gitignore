@@ -4,14 +4,13 @@ build/
 *.a
 *.dylib
 *.exe
+*.profraw
 .DS_Store
-third_party/
-compile_commands.jsoncodelint-*.tar.gz
-codelint-*/
+*.gz
 packaging/AppDir/
 *.AppImage
 !packaging/tools/appimagetool
-codelint-dev-x86_64.AppImage
+*.AppImage
 .cache
 .sisyphus
 .idea/

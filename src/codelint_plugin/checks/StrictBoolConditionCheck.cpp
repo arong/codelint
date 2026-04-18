@@ -32,7 +32,7 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
     return;
   }
 
-  const clang::Expr* Cond = nullptr;
+  const clang::Expr* Cond{nullptr};
 
   if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt")) {
     Cond = IS->getCond();
@@ -60,8 +60,8 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     return;
   }
 
-  const clang::Expr* TrueCond = Cond->IgnoreImpCasts();
-  clang::QualType CondType = TrueCond->getType();
+  const clang::Expr* TrueCond{Cond->IgnoreImpCasts()};
+  clang::QualType CondType{TrueCond->getType()};
 
   diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'") << CondType.getAsString();
 }
@@ -71,15 +71,15 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
     return false;
   }
 
-  const clang::Expr* TrueExpr = E->IgnoreImpCasts();
-  clang::QualType Ty = TrueExpr->getType();
+  const clang::Expr* TrueExpr{E->IgnoreImpCasts()};
+  clang::QualType Ty{TrueExpr->getType()};
 
   if (Ty->isBooleanType()) {
     return true;
   }
 
   if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E)) {
-    clang::CastKind Kind = ICE->getCastKind();
+    clang::CastKind Kind{ICE->getCastKind()};
     if (Kind == clang::CK_IntegralToBoolean || Kind == clang::CK_PointerToBoolean ||
         Kind == clang::CK_FloatingToBoolean) {
       return false;

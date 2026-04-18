@@ -27,6 +27,7 @@ private:
                                                        ASTContext* Ctx);
 
   bool shouldSkipAuto(const VarDecl* VD);
+  bool isAutoType(const VarDecl* VD);
   bool shouldSkipUnion(const VarDecl* VD);
   bool shouldSkipExtern(const VarDecl* VD);
   bool shouldSkipEnumClass(const VarDecl* VD);
