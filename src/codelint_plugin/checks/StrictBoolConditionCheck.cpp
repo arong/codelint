@@ -10,8 +10,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <llvm/Support/Casting.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (!Finder) {
@@ -34,7 +33,7 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
     return;
   }
 
-  const clang::Expr* Cond{nullptr};
+  const Expr* Cond{nullptr};
 
   if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt"); IS != nullptr) {
     Cond = IS->getCond();
@@ -60,9 +59,9 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     return;
   }
 
-  auto& SM = Ctx->getSourceManager();
-  SourceLocation ExpansionLoc{SM.getExpansionLoc(Cond->getBeginLoc())};
-  if (!SM.isInMainFile(ExpansionLoc)) {
+  const auto& SM = Ctx->getSourceManager();
+  if (const SourceLocation ExpansionLoc{SM.getExpansionLoc(Cond->getBeginLoc())};
+      !SM.isInMainFile(ExpansionLoc)) {
     return;
   }
 
@@ -71,7 +70,7 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   }
 
   const clang::Expr* TrueCond{Cond->IgnoreImpCasts()};
-  clang::QualType CondType{TrueCond->getType()};
+  const clang::QualType CondType{TrueCond->getType()};
 
   diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'") << CondType.getAsString();
 }
@@ -82,14 +81,13 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
   }
 
   const clang::Expr* TrueExpr{E->IgnoreImpCasts()};
-  clang::QualType Ty{TrueExpr->getType()};
 
-  if (Ty->isBooleanType()) {
+  if (const clang::QualType Ty{TrueExpr->getType()}; Ty->isBooleanType()) {
     return true;
   }
 
   if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E); ICE != nullptr) {
-    clang::CastKind Kind{ICE->getCastKind()};
+    const clang::CastKind Kind{ICE->getCastKind()};
     if (Kind == clang::CK_IntegralToBoolean || Kind == clang::CK_PointerToBoolean ||
         Kind == clang::CK_FloatingToBoolean) {
       return false;
@@ -99,5 +97,4 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
   return false;
 }
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

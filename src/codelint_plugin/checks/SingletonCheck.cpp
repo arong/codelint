@@ -6,8 +6,7 @@
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 void SingletonCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   Finder->addMatcher(
@@ -42,5 +41,4 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
   diag(FD->getLocation(), "Meyer's Singleton pattern detected in '%0'") << FD->getName();
 }
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

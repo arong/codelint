@@ -1,5 +1,6 @@
 # Build artifacts
 build/
+cmake-build-debug/
 *.o
 *.so
 *.a
@@ -30,7 +31,3 @@ packaging/AppDir/
 
 # Test / Coverage
 coverage_report/
-
-# Keep these (not ignored)
-# !packaging/tools/appimagetool
-# compile_commands.json - may be useful for clang-tidy

@@ -20,7 +20,7 @@ public:
 
 private:
   void checkCondition(const Expr* Cond, ASTContext* Ctx);
-  bool isBoolType(const Expr* E);
+  static bool isBoolType(const Expr* E);
 };
 
 } // namespace codelint

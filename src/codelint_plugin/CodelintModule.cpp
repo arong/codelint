@@ -1,12 +1,11 @@
-#include "clang-tidy/ClangTidyModule.h"
-#include "clang-tidy/ClangTidyModuleRegistry.h"
 #include "codelint/checks/GlobalCheck.h"
 #include "codelint/checks/InitCheck.h"
 #include "codelint/checks/SingletonCheck.h"
 #include "codelint/checks/StrictBoolConditionCheck.h"
+#include <clang-tidy/ClangTidyModule.h>
+#include <clang-tidy/ClangTidyModuleRegistry.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 class CodelintModule : public ClangTidyModule {
 public:
@@ -18,8 +17,7 @@ public:
   }
 };
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint
 
 // Register the module
 static clang::tidy::ClangTidyModuleRegistry::Add<clang::tidy::codelint::CodelintModule>

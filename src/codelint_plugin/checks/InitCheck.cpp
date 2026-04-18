@@ -9,8 +9,7 @@
 #include <clang/Lex/Lexer.h>
 #include <llvm/ADT/SmallVector.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 bool InitCheck::isInSystemHeader(SourceLocation Loc, ASTContext* Ctx) {
   if (!Ctx) {
@@ -246,29 +245,6 @@ bool InitCheck::isInsideMacro(const VarDecl* VD, ASTContext* Ctx) {
 
   // Check if the declaration is inside a macro expansion
   return SM.isMacroBodyExpansion(Loc) || SM.isMacroArgExpansion(Loc);
-}
-
-bool InitCheck::hasInitializerListConstructor(const CXXRecordDecl* Record) {
-  if (!Record) {
-    return false;
-  }
-
-  for (const CXXConstructorDecl* Ctor : Record->ctors()) {
-    if (Ctor->isExplicit()) {
-      continue;
-    }
-
-    for (const ParmVarDecl* Param : Ctor->parameters()) {
-      const Type* ParamTy = Param->getType().getTypePtr();
-      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
-        if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
-          return true;
-        }
-      }
-    }
-  }
-
-  return false;
 }
 
 bool InitCheck::hasNonTrivialDefaultConstructor(QualType QT) const {
@@ -803,5 +779,4 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
   }
 }
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

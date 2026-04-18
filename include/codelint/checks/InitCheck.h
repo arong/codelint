@@ -2,8 +2,7 @@
 
 #include <clang-tidy/ClangTidyCheck.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 class InitCheck : public ClangTidyCheck {
 public:
@@ -37,9 +36,7 @@ private:
   bool hasExplicitInitializer(const VarDecl* VD);
   bool hasExplicitInitializer(const FieldDecl* FD);
   bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
-  bool hasInitializerListConstructor(const CXXRecordDecl* Record);
   bool hasNonTrivialDefaultConstructor(QualType QT) const;
 };
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint
