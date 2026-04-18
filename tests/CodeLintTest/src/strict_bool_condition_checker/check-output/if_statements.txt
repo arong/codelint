@@ -1,18 +1,18 @@
-tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:6:7: error: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:6:7: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
     6 |   if (x) {
       |       ^
-tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:8:7: error: condition must be bool type, but got 'const char *' [codelint-strict-bool-condition]
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:8:7: warning: condition must be bool type, but got 'const char *' [codelint-strict-bool-condition]
     8 |   if (s) {
       |       ^
-tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:10:7: error: condition must be bool type, but got 'nullptr_t' [codelint-strict-bool-condition]
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:10:7: warning: condition must be bool type, but got 'nullptr_t' [codelint-strict-bool-condition]
    10 |   if (nullptr) {
       |       ^
-tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:12:7: error: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:12:7: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
    12 |   if (1) {
       |       ^
-tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:14:7: error: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:14:7: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
    14 |   if (0) {
       |       ^
-tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:16:7: error: condition must be bool type, but got 'double' [codelint-strict-bool-condition]
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:16:7: warning: condition must be bool type, but got 'double' [codelint-strict-bool-condition]
    16 |   if (3.14) {
       |       ^
