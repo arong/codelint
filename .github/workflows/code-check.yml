@@ -148,6 +148,8 @@ jobs:
 
       - name: Run clang-tidy with codelint plugin
         if: github.event_name == 'pull_request'
+        # Disable set -e for this step since we handle errors ourselves
+        shell: sh {0}
         run: |
           echo "🔍 Running codelint checks..."
           
@@ -164,13 +166,12 @@ jobs:
           # 1. NO --fix or --fix-errors (prevents modifying any files)
           # 2. Only check src/ files, ignore system headers
           # 3. Excludes tests/ directory (only source code)
-          # Note: We use '|| true' to prevent exit on clang-tidy errors
-          #       (clang-tidy returns non-zero even for system header errors)
+          # Note: We ignore clang-tidy exit code (it returns non-zero for system header errors)
           clang-tidy-21 \
             --load=build/lib/codelint-plugin.so \
             --checks='codelint-*' \
             -p build \
-            $src_files 2>&1 | tee codelint_output.txt || true
+            $src_files 2>&1 | tee codelint_output.txt
           
           # Filter out warnings from system headers (outside project directory)
           # Only check for warnings in our project files
