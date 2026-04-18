@@ -15,7 +15,7 @@ public:
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
 
   bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
-    return LangOpts.CPlusPlus;
+    return LangOpts.CPlusPlus14 && !LangOpts.CPlusPlus23;
   }
 
 private:
