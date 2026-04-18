@@ -711,7 +711,8 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx) {
   auto InitStartLoc = Init->getBeginLoc();
 
   diag(VD->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
-      << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "");
+      << FixItHint::CreateReplacement(CharSourceRange::getCharRange(BraceStartLoc, InitStartLoc),
+                                      "");
 }
 
 void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
