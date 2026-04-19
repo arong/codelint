@@ -187,11 +187,12 @@ FAIL_COUNT=0
 get_check_flag() {
     local checker="$1"
     case "$checker" in
-        "init_checker")    echo "codelint-init,-codelint-global,-codelint-singleton,-codelint-strict-bool-condition,-codelint-signed-to-unsigned-return" ;;
+        "init_checker")    echo "codelint-init,-codelint-global,-codelint-singleton,-codelint-strict-bool-condition,-codelint-signed-to-unsigned-return,-codelint-null-deref" ;;
         "global_checker")  echo "-*,codelint-global" ;;
         "singleton_checker") echo "-*,codelint-singleton" ;;
         "strict_bool_condition_checker") echo "-*,codelint-strict-bool-condition" ;;
         "signed_to_unsigned_checker") echo "-*,codelint-signed-to-unsigned-return" ;;
+        "null_deref_checker") echo "-*,codelint-null-deref" ;;
         *) echo "" ;;
     esac
 }
@@ -460,7 +461,7 @@ run_compilation_error_test() {
 }
 
 # Run tests for each checker
-CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker")
+CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker" "null_deref_checker")
 
 for CHECKER in "${CHECKERS[@]}"; do
     TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$CHECKER"

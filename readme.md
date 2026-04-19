@@ -47,6 +47,92 @@ void process() {
 | **codelint-global** | Global variable detection | ❌ No | C++ |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No | C++ |
 | **codelint-signed-to-unsigned-return** | Signed→unsigned return value detection | ❌ No | C++14/17/20 |
+| **codelint-null-deref** | Null pointer dereference detection via data flow | ❌ No | C++ |
+
+## codelint-null-deref Features
+
+This check detects null pointer dereferences using **data flow analysis** to track pointer null state through control flow.
+
+### Detection Capabilities
+
+| Scenario | Detection Level | Example |
+|----------|----------------|---------|
+| Direct null assignment → dereference | **Error** | `int* p = nullptr; *p = 10;` |
+| Function may return null | **Warning** | `int* p = getMaybeNull(); *p = 10;` |
+| Conditional null in if/else | **Error** (null branch) | `if (p) { } else { *p = 10; }` |
+| Safe dereference with null check | ✅ OK | `if (p != nullptr) { *p = 10; }` |
+| Member access via null pointer | **Error** | `obj->member = 10;` |
+| Array subscript on null | **Error** | `arr[0] = 10;` |
+
+### Data Flow Analysis
+
+The check uses **Control Flow Graph (CFG)** analysis to track null state:
+
+```cpp
+void example() {
+  int* p = nullptr;  // State: p = Null
+
+  if (p != nullptr) {
+    *p = 10;  // State: p = NonNull - OK
+  } else {
+    *p = 20;  // State: p = Null - ERROR!
+  }
+
+  int* q = maybeNull();  // State: q = MayBeNull
+  *q = 30;  // WARNING: potential null dereference
+}
+```
+
+### Null State Tracking
+
+| State | Meaning | Diagnostic |
+|-------|---------|------------|
+| **Null** | Definitely null | Error |
+| **NonNull** | Definitely non-null | OK |
+| **MayBeNull** | Could be null | Warning |
+| **Unknown** | Cannot determine | (no warning) |
+
+### What It Detects
+
+```cpp
+// ❌ ERROR: Direct null dereference
+void test1() {
+  int* p = nullptr;
+  *p = 10;
+}
+
+// ❌ ERROR: Null dereference in else branch
+void test2() {
+  int* p = nullptr;
+  if (p) {
+    // Safe here
+  } else {
+    *p = 20;  // p is null in else branch
+  }
+}
+
+// ⚠️ WARNING: Function may return null
+int* getMaybeNull();
+void test3() {
+  int* p = getMaybeNull();
+  *p = 10;  // Potential null dereference
+}
+
+// ✅ OK: Null check before dereference
+void test4() {
+  int* p = getMaybeNull();
+  if (p != nullptr) {
+    *p = 10;  // Safe after check
+  }
+}
+
+// ✅ OK: Assert before dereference
+void test5() {
+  int* p = getMaybeNull();
+  assert(p != nullptr);
+  *p = 10;  // Safe after assert
+}
+```
 
 ## codelint-init Features
 
