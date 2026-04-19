@@ -73,31 +73,10 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     return;
   }
 
-  const clang::Expr* TrueCond{Cond->IgnoreImpCasts()};
-  clang::QualType CondType{TrueCond->getType()};
-  const clang::Expr* DiagExpr{TrueCond};
+  const clang::Expr* NonBoolOperand{getNonBoolOperand(Cond)};
+  clang::QualType CondType{NonBoolOperand->getType()};
 
-  if (const auto* UnaryOp = llvm::dyn_cast<clang::UnaryOperator>(TrueCond)) {
-    if (UnaryOp->getOpcode() == clang::UnaryOperatorKind::UO_LNot) {
-      const clang::Expr* Operand{UnaryOp->getSubExpr()->IgnoreImpCasts()};
-      CondType = Operand->getType();
-      DiagExpr = Operand;
-    }
-  } else if (const auto* BinOp = llvm::dyn_cast<clang::BinaryOperator>(TrueCond)) {
-    if (BinOp->isLogicalOp()) {
-      const clang::Expr* LHS{BinOp->getLHS()->IgnoreImpCasts()};
-      const clang::Expr* RHS{BinOp->getRHS()->IgnoreImpCasts()};
-      if (!isBoolType(BinOp->getLHS())) {
-        CondType = LHS->getType();
-        DiagExpr = LHS;
-      } else if (!isBoolType(BinOp->getRHS())) {
-        CondType = RHS->getType();
-        DiagExpr = RHS;
-      }
-    }
-  }
-
-  diag(DiagExpr->getBeginLoc(), "condition must be bool type, but got '%0'")
+  diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
       << CondType.getAsString();
 }
 
@@ -135,6 +114,44 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {
   }
 
   return false;
+}
+
+const clang::Expr* StrictBoolConditionCheck::getNonBoolOperand(const clang::Expr* expr) {
+  if (expr == nullptr) {
+    return expr;
+  }
+
+  const clang::Expr* TrueExpr{expr->IgnoreImpCasts()};
+
+  // For logical NOT, recurse into the operand
+  if (const auto* UnaryOp = llvm::dyn_cast<clang::UnaryOperator>(TrueExpr)) {
+    if (UnaryOp->getOpcode() == clang::UnaryOperatorKind::UO_LNot) {
+      return getNonBoolOperand(UnaryOp->getSubExpr());
+    }
+  }
+
+  // For logical AND/OR, find the first non-bool operand
+  if (const auto* BinOp = llvm::dyn_cast<clang::BinaryOperator>(TrueExpr)) {
+    if (BinOp->isLogicalOp()) {
+      if (!isBoolType(BinOp->getLHS())) {
+        return getNonBoolOperand(BinOp->getLHS());
+      }
+      if (!isBoolType(BinOp->getRHS())) {
+        return getNonBoolOperand(BinOp->getRHS());
+      }
+    }
+  }
+
+  // For ImplicitCastExpr with conversion to bool, return the source
+  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(expr)) {
+    if (const CastKind Kind{ICE->getCastKind()}; Kind == CK_IntegralToBoolean ||
+                                                 Kind == CK_PointerToBoolean ||
+                                                 Kind == CK_FloatingToBoolean) {
+      return ICE->getSubExpr()->IgnoreImpCasts();
+    }
+  }
+
+  return TrueExpr;
 }
 
 } // namespace clang::tidy::codelint
