@@ -15,11 +15,16 @@ packaging/
 
 **Build the plugin**:
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm  # macOS
+# Using CMake presets (recommended)
+# macOS
+SDKROOT=$(xcrun --show-sdk-path) cmake --preset default
+# Linux
+cmake --preset default
 cmake --build build
 
 # Verify
-ls build/lib/*.so
+ls build/lib/*.so  # Linux
+ls build/lib/*.dylib  # macOS
 ```
 
 ## Usage
