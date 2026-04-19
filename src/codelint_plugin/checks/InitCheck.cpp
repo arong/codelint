@@ -14,7 +14,7 @@ namespace clang::tidy::codelint {
 // Maximum length for value text extraction to avoid pathological cases
 constexpr std::size_t kMaxValueTextLength = 64;
 
-bool InitCheck::isInSystemHeader(SourceLocation Loc, ASTContext* Ctx) {
+bool InitCheck::isInSystemHeader(const SourceLocation Loc, ASTContext* Ctx) {
   if (Ctx == nullptr) {
     return false;
   }
@@ -646,7 +646,7 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
     NeedsLongSuffix = true;
   }
 
-  std::string Suffix{NeedsLongSuffix ? "UL" : "U"};
+  const std::string Suffix{NeedsLongSuffix ? "UL" : "U"};
 
   diag(Init->getBeginLoc(), "unsigned integer literal should have '%0' suffix")
       << Suffix << FixItHint::CreateInsertion(InitEnd, Suffix);
