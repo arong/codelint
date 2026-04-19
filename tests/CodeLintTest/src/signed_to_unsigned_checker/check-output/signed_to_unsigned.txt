@@ -1,0 +1,15 @@
+tests/CodeLintTest/src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp:16:3: warning: signed return value from 'read' (type 'ssize_t') is assigned to unsigned variable 'n' (type 'size_t'); this may cause errors when function returns negative values [codelint-signed-to-unsigned-return]
+   16 |   size_t n = read(0, buffer, 1024);
+      |   ^
+tests/CodeLintTest/src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp:18:3: warning: signed return value from 'write' (type 'ssize_t') is assigned to unsigned variable 'bytes' (type 'unsigned int'); this may cause errors when function returns negative values [codelint-signed-to-unsigned-return]
+   18 |   unsigned bytes = write(1, buffer, 5);
+      |   ^
+tests/CodeLintTest/src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp:20:3: warning: signed return value from 'open' (type 'int') is assigned to unsigned variable 'fd' (type 'unsigned int'); this may cause errors when function returns negative values [codelint-signed-to-unsigned-return]
+   20 |   unsigned fd = open("/tmp/test", 0, 0);
+      |   ^
+tests/CodeLintTest/src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp:37:3: warning: signed return value from 'read' (type 'ssize_t') is assigned to unsigned expression (type 'size_t'); this may cause errors when function returns negative values [codelint-signed-to-unsigned-return]
+   37 |   n = read(0, buffer, 1024);
+      |   ^
+tests/CodeLintTest/src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp:40:3: warning: signed return value from 'open' (type 'int') is assigned to unsigned expression (type 'unsigned int'); this may cause errors when function returns negative values [codelint-signed-to-unsigned-return]
+   40 |   fd = open("/tmp/test", 0, 0);
+      |   ^
