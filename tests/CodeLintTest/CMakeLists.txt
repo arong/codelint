@@ -72,6 +72,8 @@ set(TEST_SOURCES
     src/singleton_checker/src/no_return_static.cpp
     src/singleton_checker/src/param_singleton.cpp
     src/singleton_checker/src/template_singleton.cpp
+    src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp
+    src/signed_to_unsigned_checker/fixed/signed_to_unsigned.cpp
 )
 
 add_library(codelint_test_objects OBJECT ${TEST_SOURCES})
