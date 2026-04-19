@@ -15,7 +15,7 @@
 ### Required Author Format
 
 ```
-AI Assistant <ai@codelint.dev>
+Sisyphus <sisyphus@codelint.dev>
 ```
 
 ### How to Commit as AI
@@ -27,24 +27,24 @@ git ai-commit -m "style: fix clang-tidy warnings"
 
 **Or manually:**
 ```bash
-git commit --author="AI Assistant <ai@codelint.dev>" -m "your message"
+git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "your message"
 ```
 
 ### Git Alias Configuration
 
 The alias is already configured in this repository:
 ```bash
-git config alias.ai-commit '!git commit --author="AI Assistant <ai@codelint.dev>"'
+git config alias.ai-commit '!git commit --author="Sisyphus <sisyphus@codelint.dev>"'
 ```
 
 ### When to Use AI Author
 
 | Scenario | Author |
 |----------|--------|
-| AI makes code changes | AI Assistant |
-| AI fixes bugs | AI Assistant |
-| AI refactors code | AI Assistant |
-| AI writes documentation | AI Assistant |
+| AI makes code changes | Sisyphus |
+| AI fixes bugs | Sisyphus |
+| AI refactors code | Sisyphus |
+| AI writes documentation | Sisyphus |
 | Human makes changes | Human's actual name/email |
 | Human reviews and approves | Human's actual name/email |
 
@@ -72,7 +72,7 @@ Before pushing, verify the author:
 git log -1 --format="%an <%ae>"
 ```
 
-Should output: `AI Assistant <ai@codelint.dev>` for AI commits.
+Should output: `Sisyphus <sisyphus@codelint.dev>` for AI commits.
 
 ---
 
