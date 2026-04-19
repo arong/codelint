@@ -1,0 +1,83 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "displayName": "macOS Base",
+      "description": "Base configuration for macOS",
+      "cacheVariables": {
+        "CMAKE_OSX_SYSROOT": {
+          "type": "STRING",
+          "value": "$env{SDKROOT}"
+        },
+        "LLVM_DIR": {
+          "type": "PATH",
+          "value": "/opt/homebrew/opt/llvm@21/lib/cmake/llvm"
+        },
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "macos",
+      "displayName": "macOS",
+      "description": "Build for macOS",
+      "inherits": "macos-base",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "displayName": "Linux Base",
+      "description": "Base configuration for Linux",
+      "cacheVariables": {
+        "LLVM_DIR": {
+          "type": "PATH",
+          "value": "/usr/lib/llvm-21/lib/cmake/llvm"
+        },
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "linux",
+      "displayName": "Linux",
+      "description": "Build for Linux",
+      "inherits": "linux-base",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "default",
+      "displayName": "Default",
+      "description": "Default build (auto-detect platform)",
+      "inherits": [
+        "macos",
+        "linux"
+      ],
+      "binaryDir": "${sourceDir}/build"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "displayName": "Default Build",
+      "configurePreset": "default"
+    }
+  ]
+}

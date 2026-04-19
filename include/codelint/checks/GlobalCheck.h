@@ -2,8 +2,7 @@
 
 #include <clang-tidy/ClangTidyCheck.h>
 
-namespace clang::tidy {
-namespace codelint {
+namespace clang::tidy::codelint {
 
 class GlobalCheck : public ClangTidyCheck {
 public:
@@ -13,10 +12,9 @@ public:
   void registerMatchers(ast_matchers::MatchFinder* Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
 
-  bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
+  [[nodiscard]] bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
     return LangOpts.CPlusPlus;
   }
 };
 
-} // namespace codelint
-} // namespace clang::tidy
+} // namespace clang::tidy::codelint

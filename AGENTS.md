@@ -2,6 +2,35 @@
 
 ---
 
+## 🤖 AI Commit Author (CRITICAL)
+
+**AI must use distinct author for commits.**
+
+### Author
+
+```
+Sisyphus <sisyphus@codelint.dev>
+```
+
+### Usage
+
+```bash
+# Using alias
+git ai-commit -m "style: fix clang-tidy warnings"
+
+# Or manually
+git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "message"
+```
+
+### Verify
+
+```bash
+git log -1 --format="%an <%ae>"
+# Output: Sisyphus <sisyphus@codelint.dev>
+```
+
+---
+
 ## Test File Protection Rules (CRITICAL)
 
 ### Protected Test Directories
@@ -190,43 +219,95 @@ gh release delete v0.X.X-test --cleanup-tag --yes
 
 ---
 
+## 🔧 CMake Presets (Build Configuration)
+
+**This project uses CMakePresets.json for platform-specific configuration.**
+
+### Available Presets
+
+| Preset | Platform | Description |
+|--------|----------|-------------|
+| `default` | Auto | Auto-detect platform (macOS/Linux) |
+| `macos` | macOS | macOS with Homebrew LLVM 21 |
+| `linux` | Linux | Linux with apt.llvm.org LLVM 21 |
+
+### How to Build
+
+**Using preset (recommended):**
+```bash
+# macOS - set SDKROOT first
+SDKROOT=$(xcrun --show-sdk-path) cmake --preset default
+
+# Linux
+cmake --preset default
+
+# Build
+cmake --build build
+```
+
+**Manual configuration (fallback):**
+```bash
+# macOS
+cmake -B build -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm -DCMAKE_OSX_SYSROOT=$(xcrun --show-sdk-path)
+
+# Linux
+cmake -B build -DLLVM_DIR=/usr/lib/llvm-21/lib/cmake/llvm
+
+cmake --build build
+```
+
+### Why Use Presets
+
+1. **Platform Detection** - Automatic macOS/Linux configuration
+2. **SDK Path** - macOS SDK path for system headers (clang-tidy compatibility)
+3. **LLVM Path** - Correct LLVM 21 path for each platform
+4. **Reproducibility** - Consistent build configuration across environments
+
+---
+
 ## 🔧 LLVM/Clang Tool Paths (CRITICAL)
 
-**This project uses LLVM 21 from Homebrew. All LLVM tools must use this specific path.**
+**This project uses LLVM 21. All LLVM tools must use this specific path.**
 
-### Required LLVM Tool Paths
+### macOS (Homebrew)
 
 ```bash
 LLVM_BIN=/opt/homebrew/opt/llvm@21/bin
 LLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
 ```
 
+### Linux (apt.llvm.org)
+
+```bash
+LLVM_BIN=/usr/lib/llvm-21/bin
+LLVM_DIR=/usr/lib/llvm-21/lib/cmake/llvm
+```
+
 ### Tools in This Directory
 
-| Tool | Full Path |
-|------|-----------|
-| `clang` | `/opt/homebrew/opt/llvm@21/bin/clang` |
-| `clang++` | `/opt/homebrew/opt/llvm@21/bin/clang++` |
-| `clang-tidy` | `/opt/homebrew/opt/llvm@21/bin/clang-tidy` |
-| `llvm-cov` | `/opt/homebrew/opt/llvm@21/bin/llvm-cov` |
-| `llvm-profdata` | `/opt/homebrew/opt/llvm@21/bin/llvm-profdata` |
-| `clang-format` | `/opt/homebrew/opt/llvm@21/bin/clang-format` |
+| Tool | macOS Path | Linux Path |
+|------|------------|------------|
+| `clang` | `/opt/homebrew/opt/llvm@21/bin/clang` | `/usr/lib/llvm-21/bin/clang` |
+| `clang++` | `/opt/homebrew/opt/llvm@21/bin/clang++` | `/usr/lib/llvm-21/bin/clang++` |
+| `clang-tidy` | `/opt/homebrew/opt/llvm@21/bin/clang-tidy` | `/usr/lib/llvm-21/bin/clang-tidy` |
+| `llvm-cov` | `/opt/homebrew/opt/llvm@21/bin/llvm-cov` | `/usr/lib/llvm-21/bin/llvm-cov` |
+| `llvm-profdata` | `/opt/homebrew/opt/llvm@21/bin/llvm-profdata` | `/usr/lib/llvm-21/bin/llvm-profdata` |
+| `clang-format` | `/opt/homebrew/opt/llvm@21/bin/clang-format` | `/usr/lib/llvm-21/bin/clang-format` |
 
 ### How to Use
 
 **Before running any LLVM tool, set PATH:**
 ```bash
+# macOS
 export PATH=/opt/homebrew/opt/llvm@21/bin:$PATH
+
+# Linux
+export PATH=/usr/lib/llvm-21/bin:$PATH
 ```
 
 **Or use full paths directly:**
 ```bash
-/opt/homebrew/opt/llvm@21/bin/clang-tidy --version
-```
-
-**CMake configuration must include LLVM_DIR:**
-```bash
-cmake -B build -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
+clang-tidy --version  # After setting PATH
 ```
 
 ### Why This Matters

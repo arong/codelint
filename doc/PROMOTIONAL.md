@@ -246,9 +246,11 @@ severity: warning
 git clone https://github.com/arong/codelint.git
 cd codelint
 
-cmake -B build \
-  -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
-
+# Build using CMake presets
+# macOS
+SDKROOT=$(xcrun --show-sdk-path) cmake --preset default
+# Linux
+cmake --preset default
 cmake --build build
 ```
 

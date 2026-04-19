@@ -27,18 +27,19 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
     return;
   }
 
-  const auto* FD = Result.Nodes.getNodeAs<clang::FunctionDecl>("singletonFunc");
-  if (!FD) {
+  const auto* funcDecl = Result.Nodes.getNodeAs<clang::FunctionDecl>("singletonFunc");
+  if (funcDecl == nullptr) {
     return;
   }
 
-  auto& SM = Result.Context->getSourceManager();
-  SourceLocation ExpansionLoc{SM.getExpansionLoc(FD->getLocation())};
-  if (!SM.isInMainFile(ExpansionLoc)) {
+  auto& srcMgr = Result.Context->getSourceManager();
+  const SourceLocation ExpansionLoc{srcMgr.getExpansionLoc(funcDecl->getLocation())};
+  if (!srcMgr.isInMainFile(ExpansionLoc)) {
     return;
   }
 
-  diag(FD->getLocation(), "Meyer's Singleton pattern detected in '%0'") << FD->getName();
+  diag(funcDecl->getLocation(), "Meyer's Singleton pattern detected in '%0'")
+      << funcDecl->getName();
 }
 
 } // namespace clang::tidy::codelint

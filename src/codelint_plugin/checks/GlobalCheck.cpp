@@ -9,7 +9,7 @@
 namespace clang::tidy::codelint {
 
 void GlobalCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
-  if (!Finder) {
+  if (Finder == nullptr) {
     return;
   }
 
@@ -27,26 +27,26 @@ void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
-  const auto* VD = Result.Nodes.getNodeAs<clang::VarDecl>("globalVar");
-  if (!VD || VD->isImplicit() || VD->getName().empty()) {
+  const auto* varDecl = Result.Nodes.getNodeAs<clang::VarDecl>("globalVar");
+  if (varDecl == nullptr || varDecl->isImplicit() || varDecl->getName().empty()) {
     return;
   }
 
-  if (VD->isConstexpr()) {
+  if (varDecl->isConstexpr()) {
     return;
   }
 
-  if (VD->getStorageClass() == clang::SC_Extern && !VD->hasInit()) {
+  if (varDecl->getStorageClass() == clang::SC_Extern && !varDecl->hasInit()) {
     return;
   }
 
-  const auto& SM = Result.Context->getSourceManager();
-  if (const SourceLocation ExpansionLoc{SM.getExpansionLoc(VD->getLocation())};
-      !SM.isInMainFile(ExpansionLoc)) {
+  const auto& srcMgr = Result.Context->getSourceManager();
+  if (const SourceLocation ExpansionLoc{srcMgr.getExpansionLoc(varDecl->getLocation())};
+      !srcMgr.isInMainFile(ExpansionLoc)) {
     return;
   }
 
-  diag(VD->getLocation(), "global variable '%0' detected") << VD->getName();
+  diag(varDecl->getLocation(), "global variable '%0' detected") << varDecl->getName();
 }
 
 } // namespace clang::tidy::codelint

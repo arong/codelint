@@ -234,8 +234,11 @@ Explicit comparisons make intent clear and prevent common bugs.
 ## Quick Start
 
 ```bash
-# Build
-cmake -B build -DLLVM_DIR=/opt/homebrew/opt/llvm@21/lib/cmake/llvm
+# Build (using CMake presets)
+# macOS
+SDKROOT=$(xcrun --show-sdk-path) cmake --preset default
+# Linux
+cmake --preset default
 cmake --build build
 
 # Run on your code
