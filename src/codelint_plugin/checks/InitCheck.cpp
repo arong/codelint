@@ -90,7 +90,6 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
     return;
   }
 
-  // NOLINTBEGIN(bugprone-branch-clone): Each branch calls a different check function
   if (const auto* VarDeclPtr = Result.Nodes.getNodeAs<clang::VarDecl>("uninit");
       VarDeclPtr != nullptr) {
     checkUninitialized(VarDeclPtr, Result.Context);
@@ -110,7 +109,6 @@ void InitCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
              Ctor != nullptr) {
     checkUninitializedMemberVariablesInConstructors(Ctor, Result.Context);
   }
-  // NOLINTEND(bugprone-branch-clone)
 }
 
 bool InitCheck::shouldSkipAuto(const VarDecl* VarDeclPtr) {
@@ -250,7 +248,6 @@ bool InitCheck::isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   return SrcMgr.isMacroBodyExpansion(Loc) || SrcMgr.isMacroArgExpansion(Loc);
 }
 
-// NOLINTBEGIN(misc-no-recursion): Recursion necessary for array element type traversal
 bool InitCheck::hasNonTrivialDefaultConstructor(QualType QualTypeRef) const {
   if (QualTypeRef.isNull()) {
     return false;
@@ -269,7 +266,6 @@ bool InitCheck::hasNonTrivialDefaultConstructor(QualType QualTypeRef) const {
 
   return false;
 }
-// NOLINTEND(misc-no-recursion)
 
 void InitCheck::checkUninitializedField(const FieldDecl* FieldDeclPtr, ASTContext* Ctx) {
   if ((FieldDeclPtr == nullptr) || (Ctx == nullptr)) {
@@ -308,17 +304,14 @@ void InitCheck::checkUninitializedField(const FieldDecl* FieldDeclPtr, ASTContex
   const auto Loc = FieldDeclPtr->getLocation();
   const auto EndLoc = Lexer::getLocForEndOfToken(FieldDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
 
-  // NOLINTBEGIN(bugprone-branch-clone): Different diagnostic levels (warning vs error)
   if (hasNonTrivialDefaultConstructor(FieldDeclPtr->getType())) {
     diag(Loc, "field is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
   } else {
     diag(Loc, "field is not initialized", DiagnosticIDs::Error)
         << FixItHint::CreateInsertion(EndLoc, "{}");
   }
-  // NOLINTEND(bugprone-branch-clone)
 }
 
-// NOLINTBEGIN(readability-function-cognitive-complexity): Complexity required to handle all
 // initialization edge cases
 void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   if ((VarDeclPtr == nullptr) || (Ctx == nullptr)) {
@@ -370,19 +363,15 @@ void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
       while (TypeLocRef.getAs<ArrayTypeLoc>()) {
         const ArrayTypeLoc ArrayTypeLocRef{TypeLocRef.getAs<ArrayTypeLoc>()};
         TypeLocRef = ArrayTypeLocRef.getElementLoc();
-        // NOLINTBEGIN(bugprone-branch-clone): Different location sources (rbracket vs declaration)
         EndLoc = ArrayTypeLocRef.getRBracketLoc().isValid() ? ArrayTypeLocRef.getRBracketLoc()
                                                             : VarDeclPtr->getLocation();
-        // NOLINTEND(bugprone-branch-clone)
       }
-      // NOLINTBEGIN(bugprone-branch-clone): Different source location computation (initial vs
       // subsequent tokens)
       if (EndLoc.isInvalid()) {
         EndLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
       } else {
         EndLoc = Lexer::getLocForEndOfToken(EndLoc, 0, SrcMgr, LangOpts);
       }
-      // NOLINTEND(bugprone-branch-clone)
     } else {
       EndLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
     }
@@ -392,7 +381,6 @@ void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
 
   // Check if this is a C-style array and provide a more specific message
   // Different diagnostic messages for arrays vs non-arrays with same fix-it logic
-  // NOLINTBEGIN(bugprone-branch-clone)
   if (VarDeclPtr->getType()->isArrayType()) {
     if (hasNonTrivialDefaultConstructor(VarDeclPtr->getType())) {
       diag(Loc, "C-style array should be initialized with braces '{}'")
@@ -410,11 +398,8 @@ void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
           << FixItHint::CreateInsertion(EndLoc, "{}");
     }
   }
-  // NOLINTEND(bugprone-branch-clone)
 }
-// NOLINTEND(readability-function-cognitive-complexity)
 
-// NOLINTBEGIN(readability-function-cognitive-complexity): Complexity required to handle initializer
 // list constructors and type conversions
 void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   if ((VarDeclPtr == nullptr) || (Ctx == nullptr)) {
@@ -646,9 +631,7 @@ void InitCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
   diag(Init->getBeginLoc(), "unsigned integer literal should have '%0' suffix")
       << Suffix << FixItHint::CreateInsertion(InitEnd, Suffix);
 }
-// NOLINTEND(readability-function-cognitive-complexity)
 
-// NOLINTBEGIN(readability-function-cognitive-complexity): Complexity required to handle auto type
 // brace initialization
 void InitCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   if ((VarDeclPtr == nullptr) || (Ctx == nullptr)) {
@@ -739,9 +722,7 @@ void InitCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx)
       << FixItHint::CreateReplacement(CharSourceRange::getCharRange(BraceStartLoc, InitStartLoc),
                                       "");
 }
-// NOLINTEND(readability-function-cognitive-complexity)
 
-// NOLINTBEGIN(readability-function-cognitive-complexity): Member initialization check requires
 // multiple conditions
 void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
                                                                 ASTContext* Ctx) {
@@ -810,6 +791,5 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
     }
   }
 }
-// NOLINTEND(readability-function-cognitive-complexity)
 
 } // namespace clang::tidy::codelint
