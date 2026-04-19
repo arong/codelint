@@ -248,7 +248,7 @@ bool InitCheck::isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   return SrcMgr.isMacroBodyExpansion(Loc) || SrcMgr.isMacroArgExpansion(Loc);
 }
 
-bool InitCheck::hasNonTrivialDefaultConstructor(QualType QualTypeRef) const {
+bool InitCheck::hasNonTrivialDefaultConstructor(QualType QualTypeRef) {
   if (QualTypeRef.isNull()) {
     return false;
   }
