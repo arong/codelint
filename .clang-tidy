@@ -18,6 +18,7 @@ Checks: >
   -cppcoreguidelines-init-variables,
   -google-readability-todo,
   -misc-misplaced-const,
+  -misc-include-cleaner,
   -modernize-use-trailing-return-type,
   -readability-convert-member-functions-to-static,
   -readability-else-after-return
