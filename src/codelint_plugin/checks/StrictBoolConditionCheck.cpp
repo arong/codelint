@@ -90,9 +90,9 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {
   }
 
   if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(expr); ICE != nullptr) {
-    const clang::CastKind Kind{ICE->getCastKind()};
-    if (Kind == clang::CK_IntegralToBoolean || Kind == clang::CK_PointerToBoolean ||
-        Kind == clang::CK_FloatingToBoolean) {
+    if (const CastKind Kind{ICE->getCastKind()}; Kind == CK_IntegralToBoolean ||
+                                                 Kind == CK_PointerToBoolean ||
+                                                 Kind == CK_FloatingToBoolean) {
       return false;
     }
   }
