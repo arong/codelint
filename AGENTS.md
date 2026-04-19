@@ -2,77 +2,32 @@
 
 ---
 
-## 🤖 AI Commit Author Rules (CRITICAL)
+## 🤖 AI Commit Author (CRITICAL)
 
-**AI assistants MUST use a distinct author when committing code.**
+**AI must use distinct author for commits.**
 
-### Why This Matters
-
-1. **Traceability** - Clear distinction between human and AI contributions
-2. **Accountability** - Users can identify which changes were AI-generated
-3. **Review Efficiency** - Reviewers can focus on AI commits for extra scrutiny
-
-### Required Author Format
+### Author
 
 ```
 Sisyphus <sisyphus@codelint.dev>
 ```
 
-### How to Commit as AI
+### Usage
 
-**Using the configured alias:**
 ```bash
+# Using alias
 git ai-commit -m "style: fix clang-tidy warnings"
+
+# Or manually
+git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "message"
 ```
 
-**Or manually:**
-```bash
-git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "your message"
-```
+### Verify
 
-### Git Alias Configuration
-
-The alias is already configured in this repository:
-```bash
-git config alias.ai-commit '!git commit --author="Sisyphus <sisyphus@codelint.dev>"'
-```
-
-### When to Use AI Author
-
-| Scenario | Author |
-|----------|--------|
-| AI makes code changes | Sisyphus |
-| AI fixes bugs | Sisyphus |
-| AI refactors code | Sisyphus |
-| AI writes documentation | Sisyphus |
-| Human makes changes | Human's actual name/email |
-| Human reviews and approves | Human's actual name/email |
-
-### Commit Message Format
-
-AI commits should still follow conventional commit format:
-```
-type: description
-
-[optional body]
-```
-
-Examples:
-```
-style: fix clang-tidy warnings
-fix: correct variable initialization check
-refactor: extract helper function for array handling
-docs: update AGENTS.md with AI commit rules
-```
-
-### Verification
-
-Before pushing, verify the author:
 ```bash
 git log -1 --format="%an <%ae>"
+# Output: Sisyphus <sisyphus@codelint.dev>
 ```
-
-Should output: `Sisyphus <sisyphus@codelint.dev>` for AI commits.
 
 ---
 
