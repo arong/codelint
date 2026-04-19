@@ -26,22 +26,16 @@ Checks: >
   -readability-else-after-return,
   -readability-function-cognitive-complexity
 
-  CheckOptions:
-    - key: readability-identifier-naming.VariableCase
-      value: lower_case
-    - key: readability-identifier-naming.ParameterCase
-      value: lower_case
-    - key: readability-identifier-naming.FunctionCase
-      value: camelBack
-    - key: readability-identifier-naming.MemberCase
-      value: m_lower_case
-    - key: readability-identifier-naming.ConstructorCase
-      value: PascalCase
-    - key: readability-identifier-naming.ClassCase
-      value: PascalCase
-    - key: readability-identifier-naming.EnumCase
-      value: PascalCase
-    - key: readability-braces-around-statements.BracesAroundStatements
-      value: true
-    - key: cppcoreguidelines-rvalue-reference-param-not-moved.MinimumVersion
-      value: 0
+CheckOptions:
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.FunctionCase: camelBack
+  readability-identifier-naming.MemberCase: m_lower_case
+  readability-identifier-naming.ConstructorCase: PascalCase
+  readability-identifier-naming.ClassCase: PascalCase
+  readability-identifier-naming.EnumCase: PascalCase
+  readability-braces-around-statements.BracesAroundStatements: true
+  cppcoreguidelines-rvalue-reference-param-not-moved.MinimumVersion: 0
+  # 返回值检查：禁止忽略安全函数的返回值
+  bugprone-unused-return-value.AllowCastToVoid: false
+  bugprone-unused-return-value.CheckedFunctions: '^::memcpy_s$|^::memcpy$|^::memmove$|^::memmove_s$|^::strcpy$|^::strcpy_s$|^::strcat$|^::strcat_s$|^::strncpy$|^::strncpy_s$|^::sprintf$|^::snprintf$|^::vsprintf$|^::vsnprintf$|^::scanf$|^::sscanf$|^::fscanf$|^::fopen$|^::freopen$|^::fclose$|^::fread$|^::fwrite$|^::open$|^::close$|^::read$|^::write$|^::creat$|^::unlink$|^::stat$|^::fstat$|^::lstat$|^::chmod$|^::fchmod$|^::mkdir$|^::rmdir$|^::fork$|^::execve$|^::execvp$|^::execv$|^::execl$|^::execlp$|^::wait$|^::waitpid$|^::signal$|^::sigaction$|^::sigprocmask$|^::kill$|^::raise$|^::pause$|^::alarm$|^::sleep$|^::usleep$|^::nanosleep$|^::select$|^::pselect$|^::poll$|^::pipe$|^::dup$|^::dup2$|^::socket$|^::bind$|^::listen$|^::accept$|^::connect$|^::recv$|^::recvfrom$|^::recvmsg$|^::send$|^::sendto$|^::sendmsg$|^::shutdown$|^::getsockopt$|^::setsockopt$|^::getsockname$|^::getpeername$|^::ioctl$|^::fcntl$|^::mmap$|^::munmap$|^::mprotect$|^::msync$|^::madvise$|^::posix_memalign$|^::aligned_alloc$|^::valloc$|^::dlopen$|^::dlclose$|^::dlerror$|^::dlsym$|^::dladdr$|^::pthread_create$|^::pthread_join$|^::pthread_detach$|^::pthread_exit$|^::pthread_self$|^::pthread_equal$|^::pthread_mutex_init$|^::pthread_mutex_destroy$|^::pthread_mutex_lock$|^::pthread_mutex_unlock$|^::pthread_mutex_trylock$|^::pthread_mutex_timedlock$|^::pthread_cond_init$|^::pthread_cond_destroy$|^::pthread_cond_wait$|^::pthread_cond_signal$|^::pthread_cond_broadcast$|^::pthread_rwlock_init$|^::pthread_rwlock_destroy$|^::pthread_rwlock_rdlock$|^::pthread_rwlock_wrlock$|^::pthread_rwlock_unlock$|^::pthread_spin_init$|^::pthread_spin_destroy$|^::pthread_spin_lock$|^::pthread_spin_unlock$|^::sem_init$|^::sem_destroy$|^::sem_wait$|^::sem_post$|^::sem_getvalue$|^::malloc$|^::calloc$|^::realloc$|^::free$'

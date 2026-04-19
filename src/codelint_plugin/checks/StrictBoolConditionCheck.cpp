@@ -74,7 +74,7 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   }
 
   const clang::Expr* NonBoolOperand{getNonBoolOperand(Cond)};
-  clang::QualType CondType{NonBoolOperand->getType()};
+  const clang::QualType CondType{NonBoolOperand->getType()};
 
   diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
       << CondType.getAsString();
