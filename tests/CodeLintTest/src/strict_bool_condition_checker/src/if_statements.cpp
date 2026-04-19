@@ -28,4 +28,6 @@ void test_if_statements() {
   }
   if (x > 0 && b) {
   }
+  if (!s) { // shall also be reported
+  }
 }

@@ -2,6 +2,7 @@
 
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/Expr.h>
+#include <clang/AST/OperationKinds.h>
 #include <clang/AST/Stmt.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
@@ -73,9 +74,31 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   }
 
   const clang::Expr* TrueCond{Cond->IgnoreImpCasts()};
-  const clang::QualType CondType{TrueCond->getType()};
+  clang::QualType CondType{TrueCond->getType()};
+  const clang::Expr* DiagExpr{TrueCond};
 
-  diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'") << CondType.getAsString();
+  if (const auto* UnaryOp = llvm::dyn_cast<clang::UnaryOperator>(TrueCond)) {
+    if (UnaryOp->getOpcode() == clang::UnaryOperatorKind::UO_LNot) {
+      const clang::Expr* Operand{UnaryOp->getSubExpr()->IgnoreImpCasts()};
+      CondType = Operand->getType();
+      DiagExpr = Operand;
+    }
+  } else if (const auto* BinOp = llvm::dyn_cast<clang::BinaryOperator>(TrueCond)) {
+    if (BinOp->isLogicalOp()) {
+      const clang::Expr* LHS{BinOp->getLHS()->IgnoreImpCasts()};
+      const clang::Expr* RHS{BinOp->getRHS()->IgnoreImpCasts()};
+      if (!isBoolType(BinOp->getLHS())) {
+        CondType = LHS->getType();
+        DiagExpr = LHS;
+      } else if (!isBoolType(BinOp->getRHS())) {
+        CondType = RHS->getType();
+        DiagExpr = RHS;
+      }
+    }
+  }
+
+  diag(DiagExpr->getBeginLoc(), "condition must be bool type, but got '%0'")
+      << CondType.getAsString();
 }
 
 bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {
@@ -84,6 +107,20 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {
   }
 
   const clang::Expr* TrueExpr{expr->IgnoreImpCasts()};
+
+  // Logical NOT: validity depends on operand type (e.g., !pointer invalid, !bool OK)
+  if (const auto* UnaryOp = llvm::dyn_cast<clang::UnaryOperator>(TrueExpr)) {
+    if (UnaryOp->getOpcode() == clang::UnaryOperatorKind::UO_LNot) {
+      return isBoolType(UnaryOp->getSubExpr());
+    }
+  }
+
+  // Logical AND/OR: both operands must be bool
+  if (const auto* BinOp = llvm::dyn_cast<clang::BinaryOperator>(TrueExpr)) {
+    if (BinOp->isLogicalOp()) {
+      return isBoolType(BinOp->getLHS()) && isBoolType(BinOp->getRHS());
+    }
+  }
 
   if (const clang::QualType qualType{TrueExpr->getType()}; qualType->isBooleanType()) {
     return true;
