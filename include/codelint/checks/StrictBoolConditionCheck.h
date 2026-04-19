@@ -20,6 +20,7 @@ public:
 private:
   void checkCondition(const Expr* Cond, ASTContext* Ctx);
   static bool isBoolType(const Expr* expr);
+  static const Expr* getNonBoolOperand(const Expr* expr);
 };
 
 } // namespace clang::tidy::codelint

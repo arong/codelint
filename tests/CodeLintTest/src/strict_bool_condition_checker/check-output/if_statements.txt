@@ -16,3 +16,6 @@ tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:14:7:
 tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:16:7: warning: condition must be bool type, but got 'double' [codelint-strict-bool-condition]
    16 |   if (3.14) {
       |       ^
+tests/CodeLintTest/src/strict_bool_condition_checker/src/if_statements.cpp:31:8: warning: condition must be bool type, but got 'const char *' [codelint-strict-bool-condition]
+   31 |   if (!s) { // shall also be reported
+      |        ^
