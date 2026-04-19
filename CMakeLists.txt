@@ -1,17 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(codelint-plugin VERSION 1.0.0 LANGUAGES C CXX)
 
-# macOS SDK path for system headers
-if(APPLE)
-    execute_process(
-        COMMAND xcrun --show-sdk-path
-        OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isysroot ${CMAKE_OSX_SYSROOT}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isysroot ${CMAKE_OSX_SYSROOT}")
-endif()
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
