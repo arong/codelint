@@ -31,11 +31,11 @@ private:
   static bool isAutoType(const VarDecl* VarDeclPtr);
   static bool shouldSkipUnion(const VarDecl* VarDeclPtr);
   static bool shouldSkipExtern(const VarDecl* VarDeclPtr);
-  bool shouldSkipEnumClass(const VarDecl* VarDeclPtr);
+  static bool shouldSkipEnumClass(const VarDecl* VarDeclPtr);
   static bool isEnumZeroValidType(const Type* TypePtr);
   static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
-  bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
-  bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  static bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
+  static bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   [[nodiscard]] bool hasNonTrivialDefaultConstructor(QualType QualTypeRef) const;
 };
 

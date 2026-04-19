@@ -243,7 +243,7 @@ bool InitCheck::isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
     return false;
   }
 
-  auto& SrcMgr = Ctx->getSourceManager();
+  const auto& SrcMgr = Ctx->getSourceManager();
   const SourceLocation Loc{VarDeclPtr->getLocation()};
 
   // Check if the declaration is inside a macro expansion
