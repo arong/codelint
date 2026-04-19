@@ -46,6 +46,7 @@ void process() {
 | **codelint-strict-bool-condition** | Bool-only condition enforcement | ❌ No | C++14/17/20 |
 | **codelint-global** | Global variable detection | ❌ No | C++ |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No | C++ |
+| **codelint-signed-to-unsigned-return** | Signed→unsigned return value detection | ❌ No | C++14/17/20 |
 
 ## codelint-init Features
 
@@ -231,6 +232,62 @@ if (strcmp(a, b) == 0) {}   // ✅ OK: explicit comparison to 0
 
 Explicit comparisons make intent clear and prevent common bugs.
 
+## codelint-signed-to-unsigned-return Features
+
+This check detects dangerous signed-to-unsigned conversions on function return values,
+preventing logic errors and security vulnerabilities.
+
+### What It Detects
+
+When a function that returns a signed integer type (like `ssize_t` from POSIX functions)
+is assigned to an unsigned type:
+
+```cpp
+// ❌ Dangerous: ssize_t (-1 for errors) assigned to size_t
+size_t n = read(fd, buffer, count);
+
+// ❌ Dangerous: int (-1 for errors) assigned to unsigned
+unsigned fd = open("/path/to/file", O_RDONLY);
+```
+
+**Why this is dangerous:**
+- POSIX functions like `read()`, `write()`, `open()` return `-1` to signal errors
+- When `-1` is cast to `unsigned`, it becomes a very large positive number
+- This leads to logic errors: error conditions become "success" values
+- Security vulnerabilities: buffers may be processed with invalid sizes
+
+### Correct Usage
+
+```cpp
+// ✅ Correct: Use signed type for return value
+ssize_t n = read(fd, buffer, count);
+if (n < 0) {
+    // Handle error properly
+}
+
+int fd = open("/path/to/file", O_RDONLY);
+if (fd < 0) {
+    // Handle error properly
+}
+```
+
+### Checked Functions
+
+| Category | Functions |
+|----------|-----------|
+| **POSIX I/O** | `read`, `write`, `open`, `close`, `creat` |
+| **File status** | `stat`, `fstat`, `lstat` |
+| **Memory** | `mmap`, `munmap`, `mprotect` |
+| **Process** | `fork`, `wait`, `waitpid` |
+| **Network** | `socket`, `accept`, `connect`, `recv`, `send` |
+
+### Detection Scope
+
+| Case | Example | Detected |
+|------|---------|----------|
+| Variable declaration | `size_t n = read(...)` | ✅ Yes |
+| Assignment expression | `n = read(...)` | ✅ Yes |
+
 ## Quick Start
 
 ```bash
@@ -243,7 +300,7 @@ cmake --build build
 
 # Run on your code
 clang-tidy --load=build/lib/codelint-plugin.dylib \
-            --checks='codelint-init,codelint-strict-bool-condition' \
+            --checks='codelint-*' \
             --fix \
             src/**/*.cpp
 ```
