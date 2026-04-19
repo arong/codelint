@@ -12,7 +12,7 @@ public:
   void registerMatchers(ast_matchers::MatchFinder* Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
 
-  bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
+  [[nodiscard]] bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
     return LangOpts.CPlusPlus;
   }
 
@@ -36,7 +36,7 @@ private:
   static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
   bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
   bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  bool hasNonTrivialDefaultConstructor(QualType QualTypeRef) const;
+  [[nodiscard]] bool hasNonTrivialDefaultConstructor(QualType QualTypeRef) const;
 };
 
 } // namespace clang::tidy::codelint

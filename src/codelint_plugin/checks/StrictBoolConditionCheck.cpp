@@ -13,7 +13,7 @@
 namespace clang::tidy::codelint {
 
 void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
-  if (!Finder) {
+  if (Finder == nullptr) {
     return;
   }
 
@@ -25,7 +25,7 @@ void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finde
 }
 
 void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
-  if (!Result.Context) {
+  if (Result.Context == nullptr) {
     return;
   }
 
@@ -35,18 +35,21 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
 
   const Expr* Cond{nullptr};
 
-  if (const auto* IS = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt"); IS != nullptr) {
-    Cond = IS->getCond();
-  } else if (const auto* WS = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt");
-             WS != nullptr) {
-    Cond = WS->getCond();
-  } else if (const auto* FS = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt"); FS != nullptr) {
-    Cond = FS->getCond();
-  } else if (const auto* DS = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt"); DS != nullptr) {
-    Cond = DS->getCond();
-  } else if (const auto* CO = Result.Nodes.getNodeAs<clang::ConditionalOperator>("condOp");
-             CO != nullptr) {
-    Cond = CO->getCond();
+  if (const auto* IfStmtPtr = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt");
+      IfStmtPtr != nullptr) {
+    Cond = IfStmtPtr->getCond();
+  } else if (const auto* WhileStmtPtr = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt");
+             WhileStmtPtr != nullptr) {
+    Cond = WhileStmtPtr->getCond();
+  } else if (const auto* ForStmtPtr = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt");
+             ForStmtPtr != nullptr) {
+    Cond = ForStmtPtr->getCond();
+  } else if (const auto* DoStmtPtr = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt");
+             DoStmtPtr != nullptr) {
+    Cond = DoStmtPtr->getCond();
+  } else if (const auto* CondOpPtr = Result.Nodes.getNodeAs<clang::ConditionalOperator>("condOp");
+             CondOpPtr != nullptr) {
+    Cond = CondOpPtr->getCond();
   }
 
   if (Cond != nullptr) {
@@ -55,13 +58,13 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
 }
 
 void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::ASTContext* Ctx) {
-  if (!Cond || !Ctx) {
+  if ((Cond == nullptr) || (Ctx == nullptr)) {
     return;
   }
 
-  const auto& SM = Ctx->getSourceManager();
-  if (const SourceLocation ExpansionLoc{SM.getExpansionLoc(Cond->getBeginLoc())};
-      !SM.isInMainFile(ExpansionLoc)) {
+  const auto& SrcMgr = Ctx->getSourceManager();
+  if (const SourceLocation ExpansionLoc{SrcMgr.getExpansionLoc(Cond->getBeginLoc())};
+      !SrcMgr.isInMainFile(ExpansionLoc)) {
     return;
   }
 

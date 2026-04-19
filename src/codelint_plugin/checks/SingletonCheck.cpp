@@ -33,7 +33,7 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
   }
 
   auto& srcMgr = Result.Context->getSourceManager();
-  SourceLocation ExpansionLoc{srcMgr.getExpansionLoc(funcDecl->getLocation())};
+  const SourceLocation ExpansionLoc{srcMgr.getExpansionLoc(funcDecl->getLocation())};
   if (!srcMgr.isInMainFile(ExpansionLoc)) {
     return;
   }

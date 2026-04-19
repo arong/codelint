@@ -9,7 +9,7 @@
 namespace clang::tidy::codelint {
 
 void GlobalCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
-  if (!Finder) {
+  if (Finder == nullptr) {
     return;
   }
 
