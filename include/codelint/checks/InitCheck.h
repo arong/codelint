@@ -36,7 +36,7 @@ private:
   static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
   static bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
   static bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  [[nodiscard]] bool hasNonTrivialDefaultConstructor(QualType QualTypeRef) const;
+  [[nodiscard]] static bool hasNonTrivialDefaultConstructor(QualType QualTypeRef);
 };
 
 } // namespace clang::tidy::codelint
