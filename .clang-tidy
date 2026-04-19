@@ -1,3 +1,43 @@
 ---
 Checks: >
-  codelint-*
+  -*,
+  autosar-*,
+  bugprone-*,
+  cert-*,
+  cppcoreguidelines-*,
+  google-explicit-constructor,
+  hicpp-*,
+  misc-*,
+  modernize-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -cppcoreguidelines-avoid-capture-default-when-capturing-this,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-init-variables,
+  -google-readability-todo,
+  -misc-misplaced-const,
+  -modernize-use-trailing-return-type,
+  -readability-convert-member-functions-to-static,
+  -readability-else-after-return
+
+  CheckOptions:
+    - key: readability-identifier-naming.VariableCase
+      value: lower_case
+    - key: readability-identifier-naming.ParameterCase
+      value: lower_case
+    - key: readability-identifier-naming.FunctionCase
+      value: camelBack
+    - key: readability-identifier-naming.MemberCase
+      value: m_lower_case
+    - key: readability-identifier-naming.ConstructorCase
+      value: PascalCase
+    - key: readability-identifier-naming.ClassCase
+      value: PascalCase
+    - key: readability-identifier-naming.EnumCase
+      value: PascalCase
+    - key: readability-braces-around-statements.BracesAroundStatements
+      value: true
+    - key: cppcoreguidelines-rvalue-reference-param-not-moved.MinimumVersion
+      value: 0

@@ -75,18 +75,18 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   diag(Cond->getBeginLoc(), "condition must be bool type, but got '%0'") << CondType.getAsString();
 }
 
-bool StrictBoolConditionCheck::isBoolType(const clang::Expr* E) {
-  if (!E) {
+bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {
+  if (expr == nullptr) {
     return false;
   }
 
-  const clang::Expr* TrueExpr{E->IgnoreImpCasts()};
+  const clang::Expr* TrueExpr{expr->IgnoreImpCasts()};
 
-  if (const clang::QualType Ty{TrueExpr->getType()}; Ty->isBooleanType()) {
+  if (const clang::QualType qualType{TrueExpr->getType()}; qualType->isBooleanType()) {
     return true;
   }
 
-  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(E); ICE != nullptr) {
+  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(expr); ICE != nullptr) {
     const clang::CastKind Kind{ICE->getCastKind()};
     if (Kind == clang::CK_IntegralToBoolean || Kind == clang::CK_PointerToBoolean ||
         Kind == clang::CK_FloatingToBoolean) {

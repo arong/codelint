@@ -17,26 +17,26 @@ public:
   }
 
 private:
-  bool isInSystemHeader(SourceLocation Loc, ASTContext* Ctx);
+  static bool isInSystemHeader(SourceLocation Loc, ASTContext* Ctx);
 
-  void checkUninitialized(const VarDecl* VD, ASTContext* Ctx);
-  void checkUninitializedField(const FieldDecl* FD, ASTContext* Ctx);
-  void checkEqualsInit(const VarDecl* VD, ASTContext* Ctx);
-  void checkUnsignedSuffix(const VarDecl* VD, ASTContext* Ctx);
-  void checkEqualsBraceInit(const VarDecl* VD, ASTContext* Ctx);
+  void checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  void checkUninitializedField(const FieldDecl* FieldDeclPtr, ASTContext* Ctx);
+  void checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  void checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  void checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
                                                        ASTContext* Ctx);
 
-  bool shouldSkipAuto(const VarDecl* VD);
-  bool isAutoType(const VarDecl* VD);
-  bool shouldSkipUnion(const VarDecl* VD);
-  bool shouldSkipExtern(const VarDecl* VD);
-  bool shouldSkipEnumClass(const VarDecl* VD);
-  bool isEnumZeroValidType(const Type* Ty);
-  bool hasExplicitInitializer(const VarDecl* VD);
-  bool hasExplicitInitializer(const FieldDecl* FD);
-  bool isInsideMacro(const VarDecl* VD, ASTContext* Ctx);
-  bool hasNonTrivialDefaultConstructor(QualType QT) const;
+  static bool shouldSkipAuto(const VarDecl* VarDeclPtr);
+  static bool isAutoType(const VarDecl* VarDeclPtr);
+  static bool shouldSkipUnion(const VarDecl* VarDeclPtr);
+  static bool shouldSkipExtern(const VarDecl* VarDeclPtr);
+  bool shouldSkipEnumClass(const VarDecl* VarDeclPtr);
+  static bool isEnumZeroValidType(const Type* TypePtr);
+  static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
+  bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
+  bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  bool hasNonTrivialDefaultConstructor(QualType QualTypeRef) const;
 };
 
 } // namespace clang::tidy::codelint
