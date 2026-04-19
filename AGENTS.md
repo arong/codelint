@@ -2,6 +2,80 @@
 
 ---
 
+## 🤖 AI Commit Author Rules (CRITICAL)
+
+**AI assistants MUST use a distinct author when committing code.**
+
+### Why This Matters
+
+1. **Traceability** - Clear distinction between human and AI contributions
+2. **Accountability** - Users can identify which changes were AI-generated
+3. **Review Efficiency** - Reviewers can focus on AI commits for extra scrutiny
+
+### Required Author Format
+
+```
+AI Assistant <ai@codelint.dev>
+```
+
+### How to Commit as AI
+
+**Using the configured alias:**
+```bash
+git ai-commit -m "style: fix clang-tidy warnings"
+```
+
+**Or manually:**
+```bash
+git commit --author="AI Assistant <ai@codelint.dev>" -m "your message"
+```
+
+### Git Alias Configuration
+
+The alias is already configured in this repository:
+```bash
+git config alias.ai-commit '!git commit --author="AI Assistant <ai@codelint.dev>"'
+```
+
+### When to Use AI Author
+
+| Scenario | Author |
+|----------|--------|
+| AI makes code changes | AI Assistant |
+| AI fixes bugs | AI Assistant |
+| AI refactors code | AI Assistant |
+| AI writes documentation | AI Assistant |
+| Human makes changes | Human's actual name/email |
+| Human reviews and approves | Human's actual name/email |
+
+### Commit Message Format
+
+AI commits should still follow conventional commit format:
+```
+type: description
+
+[optional body]
+```
+
+Examples:
+```
+style: fix clang-tidy warnings
+fix: correct variable initialization check
+refactor: extract helper function for array handling
+docs: update AGENTS.md with AI commit rules
+```
+
+### Verification
+
+Before pushing, verify the author:
+```bash
+git log -1 --format="%an <%ae>"
+```
+
+Should output: `AI Assistant <ai@codelint.dev>` for AI commits.
+
+---
+
 ## Test File Protection Rules (CRITICAL)
 
 ### Protected Test Directories
