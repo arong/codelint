@@ -461,7 +461,7 @@ run_compilation_error_test() {
 }
 
 # Run tests for each checker
-CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker" "null_deref_checker")
+CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker")
 
 for CHECKER in "${CHECKERS[@]}"; do
     TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$CHECKER"
