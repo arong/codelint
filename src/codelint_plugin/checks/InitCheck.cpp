@@ -333,7 +333,9 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
         if (PointeeTy == nullptr)
           return false;
         return PointeeTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
-               PointeeTy->isSpecificBuiltinType(BuiltinType::Char_S);
+               PointeeTy->isSpecificBuiltinType(BuiltinType::Char_S) ||
+               PointeeTy->isSpecificBuiltinType(BuiltinType::WChar_U) ||
+               PointeeTy->isSpecificBuiltinType(BuiltinType::WChar_S);
       };
 
       auto isAllocatorType = [](const Type* Ty) {
