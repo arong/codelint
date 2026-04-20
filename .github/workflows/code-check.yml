@@ -132,7 +132,6 @@ jobs:
         run: |
           cd tests/CodeLintTest
           cmake -B build -DCMAKE_CXX_COMPILER=clang++-21
-          cmake --build build
 
       - name: Setup PATH for LLVM tools
         run: echo /usr/bin >> $GITHUB_PATH
