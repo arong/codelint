@@ -124,7 +124,7 @@ Before making ANY change, AI should verify:
 
 ## AI Development Branch Rules (CRITICAL)
 
-### 🎯 AI Can ONLY Work on `develop` Branch
+### 🎯 AI Can Work on `develop` or `skills` Branch
 
 **This is a STRICT requirement enforced by git hooks.**
 
@@ -133,10 +133,11 @@ Before making ANY change, AI should verify:
 | Branch | AI Status | Reason |
 |--------|-----------|--------|
 | `develop` | ✅ **ALLOWED** | Designated AI development branch |
+| `skills` | ✅ **ALLOWED** | AI skill development branch |
 | `main` | ❌ **BLOCKED** | Production - humans only |
 | `master` | ❌ **BLOCKED** | Production - humans only |
 | `production` | ❌ **BLOCKED** | Production - humans only |
-| `feature/*` | ❌ **BLOCKED** | Should use develop instead |
+| `feature/*` | ❌ **BLOCKED** | Should use develop/skills instead |
 
 ### Enforcement
 
@@ -158,25 +159,30 @@ The `commit-msg` hook enforces this rule:
 
 AI assistants MUST:
 
-1. **Always checkout develop first:**
+1. **Always checkout develop or skills first:**
    ```bash
    git checkout develop
    git pull origin develop
+   # Or for skill development
+   git checkout skills
+   git pull origin skills
    ```
 
-2. **Make all commits on develop:**
+2. **Make all commits on develop/skills:**
    ```bash
    git commit -m "feat: add new functionality"
    ```
 
-3. **Push to develop:**
+3. **Push to develop/skills:**
    ```bash
    git push origin develop
+   # Or
+   git push origin skills
    ```
 
 4. **Let humans handle PRs:**
-   - Humans review develop branch
-   - Humans create PR: develop → main
+   - Humans review develop/skills branch
+   - Humans create PR: develop/skills → main
    - Humans merge after approval
 
 ### Why This Rule?
@@ -188,7 +194,7 @@ AI assistants MUST:
 
 ### Exceptions
 
-**None for AI.** This rule is absolute.
+**None for AI on main/master/production branches.** This rule is absolute.
 
 For humans with emergency needs:
 ```bash
