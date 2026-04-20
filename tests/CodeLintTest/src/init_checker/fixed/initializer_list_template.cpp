@@ -4,12 +4,12 @@
 #include <string>
 #include <vector>
 
-template <typename T>
-class TemplateContainer {
+template <typename T> class TemplateContainer {
 public:
   TemplateContainer(std::initializer_list<T> list) {}
-  TemplateContainer(size_t count, const T& value) {}
+  TemplateContainer(size_t count, const T &value) {}
   TemplateContainer() {}
+  TemplateContainer(T value) {}
 };
 
 void test_template_container() {
@@ -18,10 +18,10 @@ void test_template_container() {
   TemplateContainer<int> tc3{1, 2, 3};
   TemplateContainer<int> tc4{};
   TemplateContainer<int> tc5{};
+  TemplateContainer<int> tc6 = 6;
 }
 
-template <typename T>
-class OnlyInitList {
+template <typename T> class OnlyInitList {
 public:
   OnlyInitList(std::initializer_list<T> list) {}
 };
@@ -31,11 +31,10 @@ void test_only_init_list() {
   OnlyInitList<int> ol2{};
 }
 
-template <typename T>
-class NoInitList {
+template <typename T> class NoInitList {
 public:
   NoInitList(size_t count) {}
-  NoInitList(const T& value) {}
+  NoInitList(const T &value) {}
 };
 
 void test_no_init_list() {

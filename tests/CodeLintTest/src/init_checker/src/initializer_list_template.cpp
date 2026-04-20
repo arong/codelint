@@ -12,6 +12,8 @@ public:
   }
   TemplateContainer() {
   }
+  TemplateContainer(T value) {
+  }
 };
 
 void test_template_container() {
@@ -20,6 +22,7 @@ void test_template_container() {
   TemplateContainer<int> tc3{1, 2, 3};
   TemplateContainer<int> tc4{};
   TemplateContainer<int> tc5;
+  TemplateContainer<int> tc6 = 6;
 }
 
 template <typename T> class OnlyInitList {
