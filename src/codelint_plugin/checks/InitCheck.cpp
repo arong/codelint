@@ -310,6 +310,38 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
   const unsigned NumArgs = CCE->getNumArgs();
 
   if (NumArgs >= 2) {
+    const auto RecordName = Record->getName();
+
+    llvm::errs() << "DEBUG: NumArgs>=2, RecordName='" << RecordName << "'\n";
+
+    // Special case: basic_string with begin/end pointer pair
+    // On libstdc++, std::string("hello") may be represented as {begin, end} pointer pair
+    // Brace init with the same pointers would use the same constructor
+    if (RecordName == "basic_string" && NumArgs == 2) {
+      const Expr* Arg0 = CCE->getArg(0);
+      const Expr* Arg1 = CCE->getArg(1);
+      const Type* Arg0Ty = Arg0->getType().getTypePtr();
+      const Type* Arg1Ty = Arg1->getType().getTypePtr();
+
+      llvm::errs() << "DEBUG: basic_string NumArgs=2, Arg0Ty='" << Arg0->getType().getAsString()
+                   << "' Arg1Ty='" << Arg1->getType().getAsString() << "'\n";
+
+      auto isCharPointerType = [](const Type* Ty) {
+        if (!Ty || !Ty->isPointerType())
+          return false;
+        const Type* PointeeTy = Ty->getPointeeType().getTypePtr();
+        if (PointeeTy == nullptr)
+          return false;
+        return PointeeTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
+               PointeeTy->isSpecificBuiltinType(BuiltinType::Char_S);
+      };
+
+      if (isCharPointerType(Arg0Ty) && isCharPointerType(Arg1Ty)) {
+        llvm::errs() << "DEBUG: basic_string with char* begin/end pair, returning false\n";
+        return false;
+      }
+    }
+
     if (NumArgs == 2 && CurrentCtor->getNumParams() >= 2) {
       const QualType Param1Ty = CurrentCtor->getParamDecl(0)->getType();
       const QualType Param2Ty = CurrentCtor->getParamDecl(1)->getType();
