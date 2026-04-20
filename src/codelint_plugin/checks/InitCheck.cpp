@@ -314,9 +314,9 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
 
     llvm::errs() << "DEBUG: NumArgs>=2, RecordName='" << RecordName << "'\n";
 
-    // Special case: basic_string with begin/end pointer pair
-    // On libstdc++, std::string("hello") may be represented as {begin, end} pointer pair
-    // Brace init with the same pointers would use the same constructor
+    // Special case: basic_string with (const char*, allocator) pair
+    // On libstdc++, std::string("hello") calls basic_string(const char*, const Allocator&)
+    // Brace init would use the same constructor, so it's safe to convert
     if (RecordName == "basic_string" && NumArgs == 2) {
       const Expr* Arg0 = CCE->getArg(0);
       const Expr* Arg1 = CCE->getArg(1);
@@ -335,6 +335,18 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
         return PointeeTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
                PointeeTy->isSpecificBuiltinType(BuiltinType::Char_S);
       };
+
+      auto isAllocatorType = [](const Type* Ty) {
+        if (Ty == nullptr)
+          return false;
+        std::string TypeName = Ty->getCanonicalTypeInternal().getAsString();
+        return TypeName.find("allocator") != std::string::npos;
+      };
+
+      if (isCharPointerType(Arg0Ty) && isAllocatorType(Arg1Ty)) {
+        llvm::errs() << "DEBUG: basic_string with (char*, allocator), returning false\n";
+        return false;
+      }
 
       if (isCharPointerType(Arg0Ty) && isCharPointerType(Arg1Ty)) {
         llvm::errs() << "DEBUG: basic_string with char* begin/end pair, returning false\n";
