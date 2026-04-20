@@ -273,7 +273,15 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
     for (const ParmVarDecl* Param : Ctor->parameters()) {
       const Type* ParamTy = Param->getType().getTypePtr();
       if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
-        if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
+        const auto* TemplateDecl = TST->getTemplateName().getAsTemplateDecl();
+        if (TemplateDecl == nullptr) {
+          continue;
+        }
+
+        const auto TemplateName = TemplateDecl->getName();
+        bool IsInitList = (TemplateName == "initializer_list");
+
+        if (IsInitList) {
           HasInitializerListCtor = true;
           auto TemplateArgs = TST->template_arguments();
           if (!TemplateArgs.empty()) {
@@ -316,6 +324,18 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
   if (NumArgs == 1) {
     const Expr* ArgExpr = CCE->getArg(0);
     const Type* ArgTy = ArgExpr->getType().getTypePtr();
+
+    // Special case: std::basic_string with const char* argument
+    // Brace init would NOT change constructor selection:
+    //   std::string("hello") and std::string{"hello"} use the same const char* constructor
+    const auto RecordName = Record->getName();
+    if (RecordName == "basic_string" && ArgTy->isPointerType()) {
+      const Type* PointeeTy = ArgTy->getPointeeType().getTypePtr();
+      if (PointeeTy && (PointeeTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
+                        PointeeTy->isSpecificBuiltinType(BuiltinType::Char_S))) {
+        return false;
+      }
+    }
 
     if (!InitListElemType.isNull()) {
       const Type* ElemTy = InitListElemType.getTypePtr();
