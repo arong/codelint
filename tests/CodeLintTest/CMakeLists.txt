@@ -80,6 +80,9 @@ set(TEST_SOURCES
     src/null_deref_checker/src/advanced_null_patterns.cpp
     src/null_deref_checker/src/false_positive_null.cpp
     src/null_deref_checker/src/edge_cases_null.cpp
+    src/null_deref_checker/src/lifecycle_pointer.cpp
+    src/null_deref_checker/src/workflow_api_patterns.cpp
+    src/null_deref_checker/src/exception_safety_patterns.cpp
     src/null_deref_checker/src/null_deref_test.cpp
 )
 
