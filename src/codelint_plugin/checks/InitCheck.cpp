@@ -20,7 +20,7 @@ bool InitCheck::isInSystemHeader(const SourceLocation Loc, ASTContext* Ctx) {
   }
   const auto& SrcMgr = Ctx->getSourceManager();
   const SourceLocation ExpansionLoc{SrcMgr.getExpansionLoc(Loc)};
-  return !SrcMgr.isInMainFile(ExpansionLoc);
+  return SrcMgr.isInSystemHeader(ExpansionLoc);
 }
 
 using clang::ast_matchers::autoType;
