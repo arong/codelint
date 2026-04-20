@@ -41,12 +41,12 @@ find_clang_tidy() {
     else
         BUNDLED="$SKILL_DIR/binaries/linux-x64/bin/clang-tidy"
     fi
-    
+
     if [[ -x "$BUNDLED" ]]; then
         echo "$BUNDLED"
         return
     fi
-    
+
     # Alternative bundled locations
     for path in "$SKILL_DIR/bin/clang-tidy" "$SCRIPT_DIR/../bin/clang-tidy"; do
         if [[ -x "$path" ]]; then
@@ -54,7 +54,7 @@ find_clang_tidy() {
             return
         fi
     done
-    
+
     # System clang-tidy (LLVM 21 priority)
     for version in 21 20 19 18; do
         for prefix in "/usr/bin" "/usr/lib/llvm-$version/bin" "/opt/homebrew/opt/llvm@$version/bin"; do
@@ -64,13 +64,13 @@ find_clang_tidy() {
             fi
         done
     done
-    
+
     # Default system clang-tidy
     if command -v clang-tidy &> /dev/null; then
         echo "$(command -v clang-tidy)"
         return
     fi
-    
+
     echo ""
 }
 
@@ -86,12 +86,12 @@ find_lib_dir() {
     else
         BUNDLED_LIB="$SKILL_DIR/binaries/linux-x64/lib"
     fi
-    
+
     if [[ -d "$BUNDLED_LIB" ]] && [[ -n "$(ls -A "$BUNDLED_LIB"/*.so 2>/dev/null || ls -A "$BUNDLED_LIB"/*.dylib 2>/dev/null)" ]]; then
         echo "$BUNDLED_LIB"
         return
     fi
-    
+
     # Alternative bundled locations
     for path in "$SKILL_DIR/lib" "$SCRIPT_DIR/../lib"; do
         if [[ -d "$path" ]] && [[ -n "$(ls -A "$path"/*.so 2>/dev/null || ls -A "$path"/*.dylib 2>/dev/null)" ]]; then
@@ -99,7 +99,7 @@ find_lib_dir() {
             return
         fi
     done
-    
+
     echo ""
 }
 

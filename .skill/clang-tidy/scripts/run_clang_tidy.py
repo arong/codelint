@@ -73,18 +73,18 @@ def find_clang_tidy():
     """Find clang-tidy binary (bundled or system)."""
     skill_dir = get_skill_dir()
     script_dir = Path(__file__).parent.resolve()
-    
+
     # Check bundled clang-tidy (multiple platform locations)
     bundled_paths = [
         skill_dir / "bin" / "clang-tidy",
         script_dir.parent / "bin" / "clang-tidy",
         Path.cwd() / "bin" / "clang-tidy",
     ]
-    
+
     for path in bundled_paths:
         if path.exists():
             return str(path)
-    
+
     # Check platform-specific bundled paths
     platform = sys.platform
     if platform == "darwin":
@@ -96,7 +96,7 @@ def find_clang_tidy():
         bundled_linux = skill_dir / "binaries" / "linux-x64" / "bin" / "clang-tidy"
         if bundled_linux.exists():
             return str(bundled_linux)
-    
+
     # Check system clang-tidy (LLVM 21 priority)
     for version in ["21", "20", "19", "18"]:
         candidates = [
@@ -107,12 +107,12 @@ def find_clang_tidy():
         for path in candidates:
             if Path(path).exists():
                 return path
-    
+
     # Default system clang-tidy
     result = subprocess.run(["which", "clang-tidy"], capture_output=True, text=True)
     if result.returncode == 0:
         return result.stdout.strip()
-    
+
     return None
 
 
@@ -120,7 +120,7 @@ def find_plugin():
     """Find codelint plugin."""
     skill_dir = get_skill_dir()
     script_dir = Path(__file__).parent.resolve()
-    
+
     # Check bundled plugin
     plugin_paths = [
         skill_dir / "lib" / "codelint-plugin.so",
@@ -130,27 +130,27 @@ def find_plugin():
         Path.cwd() / "build" / "lib" / "codelint-plugin.so",
         Path.cwd() / "build" / "lib" / "codelint-plugin.dylib",
     ]
-    
+
     for path in plugin_paths:
         if path.exists():
             return str(path)
-    
+
     return None
 
 
 def get_preset_config(preset_name):
     """Get preset configuration file path."""
     skill_dir = get_skill_dir()
-    
+
     preset_paths = [
         skill_dir / "configs" / f".clang-tidy.{preset_name}",
         skill_dir.parent / "configs" / f".clang-tidy.{preset_name}",
     ]
-    
+
     for path in preset_paths:
         if path.exists():
             return str(path)
-    
+
     return None
 
 
@@ -158,13 +158,13 @@ def get_library_path():
     """Get library path for bundled libraries."""
     skill_dir = get_skill_dir()
     script_dir = Path(__file__).parent.resolve()
-    
+
     lib_paths = [
         skill_dir / "lib",
         script_dir.parent / "lib",
         Path.cwd() / "lib",
     ]
-    
+
     # Check platform-specific bundled paths
     platform = sys.platform
     if platform == "darwin":
@@ -176,18 +176,18 @@ def get_library_path():
         bundled_lib = skill_dir / "binaries" / "linux-x64" / "lib"
         if bundled_lib.exists():
             lib_paths.insert(0, bundled_lib)
-    
+
     for path in lib_paths:
         if path.exists() and any(path.glob("*.so")) or any(path.glob("*.dylib")):
             return str(path)
-    
+
     return None
 
 
 def build_env():
     """Build environment variables for library loading."""
     env = os.environ.copy()
-    
+
     lib_path = get_library_path()
     if lib_path:
         if sys.platform == "darwin":
@@ -196,7 +196,7 @@ def build_env():
         else:
             existing = env.get("LD_LIBRARY_PATH", "")
             env["LD_LIBRARY_PATH"] = f"{lib_path}:{existing}" if existing else lib_path
-    
+
     return env
 
 
@@ -210,54 +210,54 @@ def find_compile_commands(path):
         if Path(path).name == "compile_commands.json":
             return path
         return None
-    
+
     # Search in common locations
     candidates = [
         Path.cwd() / "compile_commands.json",
         Path.cwd() / "build" / "compile_commands.json",
         Path.cwd() / "cmake-build-debug" / "compile_commands.json",
     ]
-    
+
     for cc_path in candidates:
         if cc_path.exists():
             return str(cc_path)
-    
+
     return None
 
 
 def run_parallel(clang_tidy, files, args, env):
     """Run clang-tidy on multiple files in parallel."""
     num_jobs = args.j or multiprocessing.cpu_count()
-    
+
     # Build base command
     cmd_base = [clang_tidy]
-    
+
     plugin = args.plugin_path or find_plugin()
     if plugin and not args.raw:
         cmd_base.extend(["--load", plugin])
-    
+
     if args.checks:
         cmd_base.extend(["--checks", args.checks])
     elif not args.raw:
         cmd_base.extend(["--checks", "codelint-*"])
-    
+
     if args.fix:
         cmd_base.append("--fix")
-    
+
     if args.export_fixes:
         cmd_base.extend(["--export-fixes", args.export_fixes])
-    
+
     if args.format_style:
         cmd_base.extend(["--format-style", args.format_style])
-    
+
     # compile_commands.json
     cc_path = find_compile_commands(args.p)
     if cc_path:
         cmd_base.extend(["-p", str(Path(cc_path).parent)])
-    
+
     # Run files
     import concurrent.futures
-    
+
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_jobs) as executor:
         futures = {executor.submit(run_single, cmd_base + [f], env, args.verbose): f for f in files}
@@ -269,7 +269,7 @@ def run_parallel(clang_tidy, files, args, env):
             except Exception as e:
                 print(f"ERROR processing {file}: {e}")
                 results.append((file, 1))
-    
+
     # Summary
     failures = sum(1 for _, r in results if r != 0)
     if failures > 0:
@@ -282,7 +282,7 @@ def run_single(cmd, env, verbose=False):
     """Run clang-tidy on a single file."""
     if verbose:
         print(f"Running: {' '.join(cmd)}")
-    
+
     result = subprocess.run(cmd, env=env, capture_output=False)
     return result.returncode
 
@@ -293,7 +293,7 @@ def main():
         description="Clang-tidy skill runner with bundled binary support",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
     parser.add_argument("files", nargs="*", help="Files to check")
     parser.add_argument("-p", dest="compile_path", help="compile_commands.json directory")
     parser.add_argument("-j", type=int, help="Number of parallel jobs")
@@ -309,9 +309,9 @@ def main():
     parser.add_argument("--raw", action="store_true", help="Run without plugin")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     parser.add_argument("--version", action="store_true", help="Show version")
-    
+
     args = parser.parse_args()
-    
+
     # Find clang-tidy
     clang_tidy = find_clang_tidy()
     if not clang_tidy:
@@ -321,7 +321,7 @@ def main():
         print("  Linux:  apt install clang-tidy-21")
         print("  Or use bundled binary from clang-tidy-skill package")
         sys.exit(1)
-    
+
     # Handle preset config
     if args.preset and not args.config:
         preset_path = get_preset_config(args.preset)
@@ -331,7 +331,7 @@ def main():
                 print(f"Using preset: {args.preset} ({preset_path})")
         else:
             print(f"WARNING: Preset '{args.preset}' not found, using default checks")
-    
+
     # Apply config file (copy to temp or project root)
     if args.config:
         config_path = Path(args.config)
@@ -339,10 +339,10 @@ def main():
             # For now, just warn about config usage
             if args.verbose:
                 print(f"Note: Config file {args.config} should be copied to project root as .clang-tidy")
-    
+
     # Build environment
     env = build_env()
-    
+
     # Version check
     if args.version:
         result = subprocess.run([clang_tidy, "--version"], env=env)
@@ -350,7 +350,7 @@ def main():
         if plugin:
             print(f"\nPlugin: {plugin}")
         sys.exit(result.returncode)
-    
+
     # List checks
     if args.list_checks:
         cmd = [clang_tidy, "--list-checks"]
@@ -359,7 +359,7 @@ def main():
             cmd.extend(["--load", plugin])
         result = subprocess.run(cmd, env=env)
         sys.exit(result.returncode)
-    
+
     # Find files to analyze
     files = args.files
     if not files:
@@ -377,13 +377,13 @@ def main():
                 project_files.extend(Path.cwd().glob(f"src/**/{ext}"))
                 project_files.extend(Path.cwd().glob(f"include/**/{ext}"))
             files = [str(f) for f in project_files]
-    
+
     if not files:
         print("ERROR: No files to analyze")
         print("\nSpecify files or ensure compile_commands.json exists:")
         print("  cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
         sys.exit(1)
-    
+
     if args.verbose:
         print(f"Analyzing {len(files)} files")
         print(f"clang-tidy: {clang_tidy}")
@@ -393,38 +393,38 @@ def main():
         lib_path = get_library_path()
         if lib_path:
             print(f"Library path: {lib_path}")
-    
+
     # Run analysis
     if len(files) > 1 and (args.j or 1) > 1:
         return_code = run_parallel(clang_tidy, files, args, env)
     else:
         # Single file or single job
         cmd = [clang_tidy]
-        
+
         plugin = args.plugin_path or find_plugin()
         if plugin and not args.raw:
             cmd.extend(["--load", plugin])
-        
+
         if args.checks:
             cmd.extend(["--checks", args.checks])
         elif not args.raw:
             cmd.extend(["--checks", "codelint-*"])
-        
+
         if args.fix:
             cmd.append("--fix")
-        
+
         cc_path = find_compile_commands(args.compile_path)
         if cc_path:
             cmd.extend(["-p", str(Path(cc_path).parent)])
-        
+
         cmd.extend(files)
-        
+
         if args.verbose:
             print("Command:", " ".join(cmd))
-        
+
         result = subprocess.run(cmd, env=env)
         return_code = result.returncode
-    
+
     sys.exit(return_code)
 
 
