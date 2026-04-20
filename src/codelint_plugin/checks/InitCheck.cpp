@@ -8,6 +8,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
 #include <llvm/ADT/SmallVector.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace clang::tidy::codelint {
 
@@ -262,6 +263,9 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
     return false;
   }
 
+  llvm::errs() << "DEBUG wouldBraceInit: record='" << Record->getName() << "' qualified='"
+               << Record->getQualifiedNameAsString() << "' numArgs=" << CCE->getNumArgs() << "\n";
+
   bool HasInitializerListCtor = false;
   QualType InitListElemType;
 
@@ -283,9 +287,11 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
 
         if (IsInitList) {
           HasInitializerListCtor = true;
+          llvm::errs() << "DEBUG: Found initializer_list constructor\n";
           auto TemplateArgs = TST->template_arguments();
           if (!TemplateArgs.empty()) {
             InitListElemType = TemplateArgs[0].getAsType();
+            llvm::errs() << "DEBUG: InitListElemType='" << InitListElemType.getAsString() << "'\n";
           }
           break;
         }
@@ -297,6 +303,7 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
   }
 
   if (!HasInitializerListCtor) {
+    llvm::errs() << "DEBUG: No initializer_list ctor, returning false\n";
     return false;
   }
 
@@ -325,6 +332,9 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
     const Expr* ArgExpr = CCE->getArg(0);
     const Type* ArgTy = ArgExpr->getType().getTypePtr();
 
+    llvm::errs() << "DEBUG: NumArgs=1, ArgTy='" << ArgTy->getTypeClassName() << "' asString='"
+                 << ArgExpr->getType().getAsString() << "'\n";
+
     // Special case: std::basic_string with string literal argument
     // Brace init would NOT change constructor selection:
     //   std::string("hello") and std::string{"hello"} use the same const char* constructor
@@ -333,7 +343,9 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
     //   - ArrayType (const char[N] before decay, e.g., StringLiteral)
     //   - StringLiteral directly
     const auto RecordName = Record->getName();
+    llvm::errs() << "DEBUG: RecordName='" << RecordName << "'\n";
     if (RecordName == "basic_string") {
+      llvm::errs() << "DEBUG: basic_string special case entered\n";
       // Helper to check if a type is char or wchar_t
       auto isCharOrWCharType = [](const Type* Ty) {
         if (Ty == nullptr) {
@@ -358,7 +370,10 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
       // Case 1: Argument is pointer to char/wchar_t
       if (ArgTy->isPointerType()) {
         const Type* PointeeTy = ArgTy->getPointeeType().getTypePtr();
+        llvm::errs() << "DEBUG: Case 1 - PointerType, pointee='"
+                     << (PointeeTy ? PointeeTy->getTypeClassName() : "null") << "'\n";
         if (isCharOrWCharType(PointeeTy)) {
+          llvm::errs() << "DEBUG: Case 1 matched, returning false\n";
           return false;
         }
       }
@@ -366,7 +381,10 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
       // Case 2: Argument is array of char/wchar_t (StringLiteral before decay)
       if (const ArrayType* ArrTy = ArgTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
         const Type* ElemTy = ArrTy->getElementType().getTypePtr();
+        llvm::errs() << "DEBUG: Case 2 - ArrayType, elem='"
+                     << (ElemTy ? ElemTy->getTypeClassName() : "null") << "'\n";
         if (isCharOrWCharType(ElemTy)) {
+          llvm::errs() << "DEBUG: Case 2 matched, returning false\n";
           return false;
         }
       }
@@ -374,14 +392,21 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
       // Case 3: Argument is or contains a StringLiteral
       // Strip implicit casts and check the underlying expression
       const Expr* ArgWithoutImplicit = ArgExpr->IgnoreImplicit();
+      llvm::errs() << "DEBUG: Case 3 - ArgWithoutImplicit type='"
+                   << ArgWithoutImplicit->getType().getAsString()
+                   << "' isStringLiteral=" << isa<StringLiteral>(ArgWithoutImplicit) << "\n";
       if (isa<StringLiteral>(ArgWithoutImplicit)) {
+        llvm::errs() << "DEBUG: Case 3a matched (StringLiteral), returning false\n";
         return false;
       }
       // Also check the type of the stripped expression (might be array type)
       const Type* ArgWithoutImplicitTy = ArgWithoutImplicit->getType().getTypePtr();
       if (const ArrayType* ArrTy = ArgWithoutImplicitTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
         const Type* ElemTy = ArrTy->getElementType().getTypePtr();
+        llvm::errs() << "DEBUG: Case 3b - ArrayType after IgnoreImplicit, elem='"
+                     << (ElemTy ? ElemTy->getTypeClassName() : "null") << "'\n";
         if (isCharOrWCharType(ElemTy)) {
+          llvm::errs() << "DEBUG: Case 3b matched, returning false\n";
           return false;
         }
       }
@@ -636,7 +661,14 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
         return;
       }
 
+      const CXXConstructorDecl* Ctor = CCE->getConstructor();
+      const CXXRecordDecl* Record = Ctor ? Ctor->getParent() : nullptr;
+      llvm::errs() << "DEBUG: var='" << Name << "' type='" << VarDeclPtr->getType().getAsString()
+                   << "' record='" << (Record ? Record->getName() : "null")
+                   << "' wouldBraceInit=" << wouldBraceInitChangeConstructor(CCE) << "\n";
+
       if (wouldBraceInitChangeConstructor(CCE)) {
+        llvm::errs() << "DEBUG: SKIPPING '" << Name << "' due to wouldBraceInitChangeConstructor\n";
         return;
       }
     }
