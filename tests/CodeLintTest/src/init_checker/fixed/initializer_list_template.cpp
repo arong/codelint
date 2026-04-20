@@ -6,10 +6,14 @@
 
 template <typename T> class TemplateContainer {
 public:
-  TemplateContainer(std::initializer_list<T> list) {}
-  TemplateContainer(size_t count, const T &value) {}
-  TemplateContainer() {}
-  TemplateContainer(T value) {}
+  TemplateContainer(std::initializer_list<T> list) {
+  }
+  TemplateContainer(size_t count, const T& value) {
+  }
+  TemplateContainer() {
+  }
+  TemplateContainer(T value) {
+  }
 };
 
 void test_template_container() {
@@ -23,7 +27,8 @@ void test_template_container() {
 
 template <typename T> class OnlyInitList {
 public:
-  OnlyInitList(std::initializer_list<T> list) {}
+  OnlyInitList(std::initializer_list<T> list) {
+  }
 };
 
 void test_only_init_list() {
@@ -33,8 +38,10 @@ void test_only_init_list() {
 
 template <typename T> class NoInitList {
 public:
-  NoInitList(size_t count) {}
-  NoInitList(const T &value) {}
+  NoInitList(size_t count) {
+  }
+  NoInitList(const T& value) {
+  }
 };
 
 void test_no_init_list() {

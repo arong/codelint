@@ -1,16 +1,16 @@
 // Test for reference type initialization
 // P1-2: Reference initialization style checks (only compilable code)
 
-#include <utility>
-#include <unordered_map>
-#include <string>
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <utility>
 void test_reference_initialization() {
   int value{10};
   int& ref1{value}; // Should suggest brace init: int& ref1{value}
-  int& ref2{value};  // OK - already using brace init
+  int& ref2{value}; // OK - already using brace init
 
-  const int& cref1{42}; // Should suggest brace init: const int& cref1{42}
+  const int& cref1{42};  // Should suggest brace init: const int& cref1{42}
   const int& cref2{100}; // OK - already using brace init
 }
 
@@ -20,7 +20,7 @@ void test_reference_assignment_style() {
 
   int& ref1{x}; // Should suggest brace init
   int& ref2{y}; // Should suggest brace init
-  int& ref3{x};  // OK - already using brace init
+  int& ref3{x}; // OK - already using brace init
 }
 
 void test_reference_in_struct() {
@@ -35,7 +35,7 @@ void test_reference_in_struct() {
 
 void test_reference_parameters(int& param) {
   int& local_ref{param}; // Should suggest brace init
-  int& param_ref{param};  // OK - already using brace init
+  int& param_ref{param}; // OK - already using brace init
 }
 
 class ReferenceClass {
@@ -50,14 +50,14 @@ public:
 void test_rvalue_references() {
   int x{10};
   int&& rref1{std::move(x)}; // Should suggest brace init
-  int&& rref2{std::move(x)};  // OK - already using brace init
+  int&& rref2{std::move(x)}; // OK - already using brace init
 }
 
 void ref_with_map() {
-  std::unordered_map<std::string, uint32_t> table {
-    {"debug", 1},
-    {"info", 2},
+  std::unordered_map<std::string, uint32_t> table{
+      {"debug", 1},
+      {"info", 2},
   };
-  auto& value {table["debug"]};
+  auto& value{table["debug"]};
   std::cout << value;
 }

@@ -1,19 +1,19 @@
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:25:26: warning: variable is not explicitly initialized [codelint-init]
-   25 |   TemplateContainer<int> tc5;
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:24:26: warning: variable is not explicitly initialized [codelint-init]
+   24 |   TemplateContainer<int> tc5;
       |                          ^
       |                             {}
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:51:19: warning: variable should use '{}' syntax for initialization [codelint-init]
-   51 |   NoInitList<int> nl1(5);
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:48:19: warning: variable should use '{}' syntax for initialization [codelint-init]
+   48 |   NoInitList<int> nl1(5);
       |                   ^  ~ ~
       |                      { }
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:52:19: warning: variable should use '{}' syntax for initialization [codelint-init]
-   52 |   NoInitList<int> nl2 = 10;
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:49:19: warning: variable should use '{}' syntax for initialization [codelint-init]
+   49 |   NoInitList<int> nl2 = 10;
       |                   ^   ~
       |                      {    }
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:59:20: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
-   59 |   std::vector<int> vec3 = {1, 2, 3};
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:56:20: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+   56 |   std::vector<int> vec3 = {1, 2, 3};
       |                    ^    ~
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:60:15: warning: variable should use '{}' syntax for initialization [codelint-init]
-   60 |   std::string str2 = "hello";
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:57:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   57 |   std::string str2 = "hello";
       |               ^    ~
       |                   {         }

@@ -2,23 +2,23 @@
 
 #include <vector>
 
-#define LOG_IF_CHANGED(var, expr) \
-  do { \
-    auto oldValue = (var); \
-    auto newValue = (expr); \
-    bool needChange = DoSomething(newValue); \
-    if (needChange) { \
-      var = newValue; \
-    } \
-  } while(0)
+#define LOG_IF_CHANGED(var, expr)                                                                  \
+  do {                                                                                             \
+    auto oldValue = (var);                                                                         \
+    auto newValue = (expr);                                                                        \
+    bool needChange = DoSomething(newValue);                                                       \
+    if (needChange) {                                                                              \
+      var = newValue;                                                                              \
+    }                                                                                              \
+  } while (0)
 
-#define INIT_CONTAINER(name, type, ...) \
-  type name; \
+#define INIT_CONTAINER(name, type, ...)                                                            \
+  type name;                                                                                       \
   name = {__VA_ARGS__}
 
-#define DECLARE_VARS \
-  int x; \
-  int y; \
+#define DECLARE_VARS                                                                               \
+  int x;                                                                                           \
+  int y;                                                                                           \
   int z
 
 bool DoSomething(int);

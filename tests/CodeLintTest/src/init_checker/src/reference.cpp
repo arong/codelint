@@ -1,10 +1,10 @@
 // Test for reference type initialization
 // P1-2: Reference initialization style checks (only compilable code)
 
-#include <utility>
-#include <unordered_map>
-#include <string>
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <utility>
 void test_reference_initialization() {
   int value = 10;
   int& ref1 = value; // Should suggest brace init: int& ref1{value}
@@ -54,10 +54,10 @@ void test_rvalue_references() {
 }
 
 void ref_with_map() {
-  std::unordered_map<std::string, uint32_t> table {
-    {"debug", 1},
-    {"info", 2},
+  std::unordered_map<std::string, uint32_t> table{
+      {"debug", 1},
+      {"info", 2},
   };
-  auto& value {table["debug"]};
+  auto& value{table["debug"]};
   std::cout << value;
 }
