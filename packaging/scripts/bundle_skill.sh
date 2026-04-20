@@ -238,22 +238,28 @@ create_skill_package() {
     PLUGIN_NAME=$(basename "$PLUGIN")
     
     echo "[5/7] Copying skill scripts..."
-    if [ -d "${SKILL_DIR}/scripts" ]; then
-        cp -r "${SKILL_DIR}/scripts/*" "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"
-        chmod +x "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/*"
+    if [ -d "${SKILL_DIR}/scripts" ] && [ "$(ls -A ${SKILL_DIR}/scripts 2>/dev/null)" ]; then
+        cp -r "${SKILL_DIR}/scripts/"* "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"
+        chmod +x "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"*
         echo "    Copied scripts:"
         ls "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/" | while read f; do
             echo "      $f"
         done
+    else
+        echo "    WARNING: No skill scripts found"
     fi
     
     echo "[6/7] Copying skill configs..."
-    if [ -d "${SKILL_DIR}/configs" ]; then
-        cp -r "${SKILL_DIR}/configs/*" "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/"
+    if [ -d "${SKILL_DIR}/configs" ] && [ "$(ls -A ${SKILL_DIR}/configs 2>/dev/null)" ]; then
+        shopt -s dotglob
+        cp -r "${SKILL_DIR}/configs/"* "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/"
+        shopt -u dotglob
         echo "    Copied configs:"
         ls "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/" | while read f; do
             echo "      $f"
         done
+    else
+        echo "    WARNING: No skill configs found"
     fi
     
     echo "[7/7] Collecting library dependencies..."
