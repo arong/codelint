@@ -36,6 +36,7 @@ private:
   static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
   static bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
   static bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  static bool wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE);
   [[nodiscard]] static bool hasNonTrivialDefaultConstructor(QualType QualTypeRef);
 };
 

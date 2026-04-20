@@ -1,6 +1,5 @@
 #include "codelint/checks/GlobalCheck.h"
 #include "codelint/checks/InitCheck.h"
-#include "codelint/checks/NullPointerDereferenceCheck.h"
 #include "codelint/checks/SignedToUnsignedReturnCheck.h"
 #include "codelint/checks/SingletonCheck.h"
 #include "codelint/checks/StrictBoolConditionCheck.h"
@@ -17,7 +16,6 @@ public:
     CheckFactories.registerCheck<SingletonCheck>("codelint-singleton");
     CheckFactories.registerCheck<StrictBoolConditionCheck>("codelint-strict-bool-condition");
     CheckFactories.registerCheck<SignedToUnsignedReturnCheck>("codelint-signed-to-unsigned-return");
-    CheckFactories.registerCheck<NullPointerDereferenceCheck>("codelint-null-deref");
   }
 };
 

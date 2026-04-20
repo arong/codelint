@@ -244,8 +244,99 @@ bool InitCheck::isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   const auto& SrcMgr = Ctx->getSourceManager();
   const SourceLocation Loc{VarDeclPtr->getLocation()};
 
-  // Check if the declaration is inside a macro expansion
   return SrcMgr.isMacroBodyExpansion(Loc) || SrcMgr.isMacroArgExpansion(Loc);
+}
+
+bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
+  if (CCE == nullptr) {
+    return false;
+  }
+
+  const CXXConstructorDecl* CurrentCtor = CCE->getConstructor();
+  if (CurrentCtor == nullptr) {
+    return false;
+  }
+
+  const CXXRecordDecl* Record = CurrentCtor->getParent();
+  if (Record == nullptr) {
+    return false;
+  }
+
+  bool HasInitializerListCtor = false;
+  QualType InitListElemType;
+
+  for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+    if (Ctor->isExplicit()) {
+      continue;
+    }
+
+    for (const ParmVarDecl* Param : Ctor->parameters()) {
+      const Type* ParamTy = Param->getType().getTypePtr();
+      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
+        if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
+          HasInitializerListCtor = true;
+          auto TemplateArgs = TST->template_arguments();
+          if (!TemplateArgs.empty()) {
+            InitListElemType = TemplateArgs[0].getAsType();
+          }
+          break;
+        }
+      }
+    }
+    if (HasInitializerListCtor) {
+      break;
+    }
+  }
+
+  if (!HasInitializerListCtor) {
+    return false;
+  }
+
+  const unsigned NumArgs = CCE->getNumArgs();
+
+  if (NumArgs >= 2) {
+    if (NumArgs == 2 && CurrentCtor->getNumParams() >= 2) {
+      const QualType Param1Ty = CurrentCtor->getParamDecl(0)->getType();
+      const QualType Param2Ty = CurrentCtor->getParamDecl(1)->getType();
+
+      bool Param1IsIterator =
+          Param1Ty->getAs<PointerType>() != nullptr || Param1Ty->getAs<ReferenceType>() != nullptr;
+      bool Param2IsIterator =
+          Param2Ty->getAs<PointerType>() != nullptr || Param2Ty->getAs<ReferenceType>() != nullptr;
+
+      if (Param1IsIterator && Param2IsIterator && CCE->getArg(0)->getType()->isPointerType() &&
+          CCE->getArg(1)->getType()->isPointerType()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  if (NumArgs == 1) {
+    const Expr* ArgExpr = CCE->getArg(0);
+    const Type* ArgTy = ArgExpr->getType().getTypePtr();
+
+    if (!InitListElemType.isNull()) {
+      const Type* ElemTy = InitListElemType.getTypePtr();
+
+      if (ArgTy->isPointerType() && !ElemTy->isPointerType()) {
+        return false;
+      }
+
+      if (ArgTy->isIntegerType() && ElemTy->isIntegerType()) {
+        return true;
+      }
+
+      if (ArgTy->isFloatingType() && ElemTy->isFloatingType()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return false;
 }
 
 bool InitCheck::hasNonTrivialDefaultConstructor(QualType QualTypeRef) {
@@ -424,6 +515,10 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
     return;
   }
 
+  if (isInsideMacro(VarDeclPtr, Ctx)) {
+    return;
+  }
+
   const auto* Init = VarDeclPtr->getInit();
   if (Init == nullptr) {
     return;
@@ -471,45 +566,8 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
         return;
       }
 
-      if (CCE->getConstructor() != nullptr) {
-        const CXXRecordDecl* Record{CCE->getConstructor()->getParent()};
-        if (Record != nullptr) {
-          for (const CXXConstructorDecl* Ctor : Record->ctors()) {
-            if (Ctor->isExplicit()) {
-              continue;
-            }
-            for (const ParmVarDecl* Param : Ctor->parameters()) {
-              const Type* ParamTy = Param->getType().getTypePtr();
-              if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
-                if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
-                  auto TemplateArgs = TST->template_arguments();
-                  if (!TemplateArgs.empty()) {
-                    const TemplateArgument& Arg = TemplateArgs[0];
-                    const QualType InitListElemType{Arg.getAsType()};
-                    const Type* ArgTy{InitListElemType.getTypePtr()};
-
-                    if (CCE->getNumArgs() > 0) {
-                      const Expr* ArgExpr{CCE->getArg(0)};
-                      const Type* ExprTy{ArgExpr->getType().getTypePtr()};
-                      if (ExprTy->isIntegerType() && ArgTy->isIntegerType()) {
-                        return;
-                      }
-                      if (ExprTy->isFloatingType() && ArgTy->isFloatingType()) {
-                        return;
-                      }
-                      if (ExprTy->isPointerType() && ArgTy->isPointerType()) {
-                        return;
-                      }
-                      if (ExprTy == ArgTy) {
-                        return;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+      if (wouldBraceInitChangeConstructor(CCE)) {
+        return;
       }
     }
   }
@@ -559,6 +617,9 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
     const Expr* InitExpr{Init->IgnoreImplicit()};
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr);
         (CCE != nullptr) && CCE->getNumArgs() > 0) {
+      if (wouldBraceInitChangeConstructor(CCE)) {
+        return;
+      }
       const Expr* Arg{CCE->getArg(0)};
       const auto ArgStart = Arg->getBeginLoc();
       const auto ParenCloseLoc = CCE->getParenOrBraceRange().getEnd();
