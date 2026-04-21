@@ -247,6 +247,116 @@ bool InitCheck::isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   return SrcMgr.isMacroBodyExpansion(Loc) || SrcMgr.isMacroArgExpansion(Loc);
 }
 
+std::optional<bool>
+InitCheck::wouldBraceInitChangeBasicStringConstructor(const CXXConstructExpr* CCE,
+                                                      const CXXRecordDecl* Record) {
+  if (CCE == nullptr || Record == nullptr) {
+    return std::nullopt;
+  }
+
+  const auto RecordName = Record->getName();
+  if (RecordName != "basic_string") {
+    return std::nullopt;
+  }
+
+  const unsigned NumArgs = CCE->getNumArgs();
+
+  // Helper to check if a type is char or wchar_t
+  auto isCharOrWCharType = [](const Type* Ty) {
+    if (Ty == nullptr) {
+      return false;
+    }
+    // Check for char types (plain char, signed char, unsigned char)
+    if (Ty->isSpecificBuiltinType(BuiltinType::Char_U) ||
+        Ty->isSpecificBuiltinType(BuiltinType::Char_S) ||
+        Ty->isSpecificBuiltinType(BuiltinType::UChar) ||
+        Ty->isSpecificBuiltinType(BuiltinType::SChar) ||
+        Ty->isSpecificBuiltinType(BuiltinType::Char8)) {
+      return true;
+    }
+    // Check for wchar_t types
+    if (Ty->isSpecificBuiltinType(BuiltinType::WChar_U) ||
+        Ty->isSpecificBuiltinType(BuiltinType::WChar_S)) {
+      return true;
+    }
+    return false;
+  };
+
+  auto isCharPointerType = [&isCharOrWCharType](const Type* Ty) {
+    if (Ty == nullptr || !Ty->isPointerType()) {
+      return false;
+    }
+    const Type* PointeeTy = Ty->getPointeeType().getTypePtr();
+    return isCharOrWCharType(PointeeTy);
+  };
+
+  auto isAllocatorType = [](const Type* Ty) {
+    if (Ty == nullptr) {
+      return false;
+    }
+    std::string TypeName = Ty->getCanonicalTypeInternal().getAsString();
+    return TypeName.find("allocator") != std::string::npos;
+  };
+
+  // Handle NumArgs >= 2 case
+  if (NumArgs == 2) {
+    const Expr* Arg0 = CCE->getArg(0);
+    const Expr* Arg1 = CCE->getArg(1);
+    const Type* Arg0Ty = Arg0->getType().getTypePtr();
+    const Type* Arg1Ty = Arg1->getType().getTypePtr();
+
+    // Case: (const char*, allocator) - safe to convert
+    if (isCharPointerType(Arg0Ty) && isAllocatorType(Arg1Ty)) {
+      return false;
+    }
+
+    // Case: (const char*, const char*) - safe to convert
+    if (isCharPointerType(Arg0Ty) && isCharPointerType(Arg1Ty)) {
+      return false;
+    }
+  }
+
+  // Handle NumArgs == 1 case
+  if (NumArgs == 1) {
+    const Expr* ArgExpr = CCE->getArg(0);
+    const Type* ArgTy = ArgExpr->getType().getTypePtr();
+
+    // Case 1: Argument is pointer to char/wchar_t
+    if (ArgTy->isPointerType()) {
+      const Type* PointeeTy = ArgTy->getPointeeType().getTypePtr();
+      if (isCharOrWCharType(PointeeTy)) {
+        return false;
+      }
+    }
+
+    // Case 2: Argument is array of char/wchar_t (StringLiteral before decay)
+    if (const ArrayType* ArrTy = ArgTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
+      const Type* ElemTy = ArrTy->getElementType().getTypePtr();
+      if (isCharOrWCharType(ElemTy)) {
+        return false;
+      }
+    }
+
+    // Case 3: Argument is or contains a StringLiteral
+    // Strip implicit casts and check the underlying expression
+    const Expr* ArgWithoutImplicit = ArgExpr->IgnoreImplicit();
+    if (isa<StringLiteral>(ArgWithoutImplicit)) {
+      return false;
+    }
+    // Also check the type of the stripped expression (might be array type)
+    const Type* ArgWithoutImplicitTy = ArgWithoutImplicit->getType().getTypePtr();
+    if (const ArrayType* ArrTy = ArgWithoutImplicitTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
+      const Type* ElemTy = ArrTy->getElementType().getTypePtr();
+      if (isCharOrWCharType(ElemTy)) {
+        return false;
+      }
+    }
+  }
+
+  // Not a handled basic_string case - return nullopt to let main function continue
+  return std::nullopt;
+}
+
 bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
   if (CCE == nullptr) {
     return false;
@@ -303,43 +413,10 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
   const unsigned NumArgs = CCE->getNumArgs();
 
   if (NumArgs >= 2) {
-    const auto RecordName = Record->getName();
-
-    // Special case: basic_string with (const char*, allocator) pair
-    // On libstdc++, std::string("hello") calls basic_string(const char*, const Allocator&)
-    // Brace init would use the same constructor, so it's safe to convert
-    if (RecordName == "basic_string" && NumArgs == 2) {
-      const Expr* Arg0 = CCE->getArg(0);
-      const Expr* Arg1 = CCE->getArg(1);
-      const Type* Arg0Ty = Arg0->getType().getTypePtr();
-      const Type* Arg1Ty = Arg1->getType().getTypePtr();
-
-      auto isCharPointerType = [](const Type* Ty) {
-        if (!Ty || !Ty->isPointerType())
-          return false;
-        const Type* PointeeTy = Ty->getPointeeType().getTypePtr();
-        if (PointeeTy == nullptr)
-          return false;
-        return PointeeTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
-               PointeeTy->isSpecificBuiltinType(BuiltinType::Char_S) ||
-               PointeeTy->isSpecificBuiltinType(BuiltinType::WChar_U) ||
-               PointeeTy->isSpecificBuiltinType(BuiltinType::WChar_S);
-      };
-
-      auto isAllocatorType = [](const Type* Ty) {
-        if (Ty == nullptr)
-          return false;
-        std::string TypeName = Ty->getCanonicalTypeInternal().getAsString();
-        return TypeName.find("allocator") != std::string::npos;
-      };
-
-      if (isCharPointerType(Arg0Ty) && isAllocatorType(Arg1Ty)) {
-        return false;
-      }
-
-      if (isCharPointerType(Arg0Ty) && isCharPointerType(Arg1Ty)) {
-        return false;
-      }
+    // Check for basic_string special cases first
+    auto BasicStringResult = wouldBraceInitChangeBasicStringConstructor(CCE, Record);
+    if (BasicStringResult.has_value()) {
+      return BasicStringResult.value();
     }
 
     if (NumArgs == 2 && CurrentCtor->getNumParams() >= 2) {
@@ -361,70 +438,14 @@ bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
   }
 
   if (NumArgs == 1) {
+    // Check for basic_string special cases first
+    auto BasicStringResult = wouldBraceInitChangeBasicStringConstructor(CCE, Record);
+    if (BasicStringResult.has_value()) {
+      return BasicStringResult.value();
+    }
+
     const Expr* ArgExpr = CCE->getArg(0);
     const Type* ArgTy = ArgExpr->getType().getTypePtr();
-
-    // Special case: std::basic_string with string literal argument
-    // Brace init would NOT change constructor selection:
-    //   std::string("hello") and std::string{"hello"} use the same const char* constructor
-    // On different STL implementations, the argument might be:
-    //   - PointerType (const char* after decay)
-    //   - ArrayType (const char[N] before decay, e.g., StringLiteral)
-    //   - StringLiteral directly
-    const auto RecordName = Record->getName();
-    if (RecordName == "basic_string") {
-      // Helper to check if a type is char or wchar_t
-      auto isCharOrWCharType = [](const Type* Ty) {
-        if (Ty == nullptr) {
-          return false;
-        }
-        // Check for char types (plain char, signed char, unsigned char)
-        if (Ty->isSpecificBuiltinType(BuiltinType::Char_U) ||
-            Ty->isSpecificBuiltinType(BuiltinType::Char_S) ||
-            Ty->isSpecificBuiltinType(BuiltinType::UChar) ||
-            Ty->isSpecificBuiltinType(BuiltinType::SChar) ||
-            Ty->isSpecificBuiltinType(BuiltinType::Char8)) {
-          return true;
-        }
-        // Check for wchar_t types
-        if (Ty->isSpecificBuiltinType(BuiltinType::WChar_U) ||
-            Ty->isSpecificBuiltinType(BuiltinType::WChar_S)) {
-          return true;
-        }
-        return false;
-      };
-
-      // Case 1: Argument is pointer to char/wchar_t
-      if (ArgTy->isPointerType()) {
-        const Type* PointeeTy = ArgTy->getPointeeType().getTypePtr();
-        if (isCharOrWCharType(PointeeTy)) {
-          return false;
-        }
-      }
-
-      // Case 2: Argument is array of char/wchar_t (StringLiteral before decay)
-      if (const ArrayType* ArrTy = ArgTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
-        const Type* ElemTy = ArrTy->getElementType().getTypePtr();
-        if (isCharOrWCharType(ElemTy)) {
-          return false;
-        }
-      }
-
-      // Case 3: Argument is or contains a StringLiteral
-      // Strip implicit casts and check the underlying expression
-      const Expr* ArgWithoutImplicit = ArgExpr->IgnoreImplicit();
-      if (isa<StringLiteral>(ArgWithoutImplicit)) {
-        return false;
-      }
-      // Also check the type of the stripped expression (might be array type)
-      const Type* ArgWithoutImplicitTy = ArgWithoutImplicit->getType().getTypePtr();
-      if (const ArrayType* ArrTy = ArgWithoutImplicitTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
-        const Type* ElemTy = ArrTy->getElementType().getTypePtr();
-        if (isCharOrWCharType(ElemTy)) {
-          return false;
-        }
-      }
-    }
 
     if (!InitListElemType.isNull()) {
       const Type* ElemTy = InitListElemType.getTypePtr();
