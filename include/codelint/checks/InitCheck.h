@@ -1,6 +1,7 @@
 #pragma once
 
 #include <clang-tidy/ClangTidyCheck.h>
+#include <optional>
 
 namespace clang::tidy::codelint {
 
@@ -36,6 +37,10 @@ private:
   static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
   static bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
   static bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  static bool wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE);
+  static std::optional<bool>
+  wouldBraceInitChangeBasicStringConstructor(const CXXConstructExpr* CCE,
+                                             const CXXRecordDecl* Record);
   [[nodiscard]] static bool hasNonTrivialDefaultConstructor(QualType QualTypeRef);
 };
 

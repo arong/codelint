@@ -128,10 +128,10 @@ jobs:
       - name: Build project
         run: cmake --build build -j$(nproc)
 
-      - name: Setup compile_commands.json for regression tests
+      - name: Configure test project compile_commands.json
         run: |
-          mkdir -p tests/CodeLintTest/build
-          cp build/compile_commands.json tests/CodeLintTest/build/
+          cd tests/CodeLintTest
+          cmake -B build -DCMAKE_CXX_COMPILER=clang++-21
 
       - name: Setup PATH for LLVM tools
         run: echo /usr/bin >> $GITHUB_PATH

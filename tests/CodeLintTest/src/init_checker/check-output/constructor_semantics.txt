@@ -1,0 +1,15 @@
+tests/CodeLintTest/src/init_checker/src/constructor_semantics.cpp:41:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   41 |   std::string str1 = "hello";
+      |               ^    ~
+      |                   {         }
+tests/CodeLintTest/src/init_checker/src/constructor_semantics.cpp:42:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   42 |   std::string str2("world");
+      |               ^   ~       ~
+      |                   {       }
+tests/CodeLintTest/src/init_checker/src/constructor_semantics.cpp:44:20: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+   44 |   std::vector<int> vec1 = {1, 2, 3};
+      |                    ^    ~
+tests/CodeLintTest/src/init_checker/src/constructor_semantics.cpp:57:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   57 |   std::string str1 = "text";
+      |               ^    ~
+      |                   {        }

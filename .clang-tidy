@@ -3,6 +3,7 @@ Checks: >
   -*,
   autosar-*,
   bugprone-*,
+  clang-analyzer-*,
   cert-*,
   cppcoreguidelines-*,
   google-explicit-constructor,

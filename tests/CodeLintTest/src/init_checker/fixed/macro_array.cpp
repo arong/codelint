@@ -10,12 +10,12 @@ DECLARE_VAR(int, macro_y); // This should NOT trigger a warning
 #define CREATE_ARRAY(type, name, size) type name[size];
 CREATE_ARRAY(int, macro_arr, 5); // This should NOT trigger a warning
 
-int regular_var{};                         // This SHOULD trigger a warning
-int regular_array[5]{};                    // This SHOULD trigger a C-style array warning
+int regular_var{};                    // This SHOULD trigger a warning
+int regular_array[5]{};               // This SHOULD trigger a C-style array warning
 int initialized_array[5]{};           // This SHOULD trigger a warning (suggest brace init)
-int brace_initialized[5]{};              // This should NOT trigger a warning
+int brace_initialized[5]{};           // This should NOT trigger a warning
 int assigned_array[5]{1, 2, 3, 4, 5}; // This SHOULD trigger a warning (suggest brace init)
-float float_array[10]{};                   // This SHOULD trigger a C-style array warning
+float float_array[10]{};              // This SHOULD trigger a C-style array warning
 
 void function_test() {
   int local_var{};     // This SHOULD trigger a warning

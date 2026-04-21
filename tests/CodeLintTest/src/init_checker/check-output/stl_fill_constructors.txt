@@ -1,0 +1,12 @@
+tests/CodeLintTest/src/init_checker/src/stl_fill_constructors.cpp:99:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+   99 |   std::string s1 = "hello";
+      |               ^  ~
+      |                 {         }
+tests/CodeLintTest/src/init_checker/src/stl_fill_constructors.cpp:100:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+  100 |   std::string s2("world");
+      |               ^ ~       ~
+      |                 {       }
+tests/CodeLintTest/src/init_checker/src/stl_fill_constructors.cpp:101:16: warning: variable should use '{}' syntax for initialization [codelint-init]
+  101 |   std::wstring ws1 = L"hello";
+      |                ^   ~
+      |                   {          }

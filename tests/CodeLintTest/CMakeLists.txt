@@ -47,6 +47,31 @@ set(TEST_SOURCES
     src/init_checker/fixed/struct_class.cpp
     src/init_checker/src/type_aliases.cpp
     src/init_checker/fixed/type_aliases.cpp
+    src/init_checker/src/type_conversion.cpp
+    src/init_checker/fixed/type_conversion.cpp
+    src/init_checker/src/auto_brace.cpp
+    src/init_checker/fixed/auto_brace.cpp
+    src/init_checker/src/bool.cpp
+    src/init_checker/fixed/bool.cpp
+    src/init_checker/src/multi_line_macros.cpp
+    src/init_checker/fixed/multi_line_macros.cpp
+    src/init_checker/src/initializer_list.cpp
+    src/init_checker/fixed/initializer_list.cpp
+    src/init_checker/src/initializer_list_template.cpp
+    src/init_checker/fixed/initializer_list_template.cpp
+    src/init_checker/src/constructor_semantics.cpp
+    src/init_checker/fixed/constructor_semantics.cpp
+    src/init_checker/src/stl_fill_constructors.cpp
+    src/init_checker/fixed/stl_fill_constructors.cpp
+    src/init_checker/src/valarray_fill.cpp
+    src/init_checker/fixed/valarray_fill.cpp
+    src/strict_bool_condition_checker/src/do_while_statements.cpp
+    src/strict_bool_condition_checker/src/for_statements.cpp
+    src/strict_bool_condition_checker/src/if_statements.cpp
+    src/strict_bool_condition_checker/src/logical_operators.cpp
+    src/strict_bool_condition_checker/src/ternary_operator.cpp
+    src/strict_bool_condition_checker/src/valid_bool_conditions.cpp
+    src/strict_bool_condition_checker/src/while_statements.cpp
     src/global_checker/src/anon_namespace_globals.cpp
     src/global_checker/src/array_globals.cpp
     src/global_checker/src/basic_globals.cpp

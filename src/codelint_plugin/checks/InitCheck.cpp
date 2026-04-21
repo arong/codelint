@@ -20,7 +20,7 @@ bool InitCheck::isInSystemHeader(const SourceLocation Loc, ASTContext* Ctx) {
   }
   const auto& SrcMgr = Ctx->getSourceManager();
   const SourceLocation ExpansionLoc{SrcMgr.getExpansionLoc(Loc)};
-  return !SrcMgr.isInMainFile(ExpansionLoc);
+  return SrcMgr.isInSystemHeader(ExpansionLoc);
 }
 
 using clang::ast_matchers::autoType;
@@ -244,8 +244,229 @@ bool InitCheck::isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
   const auto& SrcMgr = Ctx->getSourceManager();
   const SourceLocation Loc{VarDeclPtr->getLocation()};
 
-  // Check if the declaration is inside a macro expansion
   return SrcMgr.isMacroBodyExpansion(Loc) || SrcMgr.isMacroArgExpansion(Loc);
+}
+
+std::optional<bool>
+InitCheck::wouldBraceInitChangeBasicStringConstructor(const CXXConstructExpr* CCE,
+                                                      const CXXRecordDecl* Record) {
+  if (CCE == nullptr || Record == nullptr) {
+    return std::nullopt;
+  }
+
+  const std::string RecordName = Record->getQualifiedNameAsString();
+  if (RecordName != "std::basic_string") {
+    return std::nullopt;
+  }
+
+  const unsigned NumArgs = CCE->getNumArgs();
+
+  // Helper to check if a type is char or wchar_t
+  auto isCharOrWCharType = [](const Type* Ty) {
+    if (Ty == nullptr) {
+      return false;
+    }
+    // Check for char types (plain char, signed char, unsigned char)
+    if (Ty->isSpecificBuiltinType(BuiltinType::Char_U) ||
+        Ty->isSpecificBuiltinType(BuiltinType::Char_S) ||
+        Ty->isSpecificBuiltinType(BuiltinType::UChar) ||
+        Ty->isSpecificBuiltinType(BuiltinType::SChar) ||
+        Ty->isSpecificBuiltinType(BuiltinType::Char8)) {
+      return true;
+    }
+    // Check for wchar_t types
+    if (Ty->isSpecificBuiltinType(BuiltinType::WChar_U) ||
+        Ty->isSpecificBuiltinType(BuiltinType::WChar_S)) {
+      return true;
+    }
+    return false;
+  };
+
+  auto isCharPointerType = [&isCharOrWCharType](const Type* Ty) {
+    if (Ty == nullptr || !Ty->isPointerType()) {
+      return false;
+    }
+    const Type* PointeeTy = Ty->getPointeeType().getTypePtr();
+    return isCharOrWCharType(PointeeTy);
+  };
+
+  auto isAllocatorType = [](const Type* Ty) {
+    if (Ty == nullptr) {
+      return false;
+    }
+    std::string TypeName = Ty->getCanonicalTypeInternal().getAsString();
+    return TypeName.find("allocator") != std::string::npos;
+  };
+
+  // Handle NumArgs >= 2 case
+  if (NumArgs == 2) {
+    const Expr* Arg0 = CCE->getArg(0);
+    const Expr* Arg1 = CCE->getArg(1);
+    const Type* Arg0Ty = Arg0->getType().getTypePtr();
+    const Type* Arg1Ty = Arg1->getType().getTypePtr();
+
+    // Case: (const char*, allocator) - safe to convert
+    if (isCharPointerType(Arg0Ty) && isAllocatorType(Arg1Ty)) {
+      return false;
+    }
+
+    // Case: (const char*, const char*) - safe to convert
+    if (isCharPointerType(Arg0Ty) && isCharPointerType(Arg1Ty)) {
+      return false;
+    }
+  }
+
+  // Handle NumArgs == 1 case
+  if (NumArgs == 1) {
+    const Expr* ArgExpr = CCE->getArg(0);
+    const Type* ArgTy = ArgExpr->getType().getTypePtr();
+
+    // Case 1: Argument is pointer to char/wchar_t
+    if (ArgTy->isPointerType()) {
+      const Type* PointeeTy = ArgTy->getPointeeType().getTypePtr();
+      if (isCharOrWCharType(PointeeTy)) {
+        return false;
+      }
+    }
+
+    // Case 2: Argument is array of char/wchar_t (StringLiteral before decay)
+    if (const ArrayType* ArrTy = ArgTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
+      const Type* ElemTy = ArrTy->getElementType().getTypePtr();
+      if (isCharOrWCharType(ElemTy)) {
+        return false;
+      }
+    }
+
+    // Case 3: Argument is or contains a StringLiteral
+    // Strip implicit casts and check the underlying expression
+    const Expr* ArgWithoutImplicit = ArgExpr->IgnoreImplicit();
+    if (isa<StringLiteral>(ArgWithoutImplicit)) {
+      return false;
+    }
+    // Also check the type of the stripped expression (might be array type)
+    const Type* ArgWithoutImplicitTy = ArgWithoutImplicit->getType().getTypePtr();
+    if (const ArrayType* ArrTy = ArgWithoutImplicitTy->getAsArrayTypeUnsafe(); ArrTy != nullptr) {
+      const Type* ElemTy = ArrTy->getElementType().getTypePtr();
+      if (isCharOrWCharType(ElemTy)) {
+        return false;
+      }
+    }
+  }
+
+  // Not a handled basic_string case - return nullopt to let main function continue
+  return std::nullopt;
+}
+
+bool InitCheck::wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE) {
+  if (CCE == nullptr) {
+    return false;
+  }
+
+  const CXXConstructorDecl* CurrentCtor = CCE->getConstructor();
+  if (CurrentCtor == nullptr) {
+    return false;
+  }
+
+  const CXXRecordDecl* Record = CurrentCtor->getParent();
+  if (Record == nullptr) {
+    return false;
+  }
+
+  bool HasInitializerListCtor = false;
+  QualType InitListElemType;
+
+  for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+    if (Ctor->isExplicit()) {
+      continue;
+    }
+
+    for (const ParmVarDecl* Param : Ctor->parameters()) {
+      const Type* ParamTy = Param->getType().getTypePtr();
+      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
+        const auto* TemplateDecl = TST->getTemplateName().getAsTemplateDecl();
+        if (TemplateDecl == nullptr) {
+          continue;
+        }
+
+        const auto TemplateName = TemplateDecl->getName();
+        bool IsInitList = (TemplateName == "initializer_list");
+
+        if (IsInitList) {
+          HasInitializerListCtor = true;
+          auto TemplateArgs = TST->template_arguments();
+          if (!TemplateArgs.empty()) {
+            InitListElemType = TemplateArgs[0].getAsType();
+          }
+          break;
+        }
+      }
+    }
+    if (HasInitializerListCtor) {
+      break;
+    }
+  }
+
+  if (!HasInitializerListCtor) {
+    return false;
+  }
+
+  const unsigned NumArgs = CCE->getNumArgs();
+
+  if (NumArgs >= 2) {
+    // Check for basic_string special cases first
+    auto BasicStringResult = wouldBraceInitChangeBasicStringConstructor(CCE, Record);
+    if (BasicStringResult.has_value()) {
+      return BasicStringResult.value();
+    }
+
+    if (NumArgs == 2 && CurrentCtor->getNumParams() >= 2) {
+      const QualType Param1Ty = CurrentCtor->getParamDecl(0)->getType();
+      const QualType Param2Ty = CurrentCtor->getParamDecl(1)->getType();
+
+      bool Param1IsIterator =
+          Param1Ty->getAs<PointerType>() != nullptr || Param1Ty->getAs<ReferenceType>() != nullptr;
+      bool Param2IsIterator =
+          Param2Ty->getAs<PointerType>() != nullptr || Param2Ty->getAs<ReferenceType>() != nullptr;
+
+      if (Param1IsIterator && Param2IsIterator && CCE->getArg(0)->getType()->isPointerType() &&
+          CCE->getArg(1)->getType()->isPointerType()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  if (NumArgs == 1) {
+    // Check for basic_string special cases first
+    auto BasicStringResult = wouldBraceInitChangeBasicStringConstructor(CCE, Record);
+    if (BasicStringResult.has_value()) {
+      return BasicStringResult.value();
+    }
+
+    const Expr* ArgExpr = CCE->getArg(0);
+    const Type* ArgTy = ArgExpr->getType().getTypePtr();
+
+    if (!InitListElemType.isNull()) {
+      const Type* ElemTy = InitListElemType.getTypePtr();
+
+      if (ArgTy->isPointerType() && !ElemTy->isPointerType()) {
+        return false;
+      }
+
+      if (ArgTy->isIntegerType() && ElemTy->isIntegerType()) {
+        return true;
+      }
+
+      if (ArgTy->isFloatingType() && ElemTy->isFloatingType()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return false;
 }
 
 bool InitCheck::hasNonTrivialDefaultConstructor(QualType QualTypeRef) {
@@ -424,6 +645,10 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
     return;
   }
 
+  if (isInsideMacro(VarDeclPtr, Ctx)) {
+    return;
+  }
+
   const auto* Init = VarDeclPtr->getInit();
   if (Init == nullptr) {
     return;
@@ -471,45 +696,8 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
         return;
       }
 
-      if (CCE->getConstructor() != nullptr) {
-        const CXXRecordDecl* Record{CCE->getConstructor()->getParent()};
-        if (Record != nullptr) {
-          for (const CXXConstructorDecl* Ctor : Record->ctors()) {
-            if (Ctor->isExplicit()) {
-              continue;
-            }
-            for (const ParmVarDecl* Param : Ctor->parameters()) {
-              const Type* ParamTy = Param->getType().getTypePtr();
-              if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
-                if (TST->getTemplateName().getAsTemplateDecl()->getName() == "initializer_list") {
-                  auto TemplateArgs = TST->template_arguments();
-                  if (!TemplateArgs.empty()) {
-                    const TemplateArgument& Arg = TemplateArgs[0];
-                    const QualType InitListElemType{Arg.getAsType()};
-                    const Type* ArgTy{InitListElemType.getTypePtr()};
-
-                    if (CCE->getNumArgs() > 0) {
-                      const Expr* ArgExpr{CCE->getArg(0)};
-                      const Type* ExprTy{ArgExpr->getType().getTypePtr()};
-                      if (ExprTy->isIntegerType() && ArgTy->isIntegerType()) {
-                        return;
-                      }
-                      if (ExprTy->isFloatingType() && ArgTy->isFloatingType()) {
-                        return;
-                      }
-                      if (ExprTy->isPointerType() && ArgTy->isPointerType()) {
-                        return;
-                      }
-                      if (ExprTy == ArgTy) {
-                        return;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+      if (wouldBraceInitChangeConstructor(CCE)) {
+        return;
       }
     }
   }
@@ -559,6 +747,9 @@ void InitCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
     const Expr* InitExpr{Init->IgnoreImplicit()};
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr);
         (CCE != nullptr) && CCE->getNumArgs() > 0) {
+      if (wouldBraceInitChangeConstructor(CCE)) {
+        return;
+      }
       const Expr* Arg{CCE->getArg(0)};
       const auto ArgStart = Arg->getBeginLoc();
       const auto ParenCloseLoc = CCE->getParenOrBraceRange().getEnd();
