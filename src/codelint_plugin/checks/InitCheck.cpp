@@ -254,8 +254,8 @@ InitCheck::wouldBraceInitChangeBasicStringConstructor(const CXXConstructExpr* CC
     return std::nullopt;
   }
 
-  const auto RecordName = Record->getName();
-  if (RecordName != "basic_string") {
+  const std::string RecordName = Record->getQualifiedNameAsString();
+  if (RecordName != "std::basic_string") {
     return std::nullopt;
   }
 
