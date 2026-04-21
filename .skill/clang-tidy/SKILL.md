@@ -145,8 +145,8 @@ Add to `CMakeLists.txt`:
 ```cmake
 # Enable clang-tidy checks during build
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_CLANG_TIDY 
-      clang-tidy 
+  set(CMAKE_CXX_CLANG_TIDY
+      clang-tidy
       --load=${CMAKE_SOURCE_DIR}/lib/codelint-plugin.so
       --checks=-*,codelint-*
   )
@@ -164,29 +164,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build
-      
+
       - name: Generate compile commands
         run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-      
+
       - name: Download clang-tidy-skill
         run: |
           wget https://github.com/user/codelint/releases/download/v0.1.0/clang-tidy-skill-0.1.0-linux-x64.tar.gz
           tar -xzf clang-tidy-skill-*.tar.gz
           export PATH=$GITHUB_WORKSPACE/bin:$PATH
           export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH
-      
+
       - name: Run clang-tidy
         run: |
           ./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py \
             --branch main \
             --output sarif \
             > results.sarif
-      
+
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v2
         with:
