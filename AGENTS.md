@@ -203,6 +203,74 @@ git commit --no-verify -m "emergency fix"
 
 ---
 
+## 🔄 PR Submission Protocol (CRITICAL)
+
+**When user asks to "submit PR", AI MUST:**
+
+1. **Create the PR** using `gh pr create`
+2. **Monitor CI status** until ALL checks pass
+3. **Fix any failures** before reporting completion
+
+### Required Steps
+
+```
+Step 1: Create PR
+   gh pr create --base main --head <branch> --title "..." --body "..."
+
+Step 2: Watch CI pipeline
+   gh run watch --exit-status  # Wait for completion
+
+Step 3: If CI fails:
+   - Check failure logs: gh run view <RUN_ID> --log-failed
+   - Fix the issue (e.g., trailing whitespace, lint errors)
+   - Commit fix: git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "fix: ..."
+   - Push: git push origin <branch>
+   - Repeat Step 2
+
+Step 4: Only report "PR created" when CI passes
+```
+
+### Common CI Failures
+
+| Failure Type | Cause | Fix |
+|--------------|-------|-----|
+| **Trailing whitespace** | Lines ending with spaces | `sed -i '' 's/[[:blank:]]*$//' <files>` |
+| **Trailing newline** | Files missing final newline | Add newline at end of file |
+| **Clang-format** | Code formatting mismatch | Run `clang-format -i <files>` |
+| **Clang-tidy warnings** | Code style issues | Fix the warnings or suppress |
+| **Test failures** | Tests not passing | Fix code, not tests |
+
+### NEVER Do This
+
+- ❌ Create PR and immediately report "done" without checking CI
+- ❌ Ignore CI failures and leave them for user to fix
+- ❌ Walk away after PR creation without verifying pipeline
+
+### Example Workflow
+
+```bash
+# After creating PR
+gh pr create --base main --head skills --title "feat: ..."
+
+# MUST watch CI - this is NOT optional
+gh run watch --exit-status
+
+# If whitespace check fails
+gh run view <RUN_ID> --log-failed | grep "trailing whitespace"
+sed -i '' 's/[[:blank:]]*$//' affected_files
+git add affected_files
+git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "style: fix trailing whitespace"
+git push origin skills
+
+# Watch again
+gh run watch --exit-status
+
+# Only now can you report success
+echo "✅ PR created and CI passed: https://github.com/..."
+```
+
+---
+
 ## 📋 PR Merge Checklist (CRITICAL)
 
 **ALWAYS test the release workflow before merging!**

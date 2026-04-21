@@ -150,15 +150,15 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           echo "🔍 Running codelint checks..."
-          
+
           # Check all source files (exclude tests)
           src_files=$(find src -name '*.cpp')
-          
+
           if [ -z "$src_files" ]; then
             echo "✅ No source files found, skipping codelint"
             exit 0
           fi
-          
+
           # Run codelint checks (check only, no auto-fix in CI)
           # Safety measures:
           # 1. NO --fix or --fix-errors (prevents modifying any files)
@@ -169,5 +169,5 @@ jobs:
             --checks='codelint-*' \
             -p build \
             $src_files 2>&1 | tee codelint_output.txt
-          
+
           echo "✅ Codelint checks completed"
