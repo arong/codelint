@@ -77,7 +77,7 @@ Workflow:
 SDKROOT=$(xcrun --show-sdk-path) cmake --preset default
 cmake --build build
 
-# Linux  
+# Linux
 cmake --preset default
 cmake --build build
 ```
