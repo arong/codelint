@@ -1,4 +1,18 @@
 ---
+## ⚡ First-Time Setup
+
+```bash
+./setup.sh
+```
+
+This configures git hooks for:
+- clang-format auto-fix
+- trailing whitespace/newlines
+- commit message format
+- branch restriction (AI: develop only)
+
+---
+
 ## 🤖 AI Commit Author (CRITICAL)
 
 **AI must use distinct author for commits.**
