@@ -111,3 +111,4 @@ Key categories: `bugprone-*`, `modernize-*`, `performance-*`, `readability-*`, `
 | `LD_LIBRARY_PATH error (Linux)` | Set `export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH` |
 
 
+
