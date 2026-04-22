@@ -124,33 +124,43 @@ Before making ANY change, AI should verify:
 
 ## AI Development Branch Rules (CRITICAL)
 
-### 🎯 AI Can ONLY Work on `develop` Branch
+### 🎯 AI Branch Strategy: Feature/Bugfix Branches → PR → Main
 
-**This is a STRICT requirement enforced by git hooks.**
+**One feature per branch, all changes via PR to main.**
 
 ### Branch Permissions
 
 | Branch | AI Status | Reason |
 |--------|-----------|--------|
-| `develop` | ✅ **ALLOWED** | Designated AI development branch |
-| `main` | ❌ **BLOCKED** | Production - humans only |
-| `master` | ❌ **BLOCKED** | Production - humans only |
-| `production` | ❌ **BLOCKED** | Production - humans only |
-| `feature/*` | ❌ **BLOCKED** | Should use develop instead |
+| `main` | ❌ **BLOCKED** | Production - only via PR |
+| `master` | ❌ **BLOCKED** | Production - only via PR |
+| `production` | ❌ **BLOCKED** | Production - only via PR |
+| `feature/*` | ✅ **ALLOWED** | Feature development - one feature per branch |
+| `bugfix/*` | ✅ **ALLOWED** | Bug fix development |
+| `refactor/*` | ✅ **ALLOWED** | Refactoring work |
+
+### Branch Naming Convention
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Feature | `feature/<feature-name>` | `feature/add-uninit-check` |
+| Bugfix | `bugfix/<issue-description>` | `bugfix/fix-array-init` |
+| Refactor | `refactor/<refactor-name>` | `refactor/split-init-check` |
 
 ### Enforcement
 
 The `commit-msg` hook enforces this rule:
 
-**When you commit on `develop`:**
+**When you commit on `feature/*` or `bugfix/*`:**
 ```
-✓ All tests passed. Commit proceeding.
+✓ Branch check passed. Commit proceeding.
 ```
 
 **When you try to commit on `main`:**
 ```
 ╔════════════════════════════════════════╗
 ║  🚫 BLOCKED: AI cannot commit to main  ║
+║  Create a feature/bugfix branch first  ║
 ╚════════════════════════════════════════╝
 ```
 
@@ -158,37 +168,48 @@ The `commit-msg` hook enforces this rule:
 
 AI assistants MUST:
 
-1. **Always checkout develop first:**
+1. **Create a branch from main:**
    ```bash
-   git checkout develop
-   git pull origin develop
+   git checkout main
+   git pull origin main
+   git checkout -b feature/<feature-name>
    ```
 
-2. **Make all commits on develop:**
+2. **Work on the feature branch:**
    ```bash
-   git commit -m "feat: add new functionality"
+   git add -A
+   git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "feat: add new functionality"
+   git push -u origin feature/<feature-name>
    ```
 
-3. **Push to develop:**
+3. **Create PR to main:**
    ```bash
-   git push origin develop
+   gh pr create --base main --head feature/<feature-name> --title "feat: description"
    ```
 
-4. **Let humans handle PRs:**
-   - Humans review develop branch
-   - Humans create PR: develop → main
-   - Humans merge after approval
+4. **Monitor CI and wait for human approval:**
+   ```bash
+   gh run watch --exit-status
+   ```
+
+5. **After merge, cleanup:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git branch -d feature/<feature-name>
+   ```
 
 ### Why This Rule?
 
-1. **Isolation** - AI work separate from production
-2. **Review** - All AI code gets human review
-3. **Stability** - main branch always stable
-4. **Traceability** - Clear development path
+1. **One Feature Per Branch** - Clean, reviewable changes
+2. **No Direct Main Commits** - All code reviewed via PR
+3. **Traceability** - Each feature has its own branch history
+4. **Easy Rollback** - Can revert specific feature PRs
+5. **Clear Context** - Branch name describes the work
 
 ### Exceptions
 
-**None for AI.** This rule is absolute.
+**None for AI on main branch.** This rule is absolute.
 
 For humans with emergency needs:
 ```bash
@@ -204,7 +225,7 @@ git commit --no-verify -m "emergency fix"
 Release workflow is triggered by tags only. Test it with a test tag:
 
 ```bash
-git checkout develop
+# Create test tag from current branch
 git tag v0.X.X-test
 git push origin v0.X.X-test
 gh run watch --exit-status
