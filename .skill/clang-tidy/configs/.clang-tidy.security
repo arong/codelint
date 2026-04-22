@@ -1,0 +1,94 @@
+---
+# clang-tidy security configuration
+# Security-focused checks for auditing and vulnerability detection
+# Focuses on CERT secure coding and clang security analyzer
+
+Checks: >
+  -*,
+  # Core security checks from CERT C++ Secure Coding
+  cert-*,
+  -cert-dcl21-c,
+  -cert-dcl50-cpp,
+  -cert-env33-c,
+  -cert-err34-c,
+  -cert-flp30-c,
+  -cert-msc50-cpp,
+  -cert-msc51-cpp,
+  -cert-oop57-cpp,
+  
+  # Clang Static Analyzer - Security focus
+  clang-analyzer-security.*,
+  
+  # Bug detection for security issues
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  bugprone-integer-division,
+  bugprone-macro-parentheses,
+  bugprone-macro-repeated-side-effects,
+  bugprone-multi-level-implicit-pointer-conversion,
+  bugprone-not-null-terminated-result,
+  bugprone-parent-virtual-call,
+  bugprone-reserved-identifier,
+  bugprone-signal-handler,
+  bugprone-sizeof-container,
+  bugprone-sizeof-expression,
+  bugprone-string-constructor,
+  bugprone-string-literal-with-embedded-nul,
+  bugprone-suspicious-enum-usage,
+  bugprone-suspicious-memset-usage,
+  bugprone-suspicious-memory-comparison,
+  bugprone-suspicious-realloc-usage,
+  bugprone-suspicious-string-compare,
+  bugprone-swapped-arguments,
+  bugprone-throw-keyword-missing,
+  bugprone-too-small-loop-variable,
+  bugprone-unhandled-exception-at-new,
+  bugprone-unhandled-self-assignment,
+  bugprone-unused-return-value,
+  bugprone-use-after-move,
+  bugprone-virtual-near-miss,
+  
+  # C++ Core Guidelines - Security relevant subset
+  cppcoreguidelines-avoid-capturing-lambda-coroutines,
+  cppcoreguidelines-avoid-reference-coroutine-parameters,
+  cppcoreguidelines-interfaces-global-init,
+  cppcoreguidelines-no-malloc,
+  cppcoreguidelines-owning-memory,
+  cppcoreguidelines-pro-type-vararg,
+  cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  cppcoreguidelines-pro-type-member-init,
+  cppcoreguidelines-pro-type-reinterpret-cast,
+  cppcoreguidelines-pro-type-static-cast-downcast,
+  cppcoreguidelines-pro-type-union-access,
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-special-member-functions,
+  cppcoreguidelines-virtual-class-destructor,
+
+HeaderFilterRegex: '.*'
+WarningsAsErrors: >
+  cert-*,
+  clang-analyzer-security.*,
+  bugprone-not-null-terminated-result,
+  bugprone-signal-handler,
+  bugprone-suspicious-memset-usage,
+  bugprone-suspicious-memory-comparison,
+  bugprone-use-after-move
+
+FormatStyle: 'file'
+InheritParentConfig: true
+
+CheckOptions:
+  # cert-dcl16-c: unsigned suffixes
+  - key: cert-dcl16-c.NewSuffixes
+    value: 'L;LL;LU;LLU'
+  
+  # bugprone-not-null-terminated-result
+  - key: bugprone-not-null-terminated-result.WantedLength
+    value: 'strlen'
+  
+  # bugprone-signal-handler
+  - key: bugprone-signal-handler.AllowUnsafeFunctions
+    value: '0'

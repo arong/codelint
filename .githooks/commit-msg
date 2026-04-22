@@ -41,35 +41,26 @@ echo "✅ Commit message format valid"
 # ========================================
 # AI Branch Restriction Check
 # ========================================
-# AI can commit on feature/*, bugfix/*, refactor/* branches
+# AI can only commit on 'develop' branch
 # Blocked branches: main, master, production
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-BLOCKED_BRANCHES="main|master|production"
-ALLOWED_PATTERNS="feature/.*|bugfix/.*|refactor/.*"
+BLOCKED_BRANCHES="main|master|production|release"
 
 if echo "$CURRENT_BRANCH" | grep -qE "^(${BLOCKED_BRANCHES})$"; then
     echo ""
-    echo "╔══════════════════════════════════════╗"
-    echo "║  🚫 BLOCKED: AI cannot commit to     ║"
-    echo "║  main branch                         ║"
-    echo "╚══════════════════════════════════════╝"
+    echo "╔════════════════════════════════════════╗"
+    echo "║  🚫 BLOCKED: AI cannot commit to       ║"
+    echo "║  production branches                   ║"
+    echo "╚════════════════════════════════════════╝"
     echo ""
     echo "Current branch: $CURRENT_BRANCH"
     echo ""
     echo "AI development workflow:"
-    echo "  1. Create feature/bugfix branch from main"
-    echo "     git checkout main && git pull"
-    echo "     git checkout -b feature/<feature-name>"
-    echo "  2. Work on the feature branch (allowed)"
-    echo "  3. Push and create PR to main"
-    echo "     gh pr create --base main --head feature/<name>"
-    echo ""
-    echo "Allowed branch patterns:"
-    echo "  - feature/*  (one feature per branch)"
-    echo "  - bugfix/*   (bug fixes)"
-    echo "  - refactor/* (refactoring work)"
+    echo "  1. Work on 'develop' branch (allowed)"
+    echo "  2. Push to develop"
+    echo "  3. Humans review and create PR: develop → main"
     echo ""
     echo "If you need to bypass this restriction:"
     echo "  git commit --no-verify -m 'emergency fix'"
@@ -82,8 +73,8 @@ fi
 # ========================================
 echo "✅ Branch check passed (branch: $CURRENT_BRANCH)"
 
-# Run tests if on feature/bugfix/refactor branches
-if echo "$CURRENT_BRANCH" | grep -qE "^(${ALLOWED_PATTERNS})$"; then
+# Run tests if on develop branch
+if [ "$CURRENT_BRANCH" = "develop" ]; then
     echo "🧪 Running quick tests..."
     
     # Check if build directory exists
