@@ -1,0 +1,44 @@
+---
+# clang-tidy default configuration
+# Basic checks with low noise - suitable for new projects and incremental adoption
+
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -modernize-concat-nested-namespaces,
+  performance-*,
+  readability-*,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-inconsistent-declaration-parameter-name
+
+HeaderFilterRegex: '(src/|include/).*\.(h|hpp|hxx)$'
+WarningsAsErrors: ''
+FormatStyle: 'file'
+InheritParentConfig: true
+
+CheckOptions:
+  # modernize-use-auto: only suggest auto for long type names
+  - key: modernize-use-auto.MinTypeNameLength
+    value: '5'
+  
+  # modernize-loop-convert: reasonable confidence level
+  - key: modernize-loop-convert.MinConfidence
+    value: 'reasonable'
+  
+  # modernize-use-default-member-init: prefer assignment style
+  - key: modernize-use-default-member-init.UseAssignment
+    value: '1'
+  
+  # performance-move-const-arg: check trivially-copyable move
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: '1'
+  
+  # performance-unnecessary-value-param: include header removal
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: ''
