@@ -2,7 +2,7 @@ tests/CodeLintTest/src/init_checker/src/enum_types.cpp:6:7: error: variable is n
     6 | Color color1;
       |       ^
       |             {}
-tests/CodeLintTest/src/init_checker/src/enum_types.cpp:15:11: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/enum_types.cpp:15:11: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    15 | ErrorCode ec2 = ErrorCode::None;   // will be fixed
       |           ^   ~
       |              {                 }
@@ -10,7 +10,7 @@ tests/CodeLintTest/src/init_checker/src/enum_types.cpp:24:8: error: variable is 
    24 | Status sts;                // shall be `{}` inited
       |        ^
       |           {}
-tests/CodeLintTest/src/init_checker/src/enum_types.cpp:25:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/enum_types.cpp:25:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    25 | Status sts1 = Status::OK;  // shall be `{}` inited
       |        ^    ~
       |            {            }

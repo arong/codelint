@@ -1,7 +1,6 @@
 #pragma once
 
 #include <clang-tidy/ClangTidyCheck.h>
-#include <optional>
 
 namespace clang::tidy::codelint {
 
@@ -18,30 +17,11 @@ public:
   }
 
 private:
-  static bool isInSystemHeader(SourceLocation Loc, ASTContext* Ctx);
-
   void checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkUninitializedField(const FieldDecl* FieldDeclPtr, ASTContext* Ctx);
-  void checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  void checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  void checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  void checkDangerousConversion(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
                                                        ASTContext* Ctx);
-
-  static bool shouldSkipAuto(const VarDecl* VarDeclPtr);
-  static bool isAutoType(const VarDecl* VarDeclPtr);
-  static bool shouldSkipUnion(const VarDecl* VarDeclPtr);
-  static bool shouldSkipExtern(const VarDecl* VarDeclPtr);
-  static bool shouldSkipEnumClass(const VarDecl* VarDeclPtr);
-  static bool isEnumZeroValidType(const Type* TypePtr);
-  static bool hasExplicitInitializer(const VarDecl* VarDeclPtr);
-  static bool hasExplicitInitializer(const FieldDecl* FieldDeclPtr);
-  static bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  static bool wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE);
-  static std::optional<bool>
-  wouldBraceInitChangeBasicStringConstructor(const CXXConstructExpr* CCE,
-                                             const CXXRecordDecl* Record);
-  [[nodiscard]] static bool hasNonTrivialDefaultConstructor(QualType QualTypeRef);
 };
 
 } // namespace clang::tidy::codelint
