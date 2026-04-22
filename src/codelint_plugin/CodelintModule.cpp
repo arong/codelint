@@ -1,5 +1,6 @@
 #include "codelint/checks/GlobalCheck.h"
 #include "codelint/checks/InitCheck.h"
+#include "codelint/checks/LintCodeCheck.h"
 #include "codelint/checks/SignedToUnsignedReturnCheck.h"
 #include "codelint/checks/SingletonCheck.h"
 #include "codelint/checks/StrictBoolConditionCheck.h"
@@ -12,6 +13,7 @@ class CodelintModule : public ClangTidyModule {
 public:
   void addCheckFactories(ClangTidyCheckFactories& CheckFactories) override {
     CheckFactories.registerCheck<InitCheck>("codelint-init");
+    CheckFactories.registerCheck<LintCodeCheck>("codelint-lint-code");
     CheckFactories.registerCheck<GlobalCheck>("codelint-global");
     CheckFactories.registerCheck<SingletonCheck>("codelint-singleton");
     CheckFactories.registerCheck<StrictBoolConditionCheck>("codelint-strict-bool-condition");
@@ -23,4 +25,4 @@ public:
 
 // Register the module
 static clang::tidy::ClangTidyModuleRegistry::Add<clang::tidy::codelint::CodelintModule>
-    X("codelint-module", "Adds codelint checks: init, global, singleton"); // NOLINT
+    X("codelint-module", "Adds codelint checks: init, lint-code, global, singleton"); // NOLINT

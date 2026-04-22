@@ -6,10 +6,10 @@ tests/CodeLintTest/src/init_checker/src/macro_array.cpp:14:5: error: C-style arr
    14 | int regular_array[5];                    // This SHOULD trigger a C-style array warning
       |     ^
       |                     {}
-tests/CodeLintTest/src/init_checker/src/macro_array.cpp:15:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/macro_array.cpp:15:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    15 | int initialized_array[5] = {};           // This SHOULD trigger a warning (suggest brace init)
       |     ^                    ~
-tests/CodeLintTest/src/init_checker/src/macro_array.cpp:17:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/macro_array.cpp:17:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    17 | int assigned_array[5] = {1, 2, 3, 4, 5}; // This SHOULD trigger a warning (suggest brace init)
       |     ^                 ~
 tests/CodeLintTest/src/init_checker/src/macro_array.cpp:18:7: error: C-style array is not initialized [codelint-init]

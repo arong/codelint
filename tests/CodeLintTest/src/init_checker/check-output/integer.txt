@@ -6,22 +6,22 @@ tests/CodeLintTest/src/init_checker/src/integer.cpp:5:10: error: variable is not
     5 | unsigned global2;
       |          ^
       |                 {}
-tests/CodeLintTest/src/init_checker/src/integer.cpp:7:5: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:7:5: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
     7 | int global3 = 1;
       |     ^       ~
       |            {   }
-tests/CodeLintTest/src/init_checker/src/integer.cpp:8:10: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:8:10: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
     8 | unsigned global4 = 2;
       |          ^       ~
       |                 {   U}
-tests/CodeLintTest/src/init_checker/src/integer.cpp:9:10: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:9:10: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
     9 | uint64_t global5 = 5;
       |          ^       ~
       |                 {   UL}
 tests/CodeLintTest/src/init_checker/src/integer.cpp:34:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization [codelint-init]
    34 |   int d = 3.14;
       |       ^
-tests/CodeLintTest/src/init_checker/src/integer.cpp:42:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/integer.cpp:42:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    42 |   bool ok = true;
       |        ^  ~
       |          {      }

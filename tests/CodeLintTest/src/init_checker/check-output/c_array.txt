@@ -30,9 +30,9 @@ tests/CodeLintTest/src/init_checker/src/c_array.cpp:21:15: error: variable is no
    21 |   int x1, x2, x3;
       |               ^
       |                 {}
-tests/CodeLintTest/src/init_checker/src/c_array.cpp:24:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:24:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    24 |   int arr[3] = {1, 2, 3};
       |       ^      ~
-tests/CodeLintTest/src/init_checker/src/c_array.cpp:25:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/c_array.cpp:25:7: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    25 |   int arr2[] = {1, 2, 3};
       |       ^      ~

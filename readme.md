@@ -42,13 +42,16 @@ void process() {
 
 | Check | What It Does | Auto-fix | Language Support |
 |-------|--------------|----------|------------------|
-| **codelint-init** | Variable initialization style | ✅ Yes | C++14/17/20 |
+| **codelint-init** | Uninitialized variables, dangerous conversions (int→bool, narrowing) | ✅ Yes (uninit) | C++14/17/20 |
+| **codelint-lint-code** | Initialization style (`=`→`{}`), unsigned suffix (`U`/`UL`) | ✅ Yes | C++14/17/20 |
 | **codelint-strict-bool-condition** | Bool-only condition enforcement | ❌ No | C++14/17/20 |
 | **codelint-global** | Global variable detection | ❌ No | C++ |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No | C++ |
 | **codelint-signed-to-unsigned-return** | Signed→unsigned return value detection | ❌ No | C++14/17/20 |
 
-## codelint-init Features
+## codelint-init Features (Semantic Checks)
+
+Focus: **Correctness and safety issues** (Error-level diagnostics)
 
 ### 1. Uninitialized Variables → `{}`
 
@@ -73,7 +76,43 @@ std::string str{};      // ✅ fixed: non-trivial type explicitly initialized
 int arr[10]{};          // ✅ fixed: array initialized
 ```
 
-### 2. Equals Syntax → Brace Initialization
+### 2. Dangerous Conversions (Error)
+
+**int→bool conversion:**
+```cpp
+bool ret = Init();      // ❌ Error: assigning integer to bool is dangerous
+bool flag = 1;          // ❌ Error: assigning integer to bool is dangerous
+
+bool ok = true;         // ✅ OK: bool literal
+bool status{false};     // ✅ OK: brace init with bool
+```
+
+**Narrowing conversions:**
+```cpp
+int value = 3.14;       // ⚠️ Warning: narrowing conversion; cannot use {} init
+```
+
+### 3. Smart Skip List (Semantic Checks)
+
+Codelint intelligently skips these cases:
+
+| Category | Example | Reason |
+|----------|---------|--------|
+| **For loops** | `for (int i = 0; i < n; i++)` | C-style idiom |
+| **Catch parameters** | `catch (const Exception& e)` | Initialized by catch |
+| **Macro definitions** | Variables inside `#define` | Cannot modify macros |
+| **Extern declarations** | `extern int x;` | Definition elsewhere |
+| **Union members** | `union { int a; }` | Union special handling |
+| **Enum class** | `enum class Color { Red }` | Scoped enum |
+| **Bitfields** | `int flags : 4;` | Bitfield special syntax |
+| **References** | `int& ref = x;` | Must be bound at declaration |
+| **Default arguments** | `void foo(int a = 10)` | Function signature |
+
+## codelint-lint-code Features (Style Checks)
+
+Focus: **Code style and readability** (Warning-level diagnostics)
+
+### 1. Equals Syntax → Brace Initialization
 
 **For non-auto types:**
 ```cpp
@@ -93,7 +132,7 @@ const auto* cp{&value}; // → const auto* cp = &value;
 - `auto x = 42` is clearer and conventional for type deduction
 - Brace initialization with auto can lead to surprising type deductions
 
-### 3. Unsigned Suffix → `U` or `UL`
+### 2. Unsigned Suffix → `U` or `UL`
 
 Codelint automatically adds the correct suffix based on type size:
 
@@ -108,17 +147,7 @@ uint64_t val = 42;      // → uint64_t val{42UL};
 unsigned long big = 100; // → unsigned long big{100UL};
 ```
 
-### 4. Bool from Integer → Error
-
-```cpp
-bool ret = Init();      // ❌ Error: assigning integer to bool is dangerous
-bool flag = 1;          // ❌ Error: assigning integer to bool is dangerous
-
-bool ok = true;         // ✅ OK: bool literal
-bool status{false};     // ✅ OK: brace init with bool
-```
-
-### 5. Smart Skip List (Complete)
+### 3. Smart Skip List (Style Checks)
 
 Codelint intelligently skips these cases where modification is unsafe or intentional:
 
@@ -143,7 +172,7 @@ Codelint intelligently skips these cases where modification is unsafe or intenti
 | **Type widening** | `float f = 5` | Safe implicit conversion |
 | **initializer_list constructors** | `MyArray arr = 1` (class has `initializer_list<int>`) | Brace init would change constructor selection |
 
-### 6. initializer_list Constructor Handling
+### 4. initializer_list Constructor Handling
 
 Classes with `std::initializer_list` constructors require special care:
 
@@ -160,7 +189,7 @@ std::string s = "hello";  // ✅ FIXED to std::string s{"hello"}
 // std::string has initializer_list<char>, but "hello" is const char*, not initializer_list
 ```
 
-### 7. Constructor Member Initialization
+## codelint-init: Constructor Member Initialization
 
 ```cpp
 class Widget {

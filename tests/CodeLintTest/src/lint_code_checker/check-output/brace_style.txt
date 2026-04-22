@@ -1,0 +1,33 @@
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:5:5: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+    5 | int a = 10;
+      |     ^     ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:6:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+    6 | double b = 3.14;
+      |        ^      ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:7:15: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+    7 | std::string s = "hello";
+      |               ^       ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:10:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
+   10 | int c = {1};
+      |     ^  ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:11:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
+   11 | int d = {};
+      |     ^  ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:14:5: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
+   14 | auto x{42};
+      |     ^
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:15:6: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
+   15 | auto *p{&a};
+      |      ^
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:16:11: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
+   16 | const auto *cp{&a};
+      |           ^
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:19:9: warning: unsigned integer literal should have 'U' suffix [codelint-lint-code]
+   19 | unsigned u = 100;
+      |         ^      ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:20:11: warning: unsigned integer literal should have 'UL' suffix [codelint-lint-code]
+   20 | uint64_t big = 42;
+      |           ^     ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:23:15: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+   23 | std::string str("world");
+      |               ^        ~

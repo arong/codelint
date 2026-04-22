@@ -187,7 +187,8 @@ FAIL_COUNT=0
 get_check_flag() {
     local checker="$1"
     case "$checker" in
-        "init_checker")    echo "codelint-init,-codelint-global,-codelint-singleton,-codelint-strict-bool-condition,-codelint-signed-to-unsigned-return" ;;
+        "init_checker")    echo "codelint-init,codelint-lint-code,-codelint-global,-codelint-singleton,-codelint-strict-bool-condition,-codelint-signed-to-unsigned-return" ;;
+        "lint_code_checker") echo "-*,codelint-lint-code" ;;
         "global_checker")  echo "-*,codelint-global" ;;
         "singleton_checker") echo "-*,codelint-singleton" ;;
         "strict_bool_condition_checker") echo "-*,codelint-strict-bool-condition" ;;
@@ -200,6 +201,7 @@ has_fix_phase() {
     local checker="$1"
     case "$checker" in
         "init_checker") echo "true" ;;
+        "lint_code_checker") echo "true" ;;
         *) echo "false" ;;
     esac
 }
@@ -297,6 +299,8 @@ run_check_output_test() {
     awk '
         /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
         /error: .* \[codelint-init\]/ { found=1; count=4; print; next }
+        /warning: .* \[codelint-lint-code\]/ { found=1; count=4; print; next }
+        /error: .* \[codelint-lint-code\]/ { found=1; count=4; print; next }
         /warning: .* \[codelint-global\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-singleton\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
