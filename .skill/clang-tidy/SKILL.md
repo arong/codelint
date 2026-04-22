@@ -57,28 +57,6 @@ cp share/clang-tidy-skill/configs/.clang-tidy.strict .clang-tidy
 
 ---
 
-## CI Integration (GitHub Actions)
-
-```yaml
-- name: Download clang-tidy-skill
-  run: |
-    wget https://github.com/arong/codelint/releases/download/v0.1.0/clang-tidy-skill-0.1.0-linux-x86_64.tar.gz
-    tar -xzf clang-tidy-skill-*.tar.gz
-    export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
-
-- name: Run clang-tidy
-  run: |
-    ./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py \
-      --branch main --output sarif > results.sarif
-
-- name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v2
-  with:
-    sarif_file: results.sarif
-```
-
----
-
 ## Checks Reference
 
 ### codelint Plugin Checks
@@ -141,11 +119,3 @@ if (n < 0) { handle_error(); }
 | `compile_commands.json not found` | `cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON` |
 | `clang-tidy not found` | Ensure `bin/` in PATH |
 | `LD_LIBRARY_PATH error` | `export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH` |
-
----
-
-## Requirements
-
-- Ubuntu 22.04 or compatible Linux
-- CMake 3.20+
-- C++14/17/20 project
