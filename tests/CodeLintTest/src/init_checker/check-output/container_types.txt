@@ -38,9 +38,9 @@ tests/CodeLintTest/src/init_checker/src/container_types.cpp:30:22: warning: vari
    30 |   std::map<int, int> local_map;
       |                      ^
       |                               {}
-tests/CodeLintTest/src/init_checker/src/container_types.cpp:32:24: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:32:24: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    32 |   std::vector<uint8_t> vec = {1, 2, 3};
       |                        ^   ~
-tests/CodeLintTest/src/init_checker/src/container_types.cpp:34:37: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/container_types.cpp:34:37: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    34 |   std::vector<std::vector<uint8_t>> island = {
       |                                     ^      ~

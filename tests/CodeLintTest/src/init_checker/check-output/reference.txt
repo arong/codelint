@@ -1,47 +1,47 @@
-tests/CodeLintTest/src/init_checker/src/reference.cpp:9:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:9:7: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
     9 |   int value = 10;
       |       ^     ~
       |            {    }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:10:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:10:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    10 |   int& ref1 = value; // Should suggest brace init: int& ref1{value}
       |        ^    ~
       |            {       }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:13:14: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:13:14: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    13 |   const int& cref1 = 42; // Should suggest brace init: const int& cref1{42}
       |              ^     ~
       |                   {    }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:18:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:18:7: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    18 |   int x = 5;
       |       ^ ~
       |        {   }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:19:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:19:7: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    19 |   int y = 10;
       |       ^ ~
       |        {    }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:21:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:21:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    21 |   int& ref1 = x; // Should suggest brace init
       |        ^    ~
       |            {   }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:22:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:22:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    22 |   int& ref2 = y; // Should suggest brace init
       |        ^    ~
       |            {   }
 tests/CodeLintTest/src/init_checker/src/reference.cpp:29:9: error: field is not initialized [codelint-init]
-tests/CodeLintTest/src/init_checker/src/reference.cpp:32:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:32:7: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    32 |   int x = 5;
       |       ^ ~
       |        {   }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:37:8: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:37:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    37 |   int& local_ref = param; // Should suggest brace init
       |        ^         ~
       |                 {       }
 tests/CodeLintTest/src/init_checker/src/reference.cpp:43:7: error: field is not initialized [codelint-init]
 tests/CodeLintTest/src/init_checker/src/reference.cpp:43:7: error: member variable 'value' is not initialized in constructor [codelint-init]
-tests/CodeLintTest/src/init_checker/src/reference.cpp:51:7: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:51:7: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    51 |   int x = 10;
       |       ^ ~
       |        {    }
-tests/CodeLintTest/src/init_checker/src/reference.cpp:52:9: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/reference.cpp:52:9: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    52 |   int&& rref1 = std::move(x); // Should suggest brace init
       |         ^     ~
       |              {              }

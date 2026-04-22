@@ -2,18 +2,18 @@ tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:24:26: war
    24 |   TemplateContainer<int> tc5;
       |                          ^
       |                             {}
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:48:19: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:48:19: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    48 |   NoInitList<int> nl1(5);
       |                   ^  ~ ~
       |                      { }
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:49:19: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:49:19: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    49 |   NoInitList<int> nl2 = 10;
       |                   ^   ~
       |                      {    }
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:56:20: warning: initializer should use '{}' syntax instead of '= {}' [codelint-init]
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:56:20: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
    56 |   std::vector<int> vec3 = {1, 2, 3};
       |                    ^    ~
-tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:57:15: warning: variable should use '{}' syntax for initialization [codelint-init]
+tests/CodeLintTest/src/init_checker/src/initializer_list_template.cpp:57:15: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
    57 |   std::string str2 = "hello";
       |               ^    ~
       |                   {         }
