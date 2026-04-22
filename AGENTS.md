@@ -151,7 +151,18 @@ Before making ANY change, AI should verify:
 
 The `commit-msg` hook enforces this rule:
 
-**When you commit on `feature/*` or `bugfix/*`:**
+**When you commit on `feature/*`, `bugfix/*`, or `refactor/*`:**
+```
+✓ Branch check passed.
+✓ All tests passed. Commit proceeding.
+```
+
+**When you try to commit on `main`:**
+```
+╔══════════════════════════════════════╗
+║  🚫 BLOCKED: AI cannot commit to     ║
+║  main branch                         ║
+╚══════════════════════════════════════╝
 ```
 ✓ Branch check passed. Commit proceeding.
 ```
