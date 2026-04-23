@@ -111,14 +111,22 @@ clang-tidy --load=lib/codelint-plugin.so --checks=codelinit-init -p build src/**
 
 ## Presets 配置
 
-| Preset | 场景 | 包含 |
+| Preset | 场景 | 特点 |
 |--------|------|------|
-| `.clang-tidy.default` | 日常开发 | bugprone, modernize, performance, readability |
-| `.clang-tidy.strict` | 生产代码 | + cert, cppcoreguidelines, clang-analyzer |
-| `.clang-tidy.security` | 安全审计 | cert, clang-analyzer-security |
+| `.clang-tidy.quick-fix` | **快速修复**（推荐） | 专注可自动修复的问题：初始化、现代化、关键 bug |
+| `.clang-tidy.bugprone` | **Bug 预防** | 高价值 bug 检测，精选低噪音 checks |
+| `.clang-tidy.default` | 日常开发 | 平衡覆盖和噪音 |
+| `.clang-tidy.strict` | 生产代码 | 高覆盖，包含 CERT 和 C++ Core Guidelines |
+| `.clang-tidy.security` | 安全审计 | 安全专用，关键问题视为 error |
 
 ```bash
-# 使用 preset
+# 快速修复（最常用）
+./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --fix
+
+# Bug 预防审查
+./scripts/run_clang_tidy_diff.py --branch main --preset bugprone
+
+# 使用特定 preset
 cp configs/.clang-tidy.default .clang-tidy
 ./scripts/run_clang_tidy_diff.py --branch main --preset default --fix
 ```

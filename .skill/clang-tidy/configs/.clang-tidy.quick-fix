@@ -1,0 +1,92 @@
+---
+# clang-tidy quick-fix configuration
+# Focus on auto-fixable issues with low noise
+# Best for: pre-commit hooks, rapid initialization fixes, style modernization
+# Derived from: codelint-init + high-value modernize + select bugprone
+
+Checks: >
+  -*,
+  # codelint plugin: initialization best practices (all auto-fixable)
+  codelint-init,
+  codelint-lint-code,
+  
+  # Modernize: C++11/14/17 modernization (mostly auto-fixable)
+  modernize-avoid-bind,
+  modernize-concat-nested-namespaces,
+  modernize-loop-convert,
+  modernize-make-shared,
+  modernize-make-unique,
+  modernize-redundant-void-arg,
+  modernize-replace-auto-ptr,
+  modernize-replace-random-shuffle,
+  modernize-shrink-to-fit,
+  modernize-use-bool-literals,
+  modernize-use-default-member-init,
+  modernize-use-emplace,
+  modernize-use-equals-default,
+  modernize-use-equals-delete,
+  modernize-use-noexcept,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-transparent-functors,
+  
+  # Bugprone: high-value bug detection (selective, low false positive)
+  bugprone-argument-comment,
+  bugprone-assert-side-effect,
+  bugprone-dangling-handle,
+  bugprone-forward-declaration-namespace,
+  bugprone-inaccurate-erase,
+  bugprone-move-forwarding-reference,
+  bugprone-sizeof-container,
+  bugprone-string-constructor,
+  bugprone-swapped-arguments,
+  bugprone-too-small-loop-variable,
+  bugprone-undefined-memory-manipulation,
+  bugprone-unhandled-self-assignment,
+  bugprone-unused-raii,
+  bugprone-use-after-move,
+  bugprone-virtual-near-miss,
+  
+  # Performance: obvious optimizations (auto-fixable)
+  performance-for-range-copy,
+  performance-move-const-arg,
+  performance-no-int-to-ptr,
+  
+  # Readability: simple style fixes (auto-fixable)
+  readability-braces-around-statements,
+  readability-container-size-empty,
+  readability-delete-null-pointer,
+  readability-redundant-control-flow,
+  readability-simplify-boolean-expr,
+  readability-string-compare,
+  readability-uniqueptr-delete-release
+
+HeaderFilterRegex: '(src/|include/).*\.(h|hpp|hxx)$'
+WarningsAsErrors: ''
+FormatStyle: 'file'
+InheritParentConfig: true
+
+CheckOptions:
+  # modernize-use-auto: only for long type names
+  - key: modernize-use-auto.MinTypeNameLength
+    value: '5'
+  
+  # modernize-loop-convert: reasonable confidence
+  - key: modernize-loop-convert.MinConfidence
+    value: 'reasonable'
+  
+  # modernize-use-default-member-init: prefer assignment style
+  - key: modernize-use-default-member-init.UseAssignment
+    value: '1'
+  
+  # bugprone-assert-side-effect: common assert macros
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: 'assert,DCHECK,EXPECT_TRUE,ASSERT_TRUE'
+  
+  # bugprone-dangling-handle: common handle classes
+  - key: bugprone-dangling-handle.HandleClasses
+    value: '::std::basic_string_view;::std::span'
+  
+  # performance-move-const-arg
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: '1'

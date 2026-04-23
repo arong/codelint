@@ -106,10 +106,14 @@ if (strcmp(a, b) == 0) { }
 ### 场景 C：用户说"全面检查一下代码质量"
 
 ```bash
-# 使用 default preset，检查修改的文件
-./scripts/run_clang_tidy_diff.py --branch main --preset default --fix
+# 快速修复模式（推荐）：自动修复初始化、现代化、关键 bug
+./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --fix
 
-# 或更严格的 strict preset
+# Bug 预防模式：专注检测潜在 bug
+./scripts/run_clang_tidy_diff.py --branch main --preset bugprone
+
+# 或标准 preset
+./scripts/run_clang_tidy_diff.py --branch main --preset default --fix
 ./scripts/run_clang_tidy_diff.py --branch main --preset strict --fix
 ```
 
@@ -150,11 +154,13 @@ if (strcmp(a, b) == 0) { }
 
 ## Presets 参考
 
-| Preset | 适用场景 | 包含 Checks |
-|--------|---------|------------|
-| `default` | 日常开发，低噪音 | bugprone-*, modernize-*, performance-*, readability-* |
-| `strict` | 生产代码，高覆盖 | + cert-*, cppcoreguidelines-*, clang-analyzer-* |
-| `security` | 安全审计 | cert-*, clang-analyzer-security.*, bugprone-security |
+| Preset | 适用场景 | 包含 Checks | 自动修复 |
+|--------|---------|------------|---------|
+| `quick-fix` | **快速修复**（推荐） | codelint-init, modernize-*, 关键 bugprone, performance | 大部分 ✅ |
+| `bugprone` | **Bug 预防** | codelint-*, 精选 bugprone-*, modernize-*, performance | 部分 |
+| `default` | 日常开发，低噪音 | bugprone-*, modernize-*, performance-*, readability-* | 部分 |
+| `strict` | 生产代码，高覆盖 | + cert-*, cppcoreguidelines-*, clang-analyzer-* | 部分 |
+| `security` | 安全审计 | cert-*, clang-analyzer-security.*, bugprone-security | 部分 |
 
 使用方式：
 ```bash
