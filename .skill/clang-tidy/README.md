@@ -4,39 +4,9 @@ A complete clang-tidy static analysis solution for C++ projects.
 
 ## Features
 
-- 📦 **Bundled clang-tidy 21.x binary** - No installation required
 - 🔌 **codelint plugin integrated** - Initialization best practices checks
 - 📋 **Multiple preset configs** - default, strict, security
 - 🔀 **Git diff support** - Incremental PR analysis
-
-## Quick Start
-
-### 1. Download
-
-Download the appropriate package for your platform:
-
-| Platform | Package |
-|----------|---------|
-| Ubuntu 22.04 (x64) | `clang-tidy-skill-0.1.0-linux-x64.tar.gz` |
-
-### 2. Extract
-
-```bash
-tar -xzf clang-tidy-skill-*.tar.gz
-```
-
-### 3. Run
-
-```bash
-# Set library path and run analysis
-export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
-
-# Generate compile_commands.json
-cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-# Run analysis
-clang-tidy --load=lib/codelint-plugin.so -p build src/**/*.cpp
-```
 
 ## Configuration Presets
 
