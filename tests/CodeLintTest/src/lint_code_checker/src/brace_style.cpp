@@ -1,6 +1,10 @@
 // Test for brace initialization style transformations
 // Focus: = → {} conversion, = {} → {} removal, auto brace → equals
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 // 1. EQUALS TO BRACE INITIALIZATION
 int a = 10;              // Should suggest: int a{10}
 double b = 3.14;         // Should suggest: double b{3.14}

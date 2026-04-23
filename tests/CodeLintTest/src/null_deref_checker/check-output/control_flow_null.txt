@@ -1,0 +1,27 @@
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:10:6: error: dereference of null pointer [codelint-null-deref]
+   10 |     *p = i; // Complex: may or may not be null depending on loop entry
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:29:6: warning: potential dereference of null pointer [codelint-null-deref]
+   29 |     *p = 10; // WARNING: may be null on first iteration
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:40:6: error: dereference of null pointer [codelint-null-deref]
+   40 |     *p = 10; // ERROR: p is null
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:47:6: error: dereference of null pointer [codelint-null-deref]
+   47 |     *p = 40; // ERROR: p is null
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:69:4: warning: potential dereference of null pointer [codelint-null-deref]
+   69 |   *p = 20; // WARNING: may be null (depends on a and b)
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:87:6: error: dereference of null pointer [codelint-null-deref]
+   87 |     *p = 20; // WARNING: may still be null (short-circuit)
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:97:6: error: dereference of null pointer [codelint-null-deref]
+   97 |     *p = 10; // OK: if we get here, p is not null
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:107:4: warning: potential dereference of null pointer [codelint-null-deref]
+  107 |   *p = 20; // ERROR: p is still null (goto skips assignment)
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/control_flow_null.cpp:119:4: warning: potential dereference of null pointer [codelint-null-deref]
+  119 |   *p = 20; // WARNING: may be null if loop never assigns
+      |    ^

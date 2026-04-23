@@ -1,33 +1,42 @@
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:5:5: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
-    5 | int a = 10;
-      |     ^     ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:6:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
-    6 | double b = 3.14;
-      |        ^      ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:7:15: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
-    7 | std::string s = "hello";
-      |               ^       ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:10:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
-   10 | int c = {1};
-      |     ^  ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:11:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
-   11 | int d = {};
-      |     ^  ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:14:5: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
-   14 | auto x{42};
-      |     ^
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:15:6: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
-   15 | auto *p{&a};
-      |      ^
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:16:11: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
-   16 | const auto *cp{&a};
-      |           ^
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:19:9: warning: unsigned integer literal should have 'U' suffix [codelint-lint-code]
-   19 | unsigned u = 100;
-      |         ^      ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:20:11: warning: unsigned integer literal should have 'UL' suffix [codelint-lint-code]
-   20 | uint64_t big = 42;
-      |           ^     ~
-tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:23:15: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
-   23 | std::string str("world");
-      |               ^        ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:9:5: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+    9 | int a = 10;              // Should suggest: int a{10}
+      |     ^ ~
+      |      {    }
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:10:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+   10 | double b = 3.14;         // Should suggest: double b{3.14}
+      |        ^ ~
+      |         {      }
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:11:13: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+   11 | std::string s = "hello"; // Should suggest: std::string s{"hello"}
+      |             ^ ~
+      |              {         }
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:14:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
+   14 | int c = {1}; // Should suggest: int c{1}
+      |     ^ ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:15:5: warning: initializer should use '{}' syntax instead of '= {}' [codelint-lint-code]
+   15 | int d = {};  // Should suggest: int d{}
+      |     ^ ~
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:18:6: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
+   18 | auto x{42};         // Should suggest: auto x = 42
+      |      ^~~~~
+      |        = 42
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:19:7: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
+   19 | auto* p{&a};        // Should suggest: auto *p = &a
+      |       ^~~~~
+      |         = &a
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:20:13: warning: auto type should use '=' assignment instead of brace initialization [codelint-lint-code]
+   20 | const auto* cp{&a}; // Should suggest: const auto *cp = &a
+      |             ^ ~~~~
+      |                = &a
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:23:10: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+   23 | unsigned u = 100;  // Should suggest: unsigned u{100U}
+      |          ^ ~
+      |           {     U}
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:24:10: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+   24 | uint64_t big = 42; // Should suggest: uint64_t big{42UL}
+      |          ^   ~
+      |             {    UL}
+tests/CodeLintTest/src/lint_code_checker/src/brace_style.cpp:27:13: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
+   27 | std::string str("world"); // Should suggest: std::string str{"world"}
+      |             ^  ~       ~
+      |                {       }

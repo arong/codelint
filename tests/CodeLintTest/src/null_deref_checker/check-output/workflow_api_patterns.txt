@@ -1,0 +1,3 @@
+tests/CodeLintTest/src/null_deref_checker/src/workflow_api_patterns.cpp:95:3: warning: potential dereference of null pointer [codelint-null-deref]
+   95 |   pixels[0] = 255;
+      |   ^

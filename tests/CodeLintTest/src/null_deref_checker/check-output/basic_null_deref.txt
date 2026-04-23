@@ -1,0 +1,36 @@
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:9:4: error: dereference of null pointer [codelint-null-deref]
+    9 |   *p = 10; // ERROR: dereference of null pointer
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:15:11: error: dereference of null pointer [codelint-null-deref]
+   15 |   int x = *p; // ERROR: dereference of null pointer
+      |           ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:32:6: error: dereference of null pointer [codelint-null-deref]
+   32 |     *p = 10; // ERROR: p is null here
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:42:6: error: dereference of null pointer [codelint-null-deref]
+   42 |     *p = 20; // ERROR: p is null in else branch
+      |      ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:51:4: warning: potential dereference of null pointer [codelint-null-deref]
+   51 |   *p = 10;                        // WARNING: potential dereference of null pointer
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:61:3: error: dereference of null pointer [codelint-null-deref]
+   61 |   d->value = 10; // ERROR: dereference of null pointer
+      |   ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:67:14: error: dereference of null pointer [codelint-null-deref]
+   67 |   int x = d->value; // ERROR: dereference of null pointer
+      |              ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:73:3: error: dereference of null pointer [codelint-null-deref]
+   73 |   arr[0] = 10; // ERROR: dereference of null pointer
+      |   ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:81:4: error: dereference of null pointer [codelint-null-deref]
+   81 |   *p = 20; // ERROR: dereference of null pointer
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:89:4: warning: potential dereference of null pointer [codelint-null-deref]
+   89 |   *p = 10; // WARNING: potential dereference of null pointer
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:97:4: warning: potential dereference of null pointer [codelint-null-deref]
+   97 |   *p = 10; // OK: assumed non-null
+      |    ^
+tests/CodeLintTest/src/null_deref_checker/src/basic_null_deref.cpp:112:4: error: dereference of null pointer [codelint-null-deref]
+  112 |   *p1 = 5;  // ERROR: p1 is null
+      |    ^

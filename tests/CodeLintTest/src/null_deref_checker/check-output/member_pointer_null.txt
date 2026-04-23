@@ -1,0 +1,3 @@
+tests/CodeLintTest/src/null_deref_checker/src/member_pointer_null.cpp:57:3: error: dereference of null pointer [codelint-null-deref]
+   57 |   head->next = nullptr; // ERROR: head is null
+      |   ^

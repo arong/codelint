@@ -99,6 +99,16 @@ set(TEST_SOURCES
     src/singleton_checker/src/template_singleton.cpp
     src/signed_to_unsigned_checker/src/signed_to_unsigned.cpp
     src/signed_to_unsigned_checker/fixed/signed_to_unsigned.cpp
+    src/null_deref_checker/src/basic_null_deref.cpp
+    src/null_deref_checker/src/control_flow_null.cpp
+    src/null_deref_checker/src/member_pointer_null.cpp
+    src/null_deref_checker/src/advanced_null_patterns.cpp
+    src/null_deref_checker/src/false_positive_null.cpp
+    src/null_deref_checker/src/edge_cases_null.cpp
+    src/null_deref_checker/src/lifecycle_pointer.cpp
+    src/null_deref_checker/src/workflow_api_patterns.cpp
+    src/null_deref_checker/src/exception_safety_patterns.cpp
+    src/null_deref_checker/src/null_deref_test.cpp
 )
 
 add_library(codelint_test_objects OBJECT ${TEST_SOURCES})
