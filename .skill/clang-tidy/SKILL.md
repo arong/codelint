@@ -11,7 +11,7 @@ After extracting the skill package:
 
 ```bash
 # 1. Generate compile_commands.json (required)
-cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --preset default
 
 # 2. Copy preset config
 cp share/clang-tidy-skill/configs/.clang-tidy.default .clang-tidy

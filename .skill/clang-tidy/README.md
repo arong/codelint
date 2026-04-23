@@ -17,9 +17,7 @@ Download the appropriate package for your platform:
 
 | Platform | Package |
 |----------|---------|
-| macOS (Apple Silicon) | `clang-tidy-skill-0.1.0-darwin-arm64.tar.gz` |
-| macOS (Intel) | `clang-tidy-skill-0.1.0-darwin-x64.tar.gz` |
-| Linux (x64) | `clang-tidy-skill-0.1.0-linux-x64.tar.gz` |
+| Ubuntu 22.04 (x64) | `clang-tidy-skill-0.1.0-linux-x64.tar.gz` |
 
 ### 2. Extract
 
@@ -30,9 +28,8 @@ tar -xzf clang-tidy-skill-*.tar.gz
 ### 3. Run
 
 ```bash
-# Set environment
-export PATH=$PWD/bin:$PATH
-export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH  # Linux only
+# Set library path and run analysis
+export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
 
 # Generate compile_commands.json
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
