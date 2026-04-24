@@ -39,6 +39,18 @@ const StringLiteral* GlobalConstStringCheck::findStringLiteral(const Expr* Init)
     return findStringLiteral(Cast->getSubExpr());
   }
 
+  if (const auto* MatTemp = dyn_cast<MaterializeTemporaryExpr>(E); MatTemp != nullptr) {
+    return findStringLiteral(MatTemp->getSubExpr());
+  }
+
+  if (const auto* BindTemp = dyn_cast<CXXBindTemporaryExpr>(E); BindTemp != nullptr) {
+    return findStringLiteral(BindTemp->getSubExpr());
+  }
+
+  if (const auto* Cleanups = dyn_cast<ExprWithCleanups>(E); Cleanups != nullptr) {
+    return findStringLiteral(Cleanups->getSubExpr());
+  }
+
   return nullptr;
 }
 
@@ -66,8 +78,9 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  // DEBUG: emit warning for every match to diagnose matcher issues
-  diag(VD->getLocation(), "DEBUG: matched global variable '%0'") << VD->getName();
+  if (isInSystemHeader(VD->getLocation(), Result.Context)) {
+    return;
+  }
   if (isInsideMacro(VD, Result.Context)) {
     return;
   }
@@ -76,6 +89,10 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
   }
 
   if (!VD->getType().isConstQualified()) {
+    return;
+  }
+
+  if (VD->isConstexpr()) {
     return;
   }
 
