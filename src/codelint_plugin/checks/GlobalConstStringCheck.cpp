@@ -47,10 +47,9 @@ void GlobalConstStringCheck::registerMatchers(MatchFinder* Finder) {
     return;
   }
 
-  Finder->addMatcher(varDecl(hasGlobalStorage(), hasType(isConstQualified()), unless(isConstexpr()),
-                             unless(parmVarDecl()), unless(hasAncestor(functionDecl())),
-                             unless(hasAncestor(recordDecl())), unless(isStaticLocal()),
-                             hasInitializer(expr()))
+  Finder->addMatcher(varDecl(hasGlobalStorage(), unless(isConstexpr()), unless(parmVarDecl()),
+                             unless(hasAncestor(functionDecl())), unless(hasAncestor(recordDecl())),
+                             unless(isStaticLocal()), hasInitializer(expr()))
                          .bind("globalConstVar"),
                      this);
 }
@@ -75,6 +74,10 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
   if (shouldSkipExtern(VD)) {
+    return;
+  }
+
+  if (!VD->getType().isConstQualified()) {
     return;
   }
 
