@@ -47,13 +47,10 @@ void GlobalConstStringCheck::registerMatchers(MatchFinder* Finder) {
     return;
   }
 
-  const auto IsStdString = hasType(hasUnqualifiedDesugaredType(
-      recordType(hasDeclaration(cxxRecordDecl(hasName("::std::basic_string"))))));
-
-  Finder->addMatcher(varDecl(hasGlobalStorage(), IsStdString, hasType(isConstQualified()),
-                             unless(isConstexpr()), unless(parmVarDecl()),
-                             unless(hasAncestor(functionDecl())), unless(hasAncestor(recordDecl())),
-                             unless(isStaticLocal()), hasInitializer(expr()))
+  Finder->addMatcher(varDecl(hasGlobalStorage(), hasType(isConstQualified()), unless(isConstexpr()),
+                             unless(parmVarDecl()), unless(hasAncestor(functionDecl())),
+                             unless(hasAncestor(recordDecl())), unless(isStaticLocal()),
+                             hasInitializer(expr()))
                          .bind("globalConstVar"),
                      this);
 }
@@ -81,13 +78,15 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  // Only handle std::basic_string<char>, not wchar_t/char16_t/char32_t variants
   const auto* CXXRD = VD->getType()->getAsCXXRecordDecl();
   if (CXXRD == nullptr) {
     return;
   }
 
-  // Verify the type is in the std namespace (handles inline namespaces like __cxx11)
+  if (CXXRD->getName() != "basic_string") {
+    return;
+  }
+
   bool InStdNamespace = false;
   for (const DeclContext* Ctx = CXXRD->getDeclContext(); Ctx != nullptr; Ctx = Ctx->getParent()) {
     if (const auto* NS = dyn_cast<NamespaceDecl>(Ctx); NS != nullptr && NS->isStdNamespace()) {
@@ -99,15 +98,19 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  if (const auto* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(CXXRD); CTSD != nullptr) {
-    const auto& Args = CTSD->getTemplateArgs();
-    if (Args.size() > 0) {
-      const Type* CharTy = Args[0].getAsType().getTypePtr();
-      if (CharTy == nullptr || (!CharTy->isSpecificBuiltinType(BuiltinType::Char_U) &&
-                                !CharTy->isSpecificBuiltinType(BuiltinType::Char_S))) {
-        return;
-      }
-    }
+  const auto* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(CXXRD);
+  if (CTSD == nullptr) {
+    return;
+  }
+
+  const auto& Args = CTSD->getTemplateArgs();
+  if (Args.size() < 1) {
+    return;
+  }
+  const Type* CharTy = Args[0].getAsType().getTypePtr();
+  if (CharTy == nullptr || (!CharTy->isSpecificBuiltinType(BuiltinType::Char_U) &&
+                            !CharTy->isSpecificBuiltinType(BuiltinType::Char_S))) {
+    return;
   }
 
   const Expr* Init = VD->getInit();
