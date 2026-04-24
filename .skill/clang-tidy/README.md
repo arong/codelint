@@ -133,22 +133,56 @@ cp configs/.clang-tidy.default .clang-tidy
 
 ---
 
+## Dev vs Release 工作流
+
+| 场景 | Preset | 范围 | 命令 | 特点 |
+|------|--------|------|------|------|
+| **开发时** | `quick-fix` | 增量检查 | `./run_clang_tidy_diff.py --branch main --preset quick-fix --fix` | 快速反馈、自动修复、低噪音 |
+| **发布时/CI** | `strict` | 全量检查 | `./run_clang_tidy_diff.py --branch main --preset strict` | 全面检查、高覆盖、WarningsAsErrors |
+
+### 开发时：快速修复
+
+```bash
+# 检查修改的文件，尝试自动修复
+./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --fix
+
+# 查看剩余问题
+./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix
+```
+
+### 发布时/CI：全量检查
+
+```bash
+# 全量检查整个项目
+./scripts/run_clang_tidy_diff.py --branch main --preset strict
+
+# 输出 SARIF 格式
+./scripts/run_clang_tidy_diff.py --branch main --preset strict --output sarif > results.sarif
+```
+
+---
+
 ## CI 集成
 
 ### GitHub Actions
 
 ```yaml
-- name: Run clang-tidy
+# 开发分支：增量 + quick-fix（快速反馈）
+- name: Dev: Quick check
+  if: github.ref != 'refs/heads/main'
   run: |
-    ./scripts/run_clang_tidy_diff.py \
-      --branch main \
-      --preset default \
-      --output sarif > results.sarif
+    ./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --output sarif > dev.sarif
+
+# Main 分支：全量 + strict（严格把控）
+- name: Release: Full check
+  if: github.ref == 'refs/heads/main'
+  run: |
+    ./scripts/run_clang_tidy_diff.py --branch main --preset strict --output sarif > release.sarif
 
 - name: Upload SARIF
   uses: github/codeql-action/upload-sarif@v2
   with:
-    sarif_file: results.sarif
+    sarif_file: ${{ github.ref == 'refs/heads/main' && 'release.sarif' || 'dev.sarif' }}
 ```
 
 ---

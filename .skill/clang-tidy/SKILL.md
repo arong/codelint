@@ -119,6 +119,63 @@ if (strcmp(a, b) == 0) { }
 
 ---
 
+## Dev vs Release 工作流
+
+| 场景 | Preset | 范围 | 命令 | 特点 |
+|------|--------|------|------|------|
+| **开发时** | `quick-fix` | 增量检查 | `./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --fix` | 快速反馈、自动修复、低噪音 |
+| **发布时/CI** | `strict` | 全量检查 | `./scripts/run_clang_tidy_diff.py --branch main --preset strict` | 全面检查、高覆盖、WarningsAsErrors |
+
+### 开发时工作流（推荐）
+
+```bash
+# 1. AI 或开发者执行：快速检查修改的文件，尝试自动修复
+./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --fix
+
+# 2. 查看剩余未修复的问题
+./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix
+
+# 3. 开发者确认并提交代码
+```
+
+**特点**：
+- 只检查修改的文件（增量）→ 快速反馈
+- 专注可自动修复的问题 → 开发体验好
+- 低噪音 → 不会因为大量警告干扰开发
+
+### 发布时/CI 工作流
+
+```bash
+# 1. 全量检查（整个项目）
+./scripts/run_clang_tidy_diff.py --branch main --preset strict
+
+# 2. 如果输出 SARIF 用于 CI
+./scripts/run_clang_tidy_diff.py --branch main --preset strict --output sarif > results.sarif
+```
+
+**特点**：
+- 检查整个项目 → 无遗漏
+- strict preset 包含 cert、cppcoreguidelines、clang-analyzer → 高覆盖
+- 关键问题 WarningsAsErrors → 严格把控质量
+
+### CI 集成示例
+
+```yaml
+# GitHub Actions - 开发分支：增量 + quick-fix
+- name: Dev: Quick check
+  if: github.ref != 'refs/heads/main'
+  run: |
+    ./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --output sarif > dev.sarif
+
+# GitHub Actions - Main 分支：全量 + strict
+- name: Release: Full check
+  if: github.ref == 'refs/heads/main'
+  run: |
+    ./scripts/run_clang_tidy_diff.py --branch main --preset strict --output sarif > release.sarif
+```
+
+---
+
 ## Checks 详细参考
 
 ### codelint-init（✅ 自动修复）
