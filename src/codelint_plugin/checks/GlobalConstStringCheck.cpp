@@ -23,34 +23,38 @@ bool GlobalConstStringCheck::isStdBasicStringChar(QualType QT) {
   }
 
   const Type* CanonicalTy = QT.getTypePtr()->getCanonicalTypeInternal().getTypePtr();
+
+  auto isCharType = [](const Type* Ty) {
+    return Ty != nullptr && (Ty->isSpecificBuiltinType(BuiltinType::Char_U) ||
+                             Ty->isSpecificBuiltinType(BuiltinType::Char_S));
+  };
+
+  auto matchesBasicStringName = [](const std::string& Name) {
+    return Name == "std::basic_string" || Name == "std::__cxx11::basic_string";
+  };
+
   if (const auto* TST = CanonicalTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
     const auto* TemplateDecl = TST->getTemplateName().getAsTemplateDecl();
     if (TemplateDecl == nullptr || TemplateDecl->getName() != "basic_string") {
       return false;
     }
-    const auto& Name = TemplateDecl->getQualifiedNameAsString();
-    if (Name != "std::basic_string") {
+    if (!matchesBasicStringName(TemplateDecl->getQualifiedNameAsString())) {
       return false;
     }
     if (TST->template_arguments().empty()) {
       return false;
     }
-    const auto& FirstArg = TST->template_arguments()[0];
-    const Type* CharTy = FirstArg.getAsType().getTypePtr();
-    return CharTy != nullptr && (CharTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
-                                 CharTy->isSpecificBuiltinType(BuiltinType::Char_S));
+    return isCharType(TST->template_arguments()[0].getAsType().getTypePtr());
   }
 
   if (const auto* CXXRD = CanonicalTy->getAsCXXRecordDecl(); CXXRD != nullptr) {
-    if (CXXRD->getQualifiedNameAsString() == "std::basic_string") {
+    if (matchesBasicStringName(CXXRD->getQualifiedNameAsString())) {
       if (const auto* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(CXXRD); CTSD != nullptr) {
         const auto& Args = CTSD->getTemplateArgs();
         if (Args.size() == 0) {
           return false;
         }
-        const Type* CharTy = Args[0].getAsType().getTypePtr();
-        return CharTy != nullptr && (CharTy->isSpecificBuiltinType(BuiltinType::Char_U) ||
-                                     CharTy->isSpecificBuiltinType(BuiltinType::Char_S));
+        return isCharType(Args[0].getAsType().getTypePtr());
       }
     }
   }
