@@ -49,7 +49,7 @@ void GlobalConstStringCheck::registerMatchers(MatchFinder* Finder) {
 
   Finder->addMatcher(varDecl(hasGlobalStorage(), unless(isConstexpr()), unless(parmVarDecl()),
                              unless(hasAncestor(functionDecl())), unless(hasAncestor(recordDecl())),
-                             unless(isStaticLocal()), hasInitializer(expr()))
+                             unless(isStaticLocal()))
                          .bind("globalConstVar"),
                      this);
 }
