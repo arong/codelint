@@ -47,9 +47,8 @@ void GlobalConstStringCheck::registerMatchers(MatchFinder* Finder) {
     return;
   }
 
-  Finder->addMatcher(varDecl(hasGlobalStorage(), unless(isConstexpr()), unless(parmVarDecl()),
-                             unless(hasAncestor(functionDecl())), unless(hasAncestor(recordDecl())),
-                             unless(isStaticLocal()))
+  Finder->addMatcher(varDecl(hasGlobalStorage(), unless(isStaticLocal()), unless(parmVarDecl()),
+                             unless(hasAncestor(recordDecl())))
                          .bind("globalConstVar"),
                      this);
 }
@@ -67,9 +66,8 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  if (isInSystemHeader(VD->getLocation(), Result.Context)) {
-    return;
-  }
+  // DEBUG: emit warning for every match to diagnose matcher issues
+  diag(VD->getLocation(), "DEBUG: matched global variable '%0'") << VD->getName();
   if (isInsideMacro(VD, Result.Context)) {
     return;
   }
