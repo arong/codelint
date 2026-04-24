@@ -17,51 +17,6 @@ using utils::isInsideMacro;
 using utils::isInSystemHeader;
 using utils::shouldSkipExtern;
 
-bool GlobalConstStringCheck::isStdBasicStringChar(QualType QT) {
-  if (QT.isNull()) {
-    return false;
-  }
-
-  const Type* CanonicalTy = QT.getTypePtr()->getCanonicalTypeInternal().getTypePtr();
-
-  auto isCharType = [](const Type* Ty) {
-    return Ty != nullptr && (Ty->isSpecificBuiltinType(BuiltinType::Char_U) ||
-                             Ty->isSpecificBuiltinType(BuiltinType::Char_S));
-  };
-
-  auto matchesBasicStringName = [](const std::string& Name) {
-    return Name == "std::basic_string" || Name == "std::__cxx11::basic_string";
-  };
-
-  if (const auto* TST = CanonicalTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
-    const auto* TemplateDecl = TST->getTemplateName().getAsTemplateDecl();
-    if (TemplateDecl == nullptr || TemplateDecl->getName() != "basic_string") {
-      return false;
-    }
-    if (!matchesBasicStringName(TemplateDecl->getQualifiedNameAsString())) {
-      return false;
-    }
-    if (TST->template_arguments().empty()) {
-      return false;
-    }
-    return isCharType(TST->template_arguments()[0].getAsType().getTypePtr());
-  }
-
-  if (const auto* CXXRD = CanonicalTy->getAsCXXRecordDecl(); CXXRD != nullptr) {
-    if (matchesBasicStringName(CXXRD->getQualifiedNameAsString())) {
-      if (const auto* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(CXXRD); CTSD != nullptr) {
-        const auto& Args = CTSD->getTemplateArgs();
-        if (Args.size() == 0) {
-          return false;
-        }
-        return isCharType(Args[0].getAsType().getTypePtr());
-      }
-    }
-  }
-
-  return false;
-}
-
 const StringLiteral* GlobalConstStringCheck::findStringLiteral(const Expr* Init) {
   if (Init == nullptr) {
     return nullptr;
@@ -92,10 +47,13 @@ void GlobalConstStringCheck::registerMatchers(MatchFinder* Finder) {
     return;
   }
 
-  Finder->addMatcher(varDecl(hasGlobalStorage(), hasType(isConstQualified()), unless(isConstexpr()),
-                             unless(parmVarDecl()), unless(hasAncestor(functionDecl())),
-                             unless(hasAncestor(recordDecl())), unless(isStaticLocal()),
-                             hasInitializer(expr()))
+  const auto IsStdString =
+      hasType(hasCanonicalType(hasDeclaration(cxxRecordDecl(hasName("::std::basic_string")))));
+
+  Finder->addMatcher(varDecl(hasGlobalStorage(), IsStdString, hasType(isConstQualified()),
+                             unless(isConstexpr()), unless(parmVarDecl()),
+                             unless(hasAncestor(functionDecl())), unless(hasAncestor(recordDecl())),
+                             unless(isStaticLocal()), hasInitializer(expr()))
                          .bind("globalConstVar"),
                      this);
 }
@@ -123,14 +81,19 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  const bool IsAuto = utils::isAutoType(VD);
-
-  if (!IsAuto && !isStdBasicStringChar(VD->getType())) {
-    return;
-  }
-
-  if (IsAuto && !isStdBasicStringChar(VD->getType())) {
-    return;
+  // Only handle std::basic_string<char>, not wchar_t/char16_t/char32_t variants
+  const auto* CXXRD = VD->getType()->getAsCXXRecordDecl();
+  if (CXXRD != nullptr) {
+    if (const auto* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(CXXRD); CTSD != nullptr) {
+      const auto& Args = CTSD->getTemplateArgs();
+      if (Args.size() > 0) {
+        const Type* CharTy = Args[0].getAsType().getTypePtr();
+        if (CharTy == nullptr || (!CharTy->isSpecificBuiltinType(BuiltinType::Char_U) &&
+                                  !CharTy->isSpecificBuiltinType(BuiltinType::Char_S))) {
+          return;
+        }
+      }
+    }
   }
 
   const Expr* Init = VD->getInit();
