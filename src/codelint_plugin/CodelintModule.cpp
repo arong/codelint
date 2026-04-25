@@ -1,4 +1,5 @@
 #include "codelint/checks/GlobalCheck.h"
+#include "codelint/checks/GlobalConstStringCheck.h"
 #include "codelint/checks/InitCheck.h"
 #include "codelint/checks/LintCodeCheck.h"
 #include "codelint/checks/SignedToUnsignedReturnCheck.h"
@@ -15,6 +16,7 @@ public:
     CheckFactories.registerCheck<InitCheck>("codelint-init");
     CheckFactories.registerCheck<LintCodeCheck>("codelint-lint-code");
     CheckFactories.registerCheck<GlobalCheck>("codelint-global");
+    CheckFactories.registerCheck<GlobalConstStringCheck>("codelint-global-const-string");
     CheckFactories.registerCheck<SingletonCheck>("codelint-singleton");
     CheckFactories.registerCheck<StrictBoolConditionCheck>("codelint-strict-bool-condition");
     CheckFactories.registerCheck<SignedToUnsignedReturnCheck>("codelint-signed-to-unsigned-return");
@@ -25,4 +27,5 @@ public:
 
 // Register the module
 static clang::tidy::ClangTidyModuleRegistry::Add<clang::tidy::codelint::CodelintModule>
-    X("codelint-module", "Adds codelint checks: init, lint-code, global, singleton"); // NOLINT
+    X("codelint-module",
+      "Adds codelint checks: init, lint-code, global, global-const-string, singleton"); // NOLINT

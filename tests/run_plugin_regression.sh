@@ -193,6 +193,7 @@ get_check_flag() {
         "singleton_checker") echo "-*,codelint-singleton" ;;
         "strict_bool_condition_checker") echo "-*,codelint-strict-bool-condition" ;;
         "signed_to_unsigned_checker") echo "-*,codelint-signed-to-unsigned-return" ;;
+        "global_const_string_checker") echo "-*,codelint-global-const-string" ;;
         *) echo "" ;;
     esac
 }
@@ -202,6 +203,7 @@ has_fix_phase() {
     case "$checker" in
         "init_checker") echo "true" ;;
         "lint_code_checker") echo "true" ;;
+        "global_const_string_checker") echo "true" ;;
         *) echo "false" ;;
     esac
 }
@@ -234,7 +236,7 @@ run_fix_test() {
     local temp_file=$(mktemp /tmp/codelint_fix.XXXXXX.cpp)
     cp "$src_file" "$temp_file"
 
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --fix --fix-errors "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --header-filter=.* --fix --fix-errors "$temp_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > /dev/null || true
 
     # Apply clang-format to both files to eliminate formatting differences
     local temp_formatted=$(mktemp /tmp/codelint_formatted.XXXXXX.cpp)
@@ -294,7 +296,7 @@ run_check_output_test() {
     local temp_full="/tmp/codelint_full_$$.txt"
     local temp_output="/tmp/codelint_output_$$.txt"
 
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --header-filter=.* "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
 
     awk '
         /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
@@ -306,6 +308,7 @@ run_check_output_test() {
         /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
         /error: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-signed-to-unsigned-return\]/ { found=1; count=3; print; next }
+        /warning: .* \[codelint-global-const-string\]/ { found=1; count=3; print; next }
         /warning:/ { found=0 }
         /error:/ { found=0 }
         /Suppressed/ { found=0 }
@@ -364,7 +367,7 @@ run_source_issue_test() {
         return
     fi
 
-    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
+    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --header-filter=.* "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
     local issue_count=$(echo "$output" | grep -E "(warning|error):.*\[codelint-.*\]" | wc -l | awk '{print $1}')
 
     local expected_issues=0
@@ -405,7 +408,7 @@ run_fixed_issue_test() {
         return
     fi
 
-    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
+    local output=$("$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --header-filter=.* "$expected_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1) || true
 
     local filtered_output=$(echo "$output" | grep -v "assigning integer to bool")
     local filtered_output=$(echo "$filtered_output" | grep -v "narrowing conversion")
@@ -440,7 +443,7 @@ run_compilation_error_test() {
     fi
 
     local temp_full="/tmp/codelint_error_full_$$.txt"
-    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
+    "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --header-filter=.* "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
 
     local has_compilation_error=0
     if grep -q "file not found" "$temp_full" 2>/dev/null; then
@@ -464,7 +467,7 @@ run_compilation_error_test() {
 }
 
 # Run tests for each checker
-CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker")
+CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker" "global_const_string_checker")
 
 for CHECKER in "${CHECKERS[@]}"; do
     TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$CHECKER"
