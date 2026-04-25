@@ -1,149 +1,118 @@
 # Clang-Tidy Skill
 
-面向用户的 C++ 静态分析工具，内置 codelint 插件，专注于初始化、类型安全和代码质量检查。
+A complete clang-tidy static analysis solution for C++ projects.
 
-## 核心能力
+## Features
 
-- 🔧 **自动修复**：`codelint-init` 可自动修复未初始化、风格问题
-- 🎯 **场景驱动**：根据用户描述自动匹配检查项
-- 📊 **增量分析**：默认只检查修改的文件，快速反馈
-- 📋 **分级配置**：default / strict / security 三种预设
+- 📦 **Bundled clang-tidy 21.x binary** - No installation required
+- 🔌 **codelint plugin integrated** - Initialization best practices checks
+- 📋 **Multiple preset configs** - default, strict, security
+- 🔀 **Git diff support** - Incremental PR analysis
 
-## 快速使用
+## Quick Start
 
-### 场景 1：检查初始化问题（推荐）
+### 1. Download
 
-```bash
-# 自动修复修改的文件
-./scripts/run_clang_tidy_diff.py --branch main --checks=codelint-init --fix
+Download the appropriate package for your platform:
 
-# 查看剩余问题
-./scripts/run_clang_tidy_diff.py --branch main --checks=codelint-init
-```
+| Platform | Package |
+|----------|---------|
+| macOS (Apple Silicon) | `clang-tidy-skill-0.1.0-darwin-arm64.tar.gz` |
+| macOS (Intel) | `clang-tidy-skill-0.1.0-darwin-x64.tar.gz` |
+| Linux (x64) | `clang-tidy-skill-0.1.0-linux-x64.tar.gz` |
 
-**可自动修复的问题：**
-
-| 问题 | 修复前 | 修复后 |
-|-----|--------|--------|
-| 未初始化 | `int x;` | `int x{};` |
-| 旧语法 | `int x = 5;` | `int x{5};` |
-| 缺失后缀 | `unsigned u = 1;` | `unsigned u{1U};` |
-
-### 场景 2：检查 bool 条件
+### 2. Extract
 
 ```bash
-./scripts/run_clang_tidy_diff.py --branch main --checks=codelint-strict-bool-condition
+tar -xzf clang-tidy-skill-*.tar.gz
 ```
 
-**需要手动修复：**
-
-```cpp
-// ❌ 错误
-if (status) { }
-if (strcmp(a, b)) { }  // BUG: strcmp 返回 0 表示相等
-
-// ✅ 正确
-if (status == 0) { }
-if (strcmp(a, b) == 0) { }
-```
-
-### 场景 3：检查 signed→unsigned 转换
+### 3. Run
 
 ```bash
-./scripts/run_clang_tidy_diff.py --branch main --checks=codelint-signed-to-unsigned-return
+# Set environment
+export PATH=$PWD/bin:$PATH
+export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH  # Linux only
+
+# Generate compile_commands.json
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+# Run analysis
+clang-tidy --load=lib/codelint-plugin.so -p build src/**/*.cpp
 ```
 
-**危险模式：**
+## Configuration Presets
 
-```cpp
-// ❌ 危险：read() 返回 -1 表示错误，转 size_t 后变成巨大正数
-size_t n = read(fd, buf, count);
-
-// ✅ 正确
-ssize_t n = read(fd, buf, count);
-if (n < 0) { handle_error(); }
-```
-
-### 场景 4：全面代码检查
+### Default (Basic Checks)
 
 ```bash
-# 日常开发（低噪音）
-./scripts/run_clang_tidy_diff.py --branch main --preset default --fix
-
-# 生产代码（严格）
-./scripts/run_clang_tidy_diff.py --branch main --preset strict --fix
-
-# 安全审计
-./scripts/run_clang_tidy_diff.py --branch main --preset security
+cp share/clang-tidy-skill/configs/.clang-tidy.default .clang-tidy
 ```
 
----
+Checks: `bugprone-*`, `modernize-*`, `performance-*`
 
-## Checks 速查表
-
-| Check | 用户描述 | 自动修复 | 说明 |
-|-------|---------|---------|------|
-| `codelint-init` | "初始化问题" | ✅ 是 | 未初始化、`=`→`{}`、补后缀 |
-| `codelint-strict-bool-condition` | "bool 条件" | ❌ 否 | 强制显式比较 |
-| `codelint-signed-to-unsigned-return` | "类型转换" | ❌ 否 | POSIX 函数返回值风险 |
-| `codelint-global` | "全局变量" | ❌ 否 | 全局变量检测 |
-| `codelint-singleton` | "单例模式" | ❌ 否 | Meyer's Singleton |
-
----
-
-## 检查范围控制
+### Strict (Production Level)
 
 ```bash
-# 默认：检查 vs main 分支的修改（推荐）
-./scripts/run_clang_tidy_diff.py --branch main --checks=codelint-init
-
-# 检查已暂存的文件
-./scripts/run_clang_tidy_diff.py --staged --checks=codelint-init
-
-# 检查最近 3 个 commit
-./scripts/run_clang_tidy_diff.py --commits 3 --checks=codelint-init
-
-# 检查整个项目（仅当明确要求时）
-clang-tidy --load=lib/codelint-plugin.so --checks=codelinit-init -p build src/**/*.cpp
+cp share/clang-tidy-skill/configs/.clang-tidy.strict .clang-tidy
 ```
 
----
+Checks: `bugprone-*`, `cert-*`, `cppcoreguidelines-*`, `modernize-*`
 
-## Presets 配置
-
-| Preset | 场景 | 特点 |
-|--------|------|------|
-| `.clang-tidy.quick-fix` | **快速修复**（推荐） | 专注可自动修复的问题：初始化、现代化、关键 bug |
-| `.clang-tidy.bugprone` | **Bug 预防** | 高价值 bug 检测，精选低噪音 checks |
-| `.clang-tidy.default` | 日常开发 | 平衡覆盖和噪音 |
-| `.clang-tidy.strict` | 生产代码 | 高覆盖，包含 CERT 和 C++ Core Guidelines |
-| `.clang-tidy.security` | 安全审计 | 安全专用，关键问题视为 error |
+### Security (Security Audit)
 
 ```bash
-# 快速修复（最常用）
-./scripts/run_clang_tidy_diff.py --branch main --preset quick-fix --fix
-
-# Bug 预防审查
-./scripts/run_clang_tidy_diff.py --branch main --preset bugprone
-
-# 使用特定 preset
-cp configs/.clang-tidy.default .clang-tidy
-./scripts/run_clang_tidy_diff.py --branch main --preset default --fix
+cp share/clang-tidy-skill/configs/.clang-tidy.security .clang-tidy
 ```
 
----
+Checks: `cert-*`, `clang-analyzer-security-*`
 
-## CI 集成
+## Available Checks
+
+### codelint Plugin Checks
+
+| Check | Description | Auto-fix |
+|-------|-------------|----------|
+| `codelint-init` | Variable initialization style | ✅ Yes |
+| `codelint-strict-bool-condition` | Bool-only conditions | ❌ No |
+| `codelint-global` | Global variable detection | ❌ No |
+| `codelint-singleton` | Meyer's Singleton pattern | ❌ No |
+| `codelint-signed-to-unsigned-return` | Signed→unsigned return | ❌ No |
+
+### Clang-Tidy Built-in
+
+| Category | Purpose |
+|----------|---------|
+| `bugprone-*` | Bug detection |
+| `modernize-*` | Modern C++ idioms |
+| `performance-*` | Performance optimization |
+| `readability-*` | Code readability |
+| `cert-*` | CERT C++ secure coding |
+| `cppcoreguidelines-*` | C++ Core Guidelines |
+
+## Git Diff Analysis
+
+Analyze only changed files for PR review:
+
+```bash
+# Staged changes
+./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py --staged
+
+# Changes vs main branch
+./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py --branch main --output sarif
+```
+
+## CI Integration
 
 ### GitHub Actions
 
 ```yaml
 - name: Run clang-tidy
   run: |
-    ./scripts/run_clang_tidy_diff.py \
+    ./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py \
       --branch main \
-      --preset default \
-      --output sarif > results.sarif
+      --output sarif \
+      > results.sarif
 
 - name: Upload SARIF
   uses: github/codeql-action/upload-sarif@v2
@@ -151,22 +120,16 @@ cp configs/.clang-tidy.default .clang-tidy
     sarif_file: results.sarif
 ```
 
----
+## Requirements
 
-## 环境要求
-
-- Ubuntu 22.04 x86_64
-- CMake 3.20+（用于生成 compile_commands.json）
-- C++14/17/20 项目
-
-```bash
-# 环境准备
-export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
-cmake --preset default
-```
-
----
+- CMake 3.20+ (for compile_commands.json generation)
+- C++14/17/20 project
 
 ## License
 
 MIT License
+
+## Links
+
+- [Clang-Tidy Documentation](https://clang.llvm.org/extra/clang-tidy/)
+- [codelint Project](https://github.com/user/codelint)
