@@ -5,9 +5,10 @@ A complete clang-tidy static analysis solution for C++ projects.
 ## Features
 
 - 📦 **Bundled clang-tidy 21.x binary** - No installation required
-- 🔌 **codelint plugin integrated** - Initialization best practices checks
-- 📋 **Multiple preset configs** - default, strict, security
+- 🔌 **codelint plugin integrated** - 7 initialization and safety checks
+- 📋 **Multiple preset configs** - codelint, default, strict, security
 - 🔀 **Git diff support** - Incremental PR analysis
+- 🖥️ **Cross-platform** - macOS (arm64/x64), Linux (x64)
 
 ## Quick Start
 
@@ -32,7 +33,10 @@ tar -xzf clang-tidy-skill-*.tar.gz
 ```bash
 # Set environment
 export PATH=$PWD/bin:$PATH
-export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH  # Linux only
+# macOS
+export DYLD_LIBRARY_PATH=$PWD/lib:$DYLD_LIBRARY_PATH
+# Linux
+export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
 
 # Generate compile_commands.json
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -42,6 +46,14 @@ clang-tidy --load=lib/codelint-plugin.so -p build src/**/*.cpp
 ```
 
 ## Configuration Presets
+
+### Codelint (Plugin Only)
+
+```bash
+cp share/clang-tidy-skill/configs/.clang-tidy.codelint .clang-tidy
+```
+
+Checks: `codelint-*` only - focused initialization and safety audit
 
 ### Default (Basic Checks)
 
@@ -69,15 +81,19 @@ Checks: `cert-*`, `clang-analyzer-security-*`
 
 ## Available Checks
 
-### codelint Plugin Checks
+### codelint Plugin Checks (7 total)
 
 | Check | Description | Auto-fix |
 |-------|-------------|----------|
-| `codelint-init` | Variable initialization style | ✅ Yes |
-| `codelint-strict-bool-condition` | Bool-only conditions | ❌ No |
+| `codelint-init` | Uninitialized variables, dangerous conversions (int→bool, narrowing) | ✅ Partial |
+| `codelint-lint-code` | Style: `=` → `{}`, unsigned suffix `U`/`UL` | ✅ Yes |
+| `codelint-strict-bool-condition` | Bool-only conditions (if/while/for) | ❌ No |
+| `codelint-signed-to-unsigned-return` | POSIX signed return → unsigned (e.g., `read()`) | ❌ No |
 | `codelint-global` | Global variable detection | ❌ No |
-| `codelint-singleton` | Meyer's Singleton pattern | ❌ No |
-| `codelint-signed-to-unsigned-return` | Signed→unsigned return | ❌ No |
+| `codelint-global-const-string` | Global const string → `constexpr const char*` | ❌ No |
+| `codelint-singleton` | Meyer's Singleton pattern detection | ❌ No |
+
+⚠️ **Note**: `codelint-strict-bool-condition` does not support C++23
 
 ### Clang-Tidy Built-in
 
@@ -96,10 +112,13 @@ Analyze only changed files for PR review:
 
 ```bash
 # Staged changes
-./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py --staged
+./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py --staged
 
 # Changes vs main branch
-./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py --branch main --output sarif
+./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py --branch main --output sarif
+
+# Recent commits
+./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py --commits 5
 ```
 
 ## CI Integration
@@ -109,13 +128,13 @@ Analyze only changed files for PR review:
 ```yaml
 - name: Run clang-tidy
   run: |
-    ./share/clang-tidy-skill/scripts/run-clang-tidy-diff.py \
+    ./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py \
       --branch main \
       --output sarif \
       > results.sarif
 
 - name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v2
+  uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: results.sarif
 ```
@@ -123,7 +142,7 @@ Analyze only changed files for PR review:
 ## Requirements
 
 - CMake 3.20+ (for compile_commands.json generation)
-- C++14/17/20 project
+- C++14/17/20 project (C++23 not fully supported)
 
 ## License
 
