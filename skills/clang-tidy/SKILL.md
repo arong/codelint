@@ -7,14 +7,6 @@ description: Static C++ code analysis with bundled clang-tidy 21.x + codelint pl
 
 Bundled clang-tidy static analysis solution with custom codelint plugin for initialization best practices and code safety checks.
 
-## Supported Platforms
-
-| Platform | Architecture | Package |
-|----------|-------------|---------|
-| macOS | Apple Silicon (arm64) | `clang-tidy-skill-*-darwin-arm64.tar.gz` |
-| macOS | Intel (x64) | `clang-tidy-skill-*-darwin-x64.tar.gz` |
-| Linux | x86_64 | `clang-tidy-skill-*-linux-x64.tar.gz` |
-
 ---
 
 ## Quick Start
@@ -188,11 +180,11 @@ Analyze only changed files for PR review:
 clang-tidy --load=build/lib/codelint-plugin.so --checks='codelint-*' -p build src/**/*.cpp
 
 # Auto-fix style issues (codelint-init + codelint-lint-code)
-clang-tidy --load=build/lib/codelint-plugin.so --checks='codelinit-*' --fix -p build src/**/*.cpp
+clang-tidy --load=build/lib/codelint-plugin.so --checks='codelint-*' --fix -p build src/**/*.cpp
 
 # Security-focused: only dangerous conversions
 clang-tidy --load=build/lib/codelint-plugin.so \
-  --checks='codelinit-init,codelint-strict-bool-condition,codelint-signed-to-unsigned-return' \
+  --checks='codelint-init,codelint-strict-bool-condition,codelint-signed-to-unsigned-return' \
   -p build src/**/*.cpp
 
 # PR review: changed files only
@@ -250,37 +242,6 @@ cmake --build build && ctest --test-dir build
 | `Too many warnings` | Check set too broad | Narrow to specific checks: `--checks='codelint-init'` |
 | `Unchanged files reported` | Header filter too broad | Set `HeaderFilterRegex: '(src/|include/).*'` in .clang-tidy |
 | `C++23 code fails` | strict-bool-condition not supported | Disable: `--checks='codelint-*,-codelint-strict-bool-condition'` |
-
----
-
-## CI Integration
-
-### GitHub Actions
-
-```yaml
-- name: Run clang-tidy
-  run: |
-    ./skills/clang-tidy/scripts/run_clang_tidy_diff.py \
-      --branch ${{ github.base_ref }} \
-      --output sarif \
-      > results.sarif
-
-- name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v3
-  with:
-    sarif_file: results.sarif
-```
-
-### GitLab CI
-
-```yaml
-lint:
-  script:
-    - ./skills/clang-tidy/scripts/run_clang_tidy.py -p build --preset strict
-  artifacts:
-    reports:
-      codequality: clang-tidy-report.json
-```
 
 ---
 

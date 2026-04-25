@@ -50,7 +50,7 @@ clang-tidy --load=lib/codelint-plugin.so -p build src/**/*.cpp
 ### Codelint (Plugin Only)
 
 ```bash
-cp share/clang-tidy-skill/configs/.clang-tidy.codelint .clang-tidy
+cp <SKILL_PATH>/configs/.clang-tidy.codelint .clang-tidy
 ```
 
 Checks: `codelint-*` only - focused initialization and safety audit
@@ -58,7 +58,7 @@ Checks: `codelint-*` only - focused initialization and safety audit
 ### Default (Basic Checks)
 
 ```bash
-cp share/clang-tidy-skill/configs/.clang-tidy.default .clang-tidy
+cp <SKILL_PATH>/configs/.clang-tidy.default .clang-tidy
 ```
 
 Checks: `bugprone-*`, `modernize-*`, `performance-*`
@@ -66,7 +66,7 @@ Checks: `bugprone-*`, `modernize-*`, `performance-*`
 ### Strict (Production Level)
 
 ```bash
-cp share/clang-tidy-skill/configs/.clang-tidy.strict .clang-tidy
+cp <SKILL_PATH>/configs/.clang-tidy.strict .clang-tidy
 ```
 
 Checks: `bugprone-*`, `cert-*`, `cppcoreguidelines-*`, `modernize-*`
@@ -74,7 +74,7 @@ Checks: `bugprone-*`, `cert-*`, `cppcoreguidelines-*`, `modernize-*`
 ### Security (Security Audit)
 
 ```bash
-cp share/clang-tidy-skill/configs/.clang-tidy.security .clang-tidy
+cp <SKILL_PATH>/configs/.clang-tidy.security .clang-tidy
 ```
 
 Checks: `cert-*`, `clang-analyzer-security-*`
@@ -112,31 +112,13 @@ Analyze only changed files for PR review:
 
 ```bash
 # Staged changes
-./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py --staged
+<SKILL_PATH>/scripts/run_clang_tidy_diff.py --staged
 
 # Changes vs main branch
-./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py --branch main --output sarif
+<SKILL_PATH>/scripts/run_clang_tidy_diff.py --branch main --output sarif
 
 # Recent commits
-./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py --commits 5
-```
-
-## CI Integration
-
-### GitHub Actions
-
-```yaml
-- name: Run clang-tidy
-  run: |
-    ./share/clang-tidy-skill/scripts/run_clang_tidy_diff.py \
-      --branch main \
-      --output sarif \
-      > results.sarif
-
-- name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v3
-  with:
-    sarif_file: results.sarif
+<SKILL_PATH>/scripts/run_clang_tidy_diff.py --commits 5
 ```
 
 ## Requirements
