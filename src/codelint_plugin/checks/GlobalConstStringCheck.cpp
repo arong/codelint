@@ -29,8 +29,11 @@ const StringLiteral* GlobalConstStringCheck::findStringLiteral(const Expr* Init)
   }
 
   if (const auto* CCE = dyn_cast<CXXConstructExpr>(E); CCE != nullptr) {
-    if (CCE->getNumArgs() == 1) {
-      return findStringLiteral(CCE->getArg(0));
+    for (unsigned I = 0; I < CCE->getNumArgs(); ++I) {
+      const StringLiteral* SL = findStringLiteral(CCE->getArg(I));
+      if (SL != nullptr) {
+        return SL;
+      }
     }
     return nullptr;
   }
@@ -78,41 +81,30 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  diag(VD->getLocation(), "D0: matched '%0'") << VD->getName();
-
   if (isInSystemHeader(VD->getLocation(), Result.Context)) {
-    diag(VD->getLocation(), "D1: system header");
     return;
   }
   if (isInsideMacro(VD, Result.Context)) {
-    diag(VD->getLocation(), "D2: macro");
     return;
   }
   if (shouldSkipExtern(VD)) {
-    diag(VD->getLocation(), "D3: extern");
     return;
   }
 
   if (!VD->getType().isConstQualified()) {
-    diag(VD->getLocation(), "D4: not const");
     return;
   }
 
   if (VD->isConstexpr()) {
-    diag(VD->getLocation(), "D5: constexpr");
     return;
   }
 
   const auto* CXXRD = VD->getType()->getAsCXXRecordDecl();
   if (CXXRD == nullptr) {
-    diag(VD->getLocation(), "D6: no CXXRD");
     return;
   }
 
-  diag(VD->getLocation(), "D7: CXXRD='%0'") << CXXRD->getName();
-
   if (CXXRD->getName() != "basic_string") {
-    diag(VD->getLocation(), "D8: not basic_string");
     return;
   }
 
@@ -124,43 +116,33 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     }
   }
   if (!InStdNamespace) {
-    diag(VD->getLocation(), "D9: not std namespace");
     return;
   }
 
   const auto* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(CXXRD);
   if (CTSD == nullptr) {
-    diag(VD->getLocation(), "D10: no CTSD");
     return;
   }
 
   const auto& Args = CTSD->getTemplateArgs();
   if (Args.size() < 1) {
-    diag(VD->getLocation(), "D11: no args");
     return;
   }
   const Type* CharTy = Args[0].getAsType().getTypePtr();
   if (CharTy == nullptr || (!CharTy->isSpecificBuiltinType(BuiltinType::Char_U) &&
                             !CharTy->isSpecificBuiltinType(BuiltinType::Char_S))) {
-    diag(VD->getLocation(), "D12: not char");
     return;
   }
 
   const Expr* Init = VD->getInit();
   if (Init == nullptr) {
-    diag(VD->getLocation(), "D13: no init");
     return;
   }
-
-  diag(VD->getLocation(), "D14: init type='%0'") << Init->IgnoreImplicit()->getStmtClassName();
 
   const StringLiteral* SL = findStringLiteral(Init);
   if (SL == nullptr) {
-    diag(VD->getLocation(), "D15: no string literal");
     return;
   }
-
-  diag(VD->getLocation(), "D16: found SL, emitting fix");
 
   auto& SrcMgr = Result.Context->getSourceManager();
   auto LangOpts = Result.Context->getLangOpts();
