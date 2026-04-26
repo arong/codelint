@@ -9,6 +9,7 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Lex/Lexer.h>
 #include <llvm/Support/Casting.h>
 
 namespace clang::tidy::codelint {
@@ -76,8 +77,58 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   const clang::Expr* NonBoolOperand{getNonBoolOperand(Cond)};
   const clang::QualType CondType{NonBoolOperand->getType()};
 
-  diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
-      << CondType.getAsString();
+  const std::string Fix = getComparisonFix(NonBoolOperand);
+  if (!Fix.empty()) {
+    auto& LangOpts = Ctx->getLangOpts();
+    const auto NonBoolRange = NonBoolOperand->getSourceRange();
+    const auto NonBoolText =
+        Lexer::getSourceText(CharSourceRange::getTokenRange(NonBoolRange), SrcMgr, LangOpts);
+
+    diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
+        << CondType.getAsString()
+        << FixItHint::CreateReplacement(CharSourceRange::getTokenRange(NonBoolRange),
+                                        NonBoolText.str() + Fix);
+  } else {
+    diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
+        << CondType.getAsString();
+  }
+}
+
+std::string StrictBoolConditionCheck::getComparisonFix(const Expr* expr) {
+  if (expr == nullptr) {
+    return "";
+  }
+
+  const clang::Expr* TrueExpr{expr->IgnoreImpCasts()};
+  const clang::QualType ExprType{TrueExpr->getType()};
+
+  if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(expr)) {
+    const CastKind Kind{ICE->getCastKind()};
+    if (Kind == CK_IntegralToBoolean) {
+      if (ExprType->isPointerType()) {
+        return " != nullptr";
+      }
+      return " != 0";
+    }
+    if (Kind == CK_PointerToBoolean) {
+      return " != nullptr";
+    }
+    if (Kind == CK_FloatingToBoolean) {
+      return " != 0.0";
+    }
+  }
+
+  if (ExprType->isPointerType()) {
+    return " != nullptr";
+  }
+  if (ExprType->isFloatingType()) {
+    return " != 0.0";
+  }
+  if (ExprType->isIntegerType()) {
+    return " != 0";
+  }
+
+  return "";
 }
 
 bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {

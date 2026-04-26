@@ -104,6 +104,17 @@ while (!done) { }  // ✅ OK
 if (a && b) { }  // ✅ OK (a and b must be bool)
 ```
 
+## Auto-fix
+
+This check supports automatic fixes via `--fix`:
+
+| Type | Before | After |
+|------|--------|-------|
+| Integer | `if (x)` | `if (x != 0)` |
+| Pointer | `if (ptr)` | `if (ptr != nullptr)` |
+| Floating | `if (f)` | `if (f != 0.0)` |
+| Ternary | `x ? a : b` | `x != 0 ? a : b` |
+
 ## Why This Matters
 
 | Problem | Risk |

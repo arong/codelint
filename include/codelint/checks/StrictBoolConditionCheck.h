@@ -1,6 +1,7 @@
 #pragma once
 
 #include <clang-tidy/ClangTidyCheck.h>
+#include <string>
 
 namespace clang::tidy::codelint {
 
@@ -21,6 +22,7 @@ private:
   void checkCondition(const Expr* Cond, ASTContext* Ctx);
   static bool isBoolType(const Expr* expr);
   static const Expr* getNonBoolOperand(const Expr* expr);
+  static std::string getComparisonFix(const Expr* expr);
 };
 
 } // namespace clang::tidy::codelint

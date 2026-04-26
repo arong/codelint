@@ -1,9 +1,11 @@
 tests/CodeLintTest/src/strict_bool_condition_checker/src/ternary_operator.cpp:5:12: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
     5 |   int a1 = x ? 1 : 0;
       |            ^
+      |            x != 0
 tests/CodeLintTest/src/strict_bool_condition_checker/src/ternary_operator.cpp:6:12: warning: condition must be bool type, but got 'int' [codelint-strict-bool-condition]
     6 |   int a2 = 1 ? 1 : 0;
       |            ^
+      |            1 != 0
 tests/CodeLintTest/src/strict_bool_condition_checker/src/ternary_operator.cpp:7:12: warning: condition must be bool type, but got 'nullptr_t' [codelint-strict-bool-condition]
     7 |   int a3 = nullptr ? 1 : 0;
       |            ^

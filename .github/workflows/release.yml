@@ -8,7 +8,7 @@ on:
     tags: ['v*']
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
 
@@ -130,25 +130,25 @@ jobs:
           }
           EOF
 
-          ./bin/clang-tidy --load=lib/codelint-plugin.so --checks='codelinit-*' /tmp/test_skill.cpp 2>&1 | head -20 || true
+          ./bin/clang-tidy --load=lib/codelint-plugin.so --checks='codelint-*' /tmp/test_skill.cpp 2>&1 | head -20 || true
 
-      - name: Upload codelint package artifact
+      - name: Upload codelint package artifact (Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: codelint-package
+          name: codelint-package-linux
           path: package-output/codelint-*.tar.gz
           retention-days: 5
 
-      - name: Upload skill package artifact
+      - name: Upload skill package artifact (Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: clang-tidy-skill-package
+          name: clang-tidy-skill-package-linux
           path: package-output/clang-tidy-skill-*.tar.gz
           retention-days: 5
 
   release:
-    needs: [build]
-    if: always() && needs.build.result == 'success'
+    needs: [build-linux]
+    if: always() && needs.build-linux.result == 'success'
     runs-on: ubuntu-latest
 
     env:
@@ -158,23 +158,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download codelint package artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: codelint-package
-          path: artifacts/codelint
-
-      - name: Download skill package artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: clang-tidy-skill-package
-          path: artifacts/skill
+          path: artifacts
+          pattern: "*-package-*"
 
       - name: List artifacts
         run: |
           ls -la artifacts/
-          ls -la artifacts/codelint/
-          ls -la artifacts/skill/
+          find artifacts -type f -name "*.tar.gz" | sort
 
       - name: Create GitHub Release
         run: |
@@ -183,8 +176,7 @@ jobs:
           gh release create v$VERSION \
             --title "v$VERSION" \
             --generate-notes \
-            artifacts/codelint/* \
-            artifacts/skill/*
+            artifacts/*/*/*.tar.gz
 
       - name: Verify release
         run: |
