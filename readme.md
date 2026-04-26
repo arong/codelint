@@ -44,7 +44,7 @@ void process() {
 |-------|--------------|----------|------------------|
 | **codelint-init** | Uninitialized variables, dangerous conversions (int→bool, narrowing) | ✅ Yes (uninit) | C++14/17/20 |
 | **codelint-lint-code** | Initialization style (`=`→`{}`), unsigned suffix (`U`/`UL`) | ✅ Yes | C++14/17/20 |
-| **codelint-strict-bool-condition** | Bool-only condition enforcement | ❌ No | C++14/17/20 |
+| **codelint-strict-bool-condition** | Bool-only condition enforcement | ✅ Yes | C++14/17/20 |
 | **codelint-global** | Global variable detection | ❌ No | C++ |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No | C++ |
 | **codelint-signed-to-unsigned-return** | Signed→unsigned return value detection | ❌ No | C++14/17/20 |

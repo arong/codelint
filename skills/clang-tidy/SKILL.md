@@ -51,7 +51,7 @@ cp skills/clang-tidy/configs/.clang-tidy.codelint .clang-tidy
 |-------|----------|----------|-------------|
 | `codelint-init` | ✅ Partial | C++14/17/20 | Uninitialized variables, dangerous conversions |
 | `codelint-lint-code` | ✅ Full | C++14/17/20 | Style: `=` → `{}`, unsigned suffix |
-| `codelint-strict-bool-condition` | ❌ No | C++14-20 ⚠️ | Bool-only conditions (excludes C++23) |
+| `codelint-strict-bool-condition` | ✅ Yes | C++14-20 ⚠️ | Bool-only conditions (excludes C++23) |
 | `codelint-signed-to-unsigned-return` | ❌ No | C++14/17/20 | POSIX signed return → unsigned |
 | `codelint-global` | ❌ No | C++ | Global variable detection |
 | `codelint-global-const-string` | ❌ No | C++ | Global const string → constexpr |

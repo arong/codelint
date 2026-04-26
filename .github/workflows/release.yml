@@ -8,7 +8,7 @@ on:
     tags: ['v*']
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
 
@@ -130,25 +130,148 @@ jobs:
           }
           EOF
 
-          ./bin/clang-tidy --load=lib/codelint-plugin.so --checks='codelinit-*' /tmp/test_skill.cpp 2>&1 | head -20 || true
+          ./bin/clang-tidy --load=lib/codelint-plugin.so --checks='codelint-*' /tmp/test_skill.cpp 2>&1 | head -20 || true
 
-      - name: Upload codelint package artifact
+      - name: Upload codelint package artifact (Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: codelint-package
+          name: codelint-package-linux
           path: package-output/codelint-*.tar.gz
           retention-days: 5
 
-      - name: Upload skill package artifact
+      - name: Upload skill package artifact (Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: clang-tidy-skill-package
+          name: clang-tidy-skill-package-linux
+          path: package-output/clang-tidy-skill-*.tar.gz
+          retention-days: 5
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install llvm@21 cmake ninja
+
+      - name: Configure CMake
+        run: |
+          SDKROOT=$(xcrun --show-sdk-path) cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_DIR=$(brew --prefix llvm@21)/lib/cmake/llvm
+
+      - name: Build plugin
+        run: cmake --build build -j$(sysctl -n hw.ncpu)
+
+      - name: Verify plugin
+        run: |
+          ls -la build/lib/
+          file build/lib/codelint-plugin.dylib
+
+      - name: Create codelint package
+        run: |
+          chmod +x packaging/scripts/bundle_libs.sh
+          ./packaging/scripts/bundle_libs.sh
+
+      - name: Create skill package
+        run: |
+          chmod +x packaging/scripts/bundle_skill.sh
+          ./packaging/scripts/bundle_skill.sh --codelint
+
+      - name: Verify codelint package
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          PACKAGE_NAME="codelint-${VERSION}-darwin-${ARCH}"
+
+          ls -la package-output/
+          ls -la package-output/${PACKAGE_NAME}/
+          file package-output/${PACKAGE_NAME}/bin/clang-tidy
+          file package-output/${PACKAGE_NAME}/bin/codelint
+          file package-output/${PACKAGE_NAME}/lib/codelint-plugin.dylib
+
+          tar -tzf package-output/${PACKAGE_NAME}.tar.gz | head -20
+
+      - name: Verify skill package
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          SKILL_PACKAGE_NAME="clang-tidy-skill-${VERSION}-darwin-${ARCH}"
+
+          ls -la package-output/${SKILL_PACKAGE_NAME}/
+          file package-output/${SKILL_PACKAGE_NAME}/bin/clang-tidy
+          file package-output/${SKILL_PACKAGE_NAME}/lib/codelint-plugin.dylib
+
+          ls -la package-output/${SKILL_PACKAGE_NAME}/share/clang-tidy-skill/scripts/
+          ls -la package-output/${SKILL_PACKAGE_NAME}/share/clang-tidy-skill/configs/
+
+          tar -tzf package-output/${SKILL_PACKAGE_NAME}.tar.gz | head -30
+
+      - name: Test codelint package functionality
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          PACKAGE_NAME="codelint-${VERSION}-darwin-${ARCH}"
+
+          cd package-output/${PACKAGE_NAME}
+
+          export DYLD_LIBRARY_PATH=$PWD/lib:$DYLD_LIBRARY_PATH
+          ./bin/codelint --version
+          ./bin/codelint --list-checks | grep codelint
+
+          cat > /tmp/test.cpp << 'EOF'
+          void test() {
+            int x;
+            int y = 5;
+          }
+          EOF
+
+          ./bin/codelint /tmp/test.cpp 2>&1 | head -20 || true
+
+      - name: Test skill package functionality
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          SKILL_PACKAGE_NAME="clang-tidy-skill-${VERSION}-darwin-${ARCH}"
+
+          cd package-output/${SKILL_PACKAGE_NAME}
+
+          export DYLD_LIBRARY_PATH=$PWD/lib:$DYLD_LIBRARY_PATH
+          export PATH=$PWD/bin:$PATH
+
+          ./bin/clang-tidy --version
+          ./share/clang-tidy-skill/scripts/run_clang_tidy.py --version
+          ./share/clang-tidy-skill/scripts/run_clang_tidy.py --list-checks | head -20
+
+          cat > /tmp/test_skill.cpp << 'EOF'
+          void test() {
+            int x;
+            int y = 5;
+          }
+          EOF
+
+          ./bin/clang-tidy --load=lib/codelint-plugin.dylib --checks='codelint-*' /tmp/test_skill.cpp 2>&1 | head -20 || true
+
+      - name: Upload codelint package artifact (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: codelint-package-macos
+          path: package-output/codelint-*.tar.gz
+          retention-days: 5
+
+      - name: Upload skill package artifact (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-tidy-skill-package-macos
           path: package-output/clang-tidy-skill-*.tar.gz
           retention-days: 5
 
   release:
-    needs: [build]
-    if: always() && needs.build.result == 'success'
+    needs: [build-linux, build-macos]
+    if: always() && needs.build-linux.result == 'success' && needs.build-macos.result == 'success'
     runs-on: ubuntu-latest
 
     env:
@@ -158,23 +281,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download codelint package artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: codelint-package
-          path: artifacts/codelint
-
-      - name: Download skill package artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: clang-tidy-skill-package
-          path: artifacts/skill
+          path: artifacts
+          pattern: "*-package-*"
 
       - name: List artifacts
         run: |
           ls -la artifacts/
-          ls -la artifacts/codelint/
-          ls -la artifacts/skill/
+          find artifacts -type f -name "*.tar.gz" | sort
 
       - name: Create GitHub Release
         run: |
@@ -183,8 +299,7 @@ jobs:
           gh release create v$VERSION \
             --title "v$VERSION" \
             --generate-notes \
-            artifacts/codelint/* \
-            artifacts/skill/*
+            artifacts/*/*/*.tar.gz
 
       - name: Verify release
         run: |

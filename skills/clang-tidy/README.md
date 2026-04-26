@@ -87,7 +87,7 @@ Checks: `cert-*`, `clang-analyzer-security-*`
 |-------|-------------|----------|
 | `codelint-init` | Uninitialized variables, dangerous conversions (int→bool, narrowing) | ✅ Partial |
 | `codelint-lint-code` | Style: `=` → `{}`, unsigned suffix `U`/`UL` | ✅ Yes |
-| `codelint-strict-bool-condition` | Bool-only conditions (if/while/for) | ❌ No |
+| `codelint-strict-bool-condition` | Bool-only conditions (if/while/for) | ✅ Yes |
 | `codelint-signed-to-unsigned-return` | POSIX signed return → unsigned (e.g., `read()`) | ❌ No |
 | `codelint-global` | Global variable detection | ❌ No |
 | `codelint-global-const-string` | Global const string → `constexpr const char*` | ❌ No |
