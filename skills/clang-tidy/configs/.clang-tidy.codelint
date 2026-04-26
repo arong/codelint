@@ -1,0 +1,40 @@
+---
+# clang-tidy codelint-only configuration
+# Focus exclusively on codelint plugin checks - no built-in clang-tidy checks
+# Ideal for: Projects with existing clang-tidy setup, focused initialization audits
+
+Checks: >
+  -*,
+  codelint-*,
+  -codelint-global-const-string
+
+HeaderFilterRegex: '.*'
+WarningsAsErrors: ''
+FormatStyle: 'file'
+InheritParentConfig: false
+
+CheckOptions:
+  # Note: All codelint checks are enabled except global-const-string
+  # which is typically less critical and can be noisy
+  
+  # To enable all checks including global-const-string:
+  # Checks: '-*, codelint-*'
+  
+  # To disable specific checks:
+  # Checks: '-*, codelint-*,-codelinit-singleton'
+
+---
+# Usage Examples:
+#
+# Quick audit:
+#   clang-tidy --load=build/lib/codelint-plugin.so -p build src/**/*.cpp
+#
+# Auto-fix style issues:
+#   clang-tidy --load=build/lib/codelint-plugin.so --fix -p build src/**/*.cpp
+#
+# Check only specific issues:
+#   clang-tidy --load=... --checks='codelint-init,codelint-strict-bool-condition' src/*.cpp
+#
+# With this config file (copy to project root as .clang-tidy):
+#   cp skills/clang-tidy/configs/.clang-tidy.codelint .clang-tidy
+#   clang-tidy --load=build/lib/codelint-plugin.so -p build src/**/*.cpp

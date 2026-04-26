@@ -23,7 +23,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/build"
-SKILL_DIR="${PROJECT_ROOT}/.skill/clang-tidy"
+SKILL_DIR="${PROJECT_ROOT}/skills/clang-tidy"
 OUTPUT_DIR="${PROJECT_ROOT}/package-output"
 LLVM_VERSION="21"
 
@@ -415,23 +415,27 @@ clang-tidy --load=lib/codelint-plugin.so --checks='codelint-*' -p build src/*.cp
 
 | Preset | Description |
 |--------|-------------|
+| \`codelint\` | codelint plugin only (initialization/safety) |
 | \`default\` | Basic checks (bugprone, modernize) |
 | \`strict\` | Production level (CERT, C++ Core Guidelines) |
 | \`security\` | Security-focused (cert, security-analyzer) |
 
 Copy preset to project root:
 \`\`\`bash
-cp share/clang-tidy-skill/configs/.clang-tidy.default .clang-tidy
+cp share/clang-tidy-skill/configs/.clang-tidy.codelint .clang-tidy
 \`\`\`
 
 ## Available Checks
 
 | Check | Auto-fix | Description |
 |-------|----------|-------------|
-| codelint-init | Yes | Variable initialization |
+| codelint-init | Yes | Uninitialized variables, dangerous conversions |
+| codelint-lint-code | Yes | Style: brace init, unsigned suffix |
 | codelint-strict-bool-condition | No | Bool-only conditions |
-| codelint-global | No | Global variables |
-| codelint-singleton | No | Meyer's Singleton |
+| codelint-signed-to-unsigned-return | No | POSIX signed→unsigned return |
+| codelint-global | No | Global variable detection |
+| codelint-global-const-string | No | Global const string optimization |
+| codelint-singleton | No | Meyer's Singleton pattern |
 | bugprone-* | Partial | Bug detection |
 | modernize-* | Yes | Modern C++ |
 
@@ -480,10 +484,13 @@ git diff -U0 HEAD^ | ./bin/codelint-diff -p1
 
 | Check | Auto-fix | Description |
 |-------|----------|-------------|
-| codelint-init | Yes | Variable initialization style |
-| codelinit-strict-bool-condition | No | Bool-only conditions |
-| codelinit-global | No | Global variable detection |
-| codelinit-singleton | No | Meyer's Singleton pattern |
+| codelint-init | Yes | Uninitialized variables, dangerous conversions |
+| codelint-lint-code | Yes | Style: brace init, unsigned suffix |
+| codelint-strict-bool-condition | No | Bool-only conditions |
+| codelint-signed-to-unsigned-return | No | POSIX signed→unsigned return |
+| codelint-global | No | Global variable detection |
+| codelint-global-const-string | No | Global const string optimization |
+| codelint-singleton | No | Meyer's Singleton pattern |
 
 ## Requirements
 
