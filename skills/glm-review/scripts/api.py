@@ -13,7 +13,7 @@ class GLMReviewClient:
     def __init__(self, base_url: str, model: str, api_key: Optional[str] = None):
         """
         Initialize the GLM Review Client.
-        
+
         Args:
             base_url: Base URL for the GLM API
             model: Model name to use (e.g., glm-4)
@@ -22,63 +22,63 @@ class GLMReviewClient:
         self.base_url = base_url
         self.model = model
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        
+
         if not self.api_key:
             raise ValueError("API key must be provided either as parameter or through OPENAI_API_KEY environment variable")
-        
+
         self.client = AsyncOpenAI(
             base_url=self.base_url,
             api_key=self.api_key,
         )
-        
+
         # Use cl100k_base encoding as default, though this might vary by model
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except KeyError:
             # Fallback to cl100k_base which works well for most models
             self.tokenizer = tiktoken.encoding_for_model("gpt-4")
-    
+
     def count_tokens(self, text: str) -> int:
         """
         Count the number of tokens in the given text.
-        
+
         Args:
             text: Text to count tokens for
-            
+
         Returns:
             Number of tokens in the text
         """
         return len(self.tokenizer.encode(text))
-    
+
     async def _make_request_with_retry(self, func, *args, **kwargs):
         """
         Make an API request with exponential backoff retry logic.
-        
+
         Args:
             func: The async function to call
             *args, **kwargs: Arguments to pass to the function
-            
+
         Returns:
             Result of the function call
-            
+
         Raises:
             Exception: After all retry attempts are exhausted
         """
         max_retries = 3
         timeout = 120  # 120 seconds per request
-        
+
         for attempt in range(max_retries + 1):
             try:
                 # Create a timeout context for the request
                 timeout_obj = httpx.Timeout(timeout=timeout)
-                
+
                 # Make the request
                 result = await func(*args, **kwargs)
                 return result
-                
+
             except httpx.HTTPStatusError as e:
                 status_code = e.response.status_code
-                
+
                 # Handle specific HTTP errors
                 if status_code == 429:  # Rate limit
                     print(f"Rate limit exceeded (429). Attempt {attempt + 1}/{max_retries + 1}")
@@ -90,42 +90,42 @@ class GLMReviewClient:
                     print(f"Server error ({status_code}). Attempt {attempt + 1}/{max_retries + 1}")
                 else:
                     print(f"HTTP error ({status_code}). Attempt {attempt + 1}/{max_retries + 1}")
-                
+
                 if attempt == max_retries:
                     raise  # Re-raise if we're out of retries
-                    
+
                 # Calculate backoff delay: 1s -> 2s -> 4s (doubling each time)
                 backoff_delay = min(4, 2 ** attempt)  # Cap at 4 seconds
                 await asyncio.sleep(backoff_delay)
-                
+
             except asyncio.TimeoutError:
                 print(f"Request timed out after {timeout}s. Attempt {attempt + 1}/{max_retries + 1}")
                 if attempt == max_retries:
                     raise
                 backoff_delay = min(4, 2 ** attempt)
                 await asyncio.sleep(backoff_delay)
-                
+
             except Exception as e:
                 print(f"Unexpected error during request: {e}. Attempt {attempt + 1}/{max_retries + 1}")
                 if attempt == max_retries:
                     raise
                 backoff_delay = min(4, 2 ** attempt)
                 await asyncio.sleep(backoff_delay)
-    
+
     def validate_key_sync(self) -> bool:
         """
         Synchronous version to validate the API key by making a simple request.
-        
+
         Returns:
             True if the API key is valid, False otherwise
         """
         import requests
-        
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        
+
         # Make a simple request to test if the key is valid
         try:
             # Using a minimal chat completion request to test the API key
@@ -139,15 +139,15 @@ class GLMReviewClient:
                 },
                 timeout=30
             )
-            
+
             return response.status_code in [200, 400]  # 400 means key is valid but request is invalid
         except requests.RequestException:
             return False
-    
+
     async def validate_key(self) -> bool:
         """
         Validate the API key by making a simple request.
-        
+
         Returns:
             True if the API key is valid, False otherwise
         """
@@ -162,14 +162,14 @@ class GLMReviewClient:
         except Exception as e:
             print(f"API key validation failed: {e}")
             return False
-    
+
     async def review(self, content: str) -> Dict:
         """
         Send content to the GLM model for review and return the response.
-        
+
         Args:
             content: Content to review
-            
+
         Returns:
             Response from the GLM API as a dictionary
         """
@@ -179,13 +179,13 @@ class GLMReviewClient:
                 model=self.model,
                 messages=[
                     {
-                        "role": "user", 
+                        "role": "user",
                         "content": content
                     }
                 ],
                 timeout=120
             )
-            
+
             # Convert the response to a dict
             response_dict = {
                 'id': result.id,
@@ -207,9 +207,9 @@ class GLMReviewClient:
                     'total_tokens': result.usage.total_tokens if hasattr(result.usage, 'total_tokens') else 0
                 }
             }
-            
+
             return response_dict
-            
+
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_detail = {
@@ -229,7 +229,7 @@ class GLMReviewClient:
 
 class MockGLMReviewClient:
     """Mock API client that generates simulated responses with estimated tokens for testing."""
-    
+
     MOCK_FINDINGS_TEMPLATES = [
         {
             "severity": "CRITICAL",
@@ -312,10 +312,10 @@ class MockGLMReviewClient:
             "explanation": "Global state creates hidden dependencies and complicates testing"
         },
     ]
-    
+
     SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
     SEVERITY_WEIGHTS = [0.1, 0.25, 0.35, 0.30]
-    
+
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -324,10 +324,10 @@ class MockGLMReviewClient:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except KeyError:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4")
-    
+
     def count_tokens(self, text: str) -> int:
         return len(self.tokenizer.encode(text))
-    
+
     def _generate_findings(self, prompt: str, file_paths: list) -> list:
         prompt_tokens = self.count_tokens(prompt)
         num_findings = random.randint(2, min(6, max(2, len(file_paths) * 2)))
@@ -355,7 +355,7 @@ class MockGLMReviewClient:
         self.total_completion_tokens += completion_tokens
         self.request_count += 1
         return findings
-    
+
     async def review(self, content: str) -> Dict:
         import re
         file_pattern = r"=== START OF FILE: (.+?) ==="
@@ -390,6 +390,6 @@ class MockGLMReviewClient:
                 "total_tokens": self.count_tokens(content) + self.count_tokens(yaml_output),
             },
         }
-    
+
     async def validate_key(self) -> bool:
         return True
