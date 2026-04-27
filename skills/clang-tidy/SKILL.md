@@ -86,6 +86,28 @@ clang-tidy --load=build/lib/codelint-plugin.so \
 
 ---
 
+## Workflow
+
+Standard 3-step workflow for fixing issues:
+
+```bash
+# Step 1: Check issues (no --fix)
+./skills/clang-tidy/scripts/run_clang_tidy.py -p build --preset codelint
+
+# Step 2: Auto-fix what can be fixed
+./skills/clang-tidy/scripts/run_clang_tidy.py -p build --preset codelint --fix
+
+# Step 3: Verify remaining issues (no --fix)
+./skills/clang-tidy/scripts/run_clang_tidy.py -p build --preset codelint
+```
+
+**Why this order:**
+1. First pass shows all issues (including errors that cannot be auto-fixed)
+2. `--fix` only handles safe auto-fixes (style, uninitialized variables)
+3. Final pass confirms what remains for manual review
+
+---
+
 ## See Also
 
 - **Full Reference**: [reference.md](reference.md) - Presets, all checks, AI integration, troubleshooting
