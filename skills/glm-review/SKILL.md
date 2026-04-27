@@ -1,11 +1,29 @@
 ---
 name: glm-review
-description: C++ code review using GLM4.7 OpenAI-compatible API. Token-aware chunking, markdown output, sequential processing.
+description: >
+  AI-powered C++ code review using GLM4.7. Token-aware chunked processing for large codebases (200+ files), markdown output.
+  When to use: Use this skill when you need to review C++ code quality, detect bugs, or get improvement suggestions.
+  Ideal for: PR review, codebase audit, security review, or performance analysis of C++ projects.
+  Not for: Non-C++ languages, real-time analysis, or SARIF/JSON output (markdown only).
 ---
 
 # GLM-Review Skill
 
-AI-powered C++ code review using GLM4.7 model via OpenAI-compatible API. Provides intelligent code quality analysis with configurable prompts and token management.
+AI-powered C++ code review using GLM4.7 model via OpenAI-compatible API.
+
+---
+
+## When to Use
+
+| Scenario | Use This Skill |
+|----------|----------------|
+| Review C++ code for bugs and quality issues | Yes |
+| PR review before merging | Yes |
+| Security or performance audit | Yes (with custom prompts) |
+| Large codebase (100+ files) | Yes (chunked processing) |
+| Non-C++ languages | No |
+| Real-time analysis needed | No (API calls take time) |
+| SARIF/JSON output required | No (markdown only) |
 
 ---
 
@@ -13,265 +31,59 @@ AI-powered C++ code review using GLM4.7 model via OpenAI-compatible API. Provide
 
 ```bash
 # 1. Install prerequisites
-pip install openai tiktoken
+pip install -r skills/glm-review/requirements.txt
 
-# 2. Run review on C++ files
-./skills/glm-review/scripts/glm_review.py \
+# 2. Set API key
+export GLM_API_KEY="your-api-key"
+
+# 3. Run review
+./skills/glm-review/scripts/review.py \
   --target "src/**/*.cpp" \
-  --api-key "your-api-key"
-
-# 3. Review single file
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/main.cpp" \
-  --api-key "your-api-key"
-
-# 4. Review with custom prompt
-./skills/glm_review/scripts/glm_review.py \
-  --target "src/**/*" \
-  --prompt-file "skills/glm-review/prompts/safety-review.txt" \
-  --api-key "your-api-key"
+  --api-key "$GLM_API_KEY"
 ```
 
 ---
 
-## Prerequisites
+## Core Commands
+
+### Review Files
 
 ```bash
-pip install openai tiktoken
-```
+# Review single file
+./skills/glm-review/scripts/review.py --target "src/main.cpp" --api-key "$GLM_API_KEY"
 
-- **openai**: API client for GLM4.7 OpenAI-compatible endpoint
-- **tiktoken**: Token counting for cost management and chunking
+# Review directory (glob pattern)
+./skills/glm-review/scripts/review.py --target "src/**/*.cpp" --api-key "$GLM_API_KEY"
 
----
-
-## CLI Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--target` | Files/directories to review (glob pattern) | Required |
-| `--api-key` | GLM4.7 API key | Required |
-| `--prompt-file` | Custom prompt file path | `prompts/default.txt` |
-| `--chunk-size` | Max tokens per request | 4000 |
-| `--output` | Output file path | `review_output.md` |
-| `--model` | Model identifier | `glm-4.7` |
-| `--base-url` | API base URL | Configured in script |
-
----
-
-## Review Modes
-
-### File-Level Review
-
-```bash
-# Review individual files
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/class_a.cpp" \
-  --api-key "$API_KEY"
-
-# Review multiple specific files
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/class_a.cpp,src/class_b.cpp" \
-  --api-key "$API_KEY"
-```
-
-### Directory Scan
-
-```bash
-# Review all C++ files in directory
-./skills/glm-review/scripts/glm_review.py \
+# Review with custom output
+./skills/glm-review/scripts/review.py \
   --target "src/**/*.cpp" \
-  --api-key "$API_KEY"
-
-# Review both .cpp and .h files
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/**/*.{cpp,h}" \
-  --api-key "$API_KEY"
+  --api-key "$GLM_API_KEY" \
+  --output "review-report.md"
 ```
 
-### Custom Prompts
+### Dry Run (Preview)
 
 ```bash
-# Use built-in safety-focused prompt
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/**/*" \
-  --prompt-file "skills/glm-review/prompts/safety-review.txt" \
-  --api-key "$API_KEY"
-
-# Use performance-focused prompt
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/**/*" \
-  --prompt-file "skills/glm-review/prompts/performance-review.txt" \
-  --api-key "$API_KEY"
+# Preview files and token count without API calls
+./skills/glm-review/scripts/review.py \
+  --target "src/**/*.cpp" \
+  --api-key "$GLM_API_KEY" \
+  --dry-run
 ```
 
----
-
-## Output Format
-
-Review results are written to Markdown with structured sections:
-
-```markdown
-# Code Review Report
-
-## File: src/class_a.cpp
-
-### Issues Found
-- Line 23: Uninitialized variable `count`
-- Line 45: Potential integer overflow
-
-### Suggestions
-- Use `{}` initialization for all variables
-- Consider bounds checking for array access
-
-### Code Quality Score: 7/10
-
----
-```
-
----
-
-## Chunking Strategy
-
-### Token-Aware Chunking
-
-- **Default chunk size**: 4000 tokens per API request
-- **File pairing**: Groups 1-3 `.cpp` files with corresponding `.h` headers
-- **Sequential processing**: Processes chunks sequentially to avoid rate limits
-
-### Chunk Size Configuration
+### Test Mode (No API)
 
 ```bash
-# Smaller chunks for faster feedback
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/**/*" \
-  --chunk-size 2000 \
-  --api-key "$API_KEY"
-
-# Larger chunks for comprehensive review
-./skills/glm-review/scripts/glm_review.py \
-  --target "src/**/*" \
-  --chunk-size 6000 \
-  --api-key "$API_KEY"
+# Test with mock client (no API charges)
+./skills/glm-review/scripts/review.py \
+  --target "src/**/*.cpp" \
+  --simulate
 ```
 
 ---
 
-## Cost Management
+## See Also
 
-### Token Usage
-
-```bash
-# Review displays token usage per chunk
-# Example output:
-# Chunk 1/3: 3500 tokens in, 1200 tokens out
-# Chunk 2/3: 3800 tokens in, 1150 tokens out
-# Chunk 3/3: 4200 tokens in, 1300 tokens out
-# Total: 11500 tokens in, 3650 tokens out
-```
-
-### Rate Limit Handling
-
-- Sequential processing with automatic retries
-- Exponential backoff on API rate limits
-- Progress tracking with resume capability
-
----
-
-## Custom Prompts
-
-Create custom prompts in `prompts/` directory:
-
-### Example: Security Review
-
-```text
-Review this C++ code for security vulnerabilities:
-- Buffer overflows
-- Use-after-free bugs
-- Integer overflows
-- Injection attacks
-- Cryptographic issues
-
-Provide:
-1. Severity level (Critical/High/Medium/Low)
-2. Attack scenario
-3. Recommended fix with code example
-```
-
-### Example: Performance Review
-
-```text
-Review this C++ code for performance issues:
-- Unnecessary copies
-- Missing const correctness
-- Inefficient algorithms
-- Memory allocation patterns
-- Loop optimizations
-
-Provide:
-1. Performance impact estimate
-2. Optimized code example
-3. Benchmarking suggestions
-```
-
----
-
-## Git Integration
-
-### Review Staged Changes
-
-```bash
-# Get staged files
-git diff --name-only --cached | grep -E '\.(cpp|h|hpp)$'
-
-# Run review on staged changes
-./skills/glm-review/scripts/glm_review.py \
-  --target "$(git diff --name-only --cached | grep -E '\.(cpp|h|hpp)$' | tr '\n' ',')" \
-  --api-key "$API_KEY"
-```
-
-### Review Recent Commits
-
-```bash
-# Review files changed in last 3 commits
-./skills/glm-review/scripts/glm_review.py \
-  --target "$(git diff --name-only HEAD~3 HEAD | grep -E '\.(cpp|h|hpp)$' | tr '\n' ',')" \
-  --api-key "$API_KEY"
-```
-
----
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| `ModuleNotFoundError: openai` | Install prerequisites: `pip install openai tiktoken` |
-| `API key required` | Set `--api-key` argument or environment variable |
-| `Rate limit exceeded` | Reduce `--chunk-size` or use sequential mode (default) |
-| `No files found` | Check glob pattern: `src/**/*.cpp` requires shell expansion |
-| `Output file not created` | Check write permissions for output directory |
-
----
-
-## Best Practices
-
-1. **Start with small chunks**: Use `--chunk-size 2000` for initial review
-2. **Use specific targets**: Review changed files rather than entire codebase
-3. **Customize prompts**: Tailor prompts to your code quality standards
-4. **Iterative review**: Address issues in first pass, then re-review
-5. **Track token usage**: Monitor API costs with chunk-by-chunk reporting
-
----
-
-## Limitations
-
-- **V1 Scope**: Single prompt per review session (no conversation)
-- **Output format**: Markdown only (no JSON/SARIF)
-- **File size**: Limited by token count per chunk
-- **Language**: Optimized for C++ (C++14/17/20)
-
----
-
-## License
-
-MIT License
+- **Full Reference**: [reference.md](reference.md) - CLI options, review modes, chunking, custom prompts, troubleshooting
+- **Prompts**: `prompts/review-system.md` - Default review prompt
