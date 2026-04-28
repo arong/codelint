@@ -72,7 +72,27 @@ int global1;
 
 ## Running Tests
 
-### Option 1: Via lit
+### Option 1: Via CMake (Recommended)
+
+```bash
+cmake --build build --target test-all
+```
+
+This runs both regression tests (CodeLintTest) AND lit-style tests.
+
+### Option 2: Run only lit tests
+
+```bash
+cmake --build build --target test-lit
+```
+
+Or directly:
+
+```bash
+bash tests/run_lit_tests.sh
+```
+
+### Option 3: Via GitHub Actions CI
 
 ```bash
 # Build plugin first
