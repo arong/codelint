@@ -25,7 +25,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/build"
 SKILL_DIR="${PROJECT_ROOT}/skills/clang-tidy"
 OUTPUT_DIR="${PROJECT_ROOT}/package-output"
-LLVM_VERSION="21"
+LLVM_VERSION="${LLVM_VERSION:-21}"
 
 get_version() {
     if [ -n "$GITHUB_REF" ]; then

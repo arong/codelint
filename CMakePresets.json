@@ -16,18 +16,20 @@
           "type": "STRING",
           "value": "$env{SDKROOT}"
         },
-        "LLVM_DIR": {
-          "type": "PATH",
-          "value": "/opt/homebrew/opt/llvm@21/lib/cmake/llvm"
-        },
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
-      "name": "macos",
-      "displayName": "macOS",
-      "description": "Build for macOS",
+      "name": "macos-llvm21",
+      "displayName": "macOS (LLVM 21)",
+      "description": "Build for macOS with LLVM 21",
       "inherits": "macos-base",
+      "cacheVariables": {
+        "LLVM_DIR": {
+          "type": "PATH",
+          "value": "/opt/homebrew/opt/llvm@21/lib/cmake/llvm"
+        }
+      },
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
       "condition": {
@@ -42,18 +44,39 @@
       "displayName": "Linux Base",
       "description": "Base configuration for Linux",
       "cacheVariables": {
-        "LLVM_DIR": {
-          "type": "PATH",
-          "value": "/usr/lib/llvm-21/lib/cmake/llvm"
-        },
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
-      "name": "linux",
-      "displayName": "Linux",
-      "description": "Build for Linux",
+      "name": "linux-llvm15",
+      "displayName": "Linux (LLVM 15)",
+      "description": "Build for Linux with LLVM 15",
       "inherits": "linux-base",
+      "cacheVariables": {
+        "LLVM_DIR": {
+          "type": "PATH",
+          "value": "/usr/lib/llvm-15/lib/cmake/llvm"
+        }
+      },
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-llvm21",
+      "displayName": "Linux (LLVM 21)",
+      "description": "Build for Linux with LLVM 21",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "LLVM_DIR": {
+          "type": "PATH",
+          "value": "/usr/lib/llvm-21/lib/cmake/llvm"
+        }
+      },
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
       "condition": {
@@ -65,10 +88,10 @@
     {
       "name": "default",
       "displayName": "Default",
-      "description": "Default build (auto-detect platform)",
+      "description": "Default build (auto-detect platform and LLVM version)",
       "inherits": [
-        "macos",
-        "linux"
+        "macos-llvm21",
+        "linux-llvm21"
       ],
       "binaryDir": "${sourceDir}/build"
     }

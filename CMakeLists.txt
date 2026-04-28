@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(codelint-plugin VERSION 1.0.0 LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -31,6 +31,12 @@ endif()
 find_package(Clang REQUIRED CONFIG)
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
 
+# LLVM version detection for compatibility
+message(STATUS "LLVM version major: ${LLVM_VERSION_MAJOR}")
+if(LLVM_VERSION_MAJOR VERSION_LESS 15)
+  message(FATAL_ERROR "codelint requires LLVM 15 or higher, found ${LLVM_VERSION_MAJOR}")
+endif()
+
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${Clang_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
@@ -57,6 +63,11 @@ add_llvm_library(codelint-plugin SHARED
 
 target_include_directories(codelint-plugin PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Pass LLVM version for macro-based compatibility
+target_compile_definitions(codelint-plugin PRIVATE
+    CODELINT_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}
 )
 
 # Link against clang libraries

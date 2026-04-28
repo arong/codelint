@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/build"
 OUTPUT_DIR="${1:-${PROJECT_ROOT}/package-output}"
-LLVM_VERSION="21"
+LLVM_VERSION="${LLVM_VERSION:-21}"
 
 # Get version from git or default
 get_version() {
