@@ -158,22 +158,16 @@ def resolve_line_reference(line_ref, current_line):
 
 
 def expand_check_line(line, line_num, lines):
-    """Expand @LINE references in CHECK lines."""
-    # Pattern: :[[@LINE+N]]:col: ...
     def replace_line_ref(match):
-        prefix = match.group(1)  # :[
-        line_ref = match.group(2)  # @LINE+N or @LINE
-        suffix = match.group(3)  # ]]:col: warning: ...
-        resolved_line = resolve_line_reference(line_ref[1:], line_num)  # skip @
-        return f'{prefix}{resolved_line}{suffix}'
+        line_ref = match.group(1)
+        resolved_line = resolve_line_reference(line_ref, line_num)
+        return str(resolved_line)
 
-    # Handle :[@LINE+N] pattern
-    result = re.sub(r':(\[@)(LINE[+-]?\d*)\]', replace_line_ref, line)
+    result = re.sub(r'\[@(LINE[+-]?\d*)\]', replace_line_ref, line)
     return result
 
 
 def extract_check_lines(test_lines, suffix=None):
-    """Extract CHECK lines from test file, with optional suffix filtering."""
     check_prefix = 'CHECK'
     if suffix:
         check_prefix = f'CHECK-{suffix}'

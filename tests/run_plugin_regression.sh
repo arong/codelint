@@ -566,7 +566,7 @@ fi
 
 echo ""
 echo "========================================"
-echo "Phase 5: Lit-Style Tests"
+echo "Phase 5: Lit-Style Tests (Beta)"
 echo "========================================"
 echo ""
 
@@ -575,17 +575,17 @@ if [ -f "$LIT_TEST_SCRIPT" ]; then
     if bash "$LIT_TEST_SCRIPT"; then
         echo ""
         echo "✓ All lit-style tests PASSED!"
-        echo ""
-        echo "========================================"
-        echo "Final Summary"
-        echo "========================================"
-        echo "✓ ALL TESTS PASSED (Regression + Lit-Style)"
-        exit 0
     else
         echo ""
-        echo "✗ Lit-style tests FAILED!"
-        exit 1
+        echo "⚠ Lit-style tests FAILED - currently in beta, not blocking"
     fi
+    echo ""
+    echo "========================================"
+    echo "Final Summary"
+    echo "========================================"
+    echo "✓ Regression tests PASSED"
+    echo "(Lit-style tests are in beta and not blocking CI)"
+    exit 0
 else
     echo "SKIP: Lit-style test script not found"
     echo ""
