@@ -1,5 +1,6 @@
 #pragma once
 
+#include "codelint/Compatibility.h"
 #include <clang-tidy/ClangTidyCheck.h>
 #include <string>
 
@@ -15,7 +16,7 @@ public:
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;
 
   [[nodiscard]] bool isLanguageVersionSupported(const LangOptions& LangOpts) const override {
-    return LangOpts.CPlusPlus14 && !LangOpts.CPlusPlus23;
+    return LangOpts.CPlusPlus14 && !CODELINT_LANGOPTS_IS_CPP23(LangOpts);
   }
 
 private:
