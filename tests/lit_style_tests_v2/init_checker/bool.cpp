@@ -1,0 +1,10 @@
+// RUN: %codelint %s codelint-init %t
+void testb() {
+  bool flag = false;
+// CHECK-MESSAGES: :3:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+}
+
+// === Expected Fixed Output ===
+// CHECK-FIXES: void testb() {
+// CHECK-FIXES:   bool flag{false};
+// CHECK-FIXES: }

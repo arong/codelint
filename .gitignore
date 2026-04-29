@@ -32,3 +32,8 @@ package-output/
 
 # Test / Coverage
 coverage_report/
+
+# Lit test output directories
+tests/lit_style_tests_v2/*/Output/
+tests/lit_style_tests_v2/.lit_test_times.txt
+

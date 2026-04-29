@@ -559,8 +559,39 @@ fi
 
 if [ $FAIL_COUNT -eq 0 ]; then
     echo "✓ All regression tests PASSED!"
-    exit 0
 else
     echo "✗ $FAIL_COUNT test(s) FAILED!"
     exit 1
+fi
+
+echo ""
+echo "========================================"
+echo "Phase 5: Lit-Style Tests (Beta)"
+echo "========================================"
+echo ""
+
+LIT_TEST_SCRIPT="$PROJECT_ROOT/tests/run_lit_tests.sh"
+if [ -f "$LIT_TEST_SCRIPT" ]; then
+    if bash "$LIT_TEST_SCRIPT"; then
+        echo ""
+        echo "✓ All lit-style tests PASSED!"
+    else
+        echo ""
+        echo "⚠ Lit-style tests FAILED - currently in beta, not blocking"
+    fi
+    echo ""
+    echo "========================================"
+    echo "Final Summary"
+    echo "========================================"
+    echo "✓ Regression tests PASSED"
+    echo "(Lit-style tests are in beta and not blocking CI)"
+    exit 0
+else
+    echo "SKIP: Lit-style test script not found"
+    echo ""
+    echo "========================================"
+    echo "Final Summary"
+    echo "========================================"
+    echo "✓ Regression tests PASSED (Lit-style tests skipped)"
+    exit 0
 fi

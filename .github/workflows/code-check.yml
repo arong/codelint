@@ -119,6 +119,9 @@ jobs:
             clang-tidy-21 clang-21 clang-format-21 \
             libclang-21-dev
 
+          ln -sf /usr/bin/FileCheck-21 /usr/bin/FileCheck || true
+          ln -sf /usr/bin/clang-tidy-21 /usr/bin/clang-tidy || true
+
       - name: Configure CMake
         run: |
           cmake -B build \
@@ -138,6 +141,15 @@ jobs:
 
       - name: Run all tests
         run: cmake --build build --target test-all
+
+      - name: Run lit-style tests
+        run: |
+          echo "========================================"
+          echo "Running Lit-Style Test Suite"
+          echo "========================================"
+          
+          chmod +x tests/run_lit_tests.sh
+          bash tests/run_lit_tests.sh
 
       - name: Check code formatting
         if: github.event_name == 'pull_request'

@@ -87,12 +87,19 @@ set_target_properties(codelint-plugin PROPERTIES
 # Install plugin
 install(TARGETS codelint-plugin LIBRARY DESTINATION lib/clang-tidy)
 
-# Custom target to run all tests
+add_custom_target(test-lit
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/run_lit_tests.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DEPENDS codelint-plugin
+    COMMENT "Running lit-style tests"
+    VERBATIM
+)
+
 add_custom_target(test-all
     COMMAND ${CMAKE_COMMAND} -E env PATH="/opt/homebrew/opt/llvm@21/bin:$ENV{PATH}"
     bash ${CMAKE_SOURCE_DIR}/tests/run_plugin_regression.sh
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DEPENDS codelint-plugin
-    COMMENT "Running all regression tests"
+    COMMENT "Running all regression tests (includes lit-style tests)"
     VERBATIM
 )
