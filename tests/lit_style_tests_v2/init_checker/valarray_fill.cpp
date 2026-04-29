@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for std::valarray constructor semantics
 // Critical: std::valarray has fill constructor with reversed parameter order
 

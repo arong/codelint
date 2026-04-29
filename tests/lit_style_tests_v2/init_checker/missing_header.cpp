@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for compilation error detection
 // When header file is missing, the check should NOT produce false suggestions
 // This tests the hasErrorOccurred() early-exit logic

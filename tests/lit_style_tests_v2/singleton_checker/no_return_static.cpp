@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-singleton %t -- -std=c++17
+// RUN: %codelint %s codelint-singleton %t
 // Test file: no_return_static.cpp
 // Scenario: Static local variable without returning (NOT a singleton)
 // Expected: 0 singleton patterns detected (false positive test)

@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 #include <iostream>
 void withArgument(int a, int b = 10) {
   std::cout << (a + b);

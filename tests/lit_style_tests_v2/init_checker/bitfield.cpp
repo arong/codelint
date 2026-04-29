@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for bitfield member handling
 // P1-1: Bitfield members should NOT be suggested to add {} after the name
 
@@ -15,10 +15,10 @@ struct BitfieldWithInit {
 
 struct MixedBitfield {
   int normal_member;
-// CHECK-MESSAGES: :[@LINE]:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :17:7: error: field is not initialized  [codelint-init]
   int bitfield : 4;
   double regular;
-// CHECK-MESSAGES: :[@LINE]:10: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :20:10: error: field is not initialized  [codelint-init]
 };
 
 class BitfieldClass {

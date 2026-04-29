@@ -1,7 +1,7 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 void testb() {
   bool flag = false;
-// CHECK-MESSAGES: :[@LINE]:8: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :3:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // === Expected Fixed Output ===

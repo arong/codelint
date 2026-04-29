@@ -1,14 +1,14 @@
-// RUN: %check_codelint %s codelint-global-const-string %t -- -std=c++17
+// RUN: %codelint %s codelint-global-const-string %t
 #include <string>
 
 const std::string path = "/usr/local";
-// CHECK-MESSAGES: :[@LINE]:19: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
+// CHECK-MESSAGES: :4:19: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
 const std::string msg{"hello world"};
-// CHECK-MESSAGES: :[@LINE]:19: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
+// CHECK-MESSAGES: :6:19: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
 const std::string empty{""};
-// CHECK-MESSAGES: :[@LINE]:19: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
+// CHECK-MESSAGES: :8:19: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
 const auto name = std::string("codelint");
-// CHECK-MESSAGES: :[@LINE]:12: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
+// CHECK-MESSAGES: :10:12: warning: global const std::string initialized with string literal should be 'constexpr const char*'  [codelint-global-const-string]
 
 // === Expected Fixed Output ===
 // CHECK-FIXES: #include <string>

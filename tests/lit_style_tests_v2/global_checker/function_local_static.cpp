@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-global %t -- -std=c++17
+// RUN: %codelint %s codelint-global %t
 // Test file: function_local_static.cpp
 // Scenario: Function-local static variables (NOT globals)
 // Expected: 0 global variables detected (false positive test)

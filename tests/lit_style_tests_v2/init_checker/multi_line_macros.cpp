@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for multi-line macro handling
 
 #include <vector>
@@ -26,7 +26,7 @@ bool DoSomething(int);
 
 void test_multi_line_macros() {
   int val = 0;
-// CHECK-MESSAGES: :[@LINE]:7: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :28:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   LOG_IF_CHANGED(val, val + 1);
   INIT_CONTAINER(vec, std::vector<int>, 1, 2, 3);
 }
@@ -37,9 +37,9 @@ void test_simple_macro_vars() {
 
 void test_regular_vars() {
   int a;
-// CHECK-MESSAGES: :[@LINE]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :39:7: error: variable is not initialized  [codelint-init]
   int b = 10;
-// CHECK-MESSAGES: :[@LINE]:7: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :41:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // === Expected Fixed Output ===

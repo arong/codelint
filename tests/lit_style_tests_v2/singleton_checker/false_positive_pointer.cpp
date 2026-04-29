@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-singleton %t -- -std=c++17
+// RUN: %codelint %s codelint-singleton %t
 // Test 6: False Positive - Return Pointer (NOT a singleton)
 class Resource {
 public:

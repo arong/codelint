@@ -160,7 +160,7 @@ def resolve_line_reference(line_ref, current_line):
 def expand_check_line(line, line_num, lines):
     def replace_line_ref(match):
         line_ref = match.group(1)
-        resolved_line = resolve_line_reference(line_ref, line_num)
+        resolved_line = resolve_line_reference('@' + line_ref, line_num)
         return str(resolved_line)
 
     result = re.sub(r'\[@(LINE[+-]?\d*)\]', replace_line_ref, line)
@@ -265,7 +265,14 @@ def main():
     # Filter to just codelint warnings
     filtered_messages = filter_messages(messages_output)
 
-    # Write message check file and run FileCheck
+    if not message_checks:
+        if filtered_messages.strip():
+            print("FAIL: Expected no warnings but got:")
+            print(filtered_messages)
+            return 1
+        print("PASS: No warnings (as expected)")
+        return 0
+
     message_check_file = create_temp_file_with_content('\n'.join(
         [f'CHECK: {content}' for _, content in message_checks]
     ))

@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for local variable initialization in functions
 // Focus: function scope, equals vs brace style
 
@@ -7,23 +7,23 @@
 // 1. UNINITIALIZED LOCAL VARIABLES
 void test_uninit_local() {
   int local1;
-// CHECK-MESSAGES: :[@LINE]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :9:7: error: variable is not initialized  [codelint-init]
   double local3;
-// CHECK-MESSAGES: :[@LINE]:10: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :11:10: error: variable is not initialized  [codelint-init]
   char local4;
-// CHECK-MESSAGES: :[@LINE]:8: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :13:8: error: variable is not initialized  [codelint-init]
   bool local5;
-// CHECK-MESSAGES: :[@LINE]:8: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :15:8: error: variable is not initialized  [codelint-init]
 }
 
 // 2. EQUALS STYLE (should suggest brace)
 void test_equals_local() {
   int local6 = 10;
-// CHECK-MESSAGES: :[@LINE]:7: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :21:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   double local7 = 3.14;
-// CHECK-MESSAGES: :[@LINE]:10: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :23:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int a = 1;
-// CHECK-MESSAGES: :[@LINE]:7: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :25:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // 3. BRACE STYLE (OK - no warning)
@@ -35,19 +35,19 @@ void test_brace_local() {
 // 4. NON-BUILTIN TYPES (should NOT warn)
 void test_nonbuiltin_local() {
   std::string local_str("hello");
-// CHECK-MESSAGES: :[@LINE]:15: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :37:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // 5. COMPLEX SCENARIO
 struct ComplexStruct {
   int x;
-// CHECK-MESSAGES: :[@LINE]:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :43:7: error: field is not initialized  [codelint-init]
   double y;
-// CHECK-MESSAGES: :[@LINE]:10: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :45:10: error: field is not initialized  [codelint-init]
 };
 void test_complex_local() {
   ComplexStruct cs;
-// CHECK-MESSAGES: :[@LINE]:17: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :49:17: error: variable is not initialized  [codelint-init]
 }
 
 // === Expected Fixed Output ===

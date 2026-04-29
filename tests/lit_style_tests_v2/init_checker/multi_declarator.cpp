@@ -1,42 +1,42 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for multiple declarators on one line
 // P0-1: All variables in multi-declarator statements should be checked
 
 void test_multiple_declarators() {
   int a, b, c;                // All three should trigger warnings
-// CHECK-MESSAGES: :[@LINE]:7: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:10: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:13: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :6:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :6:10: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :6:13: error: variable is not initialized  [codelint-init]
   double x = 1.0, y, z = 3.0; // Only y should trigger warning
-// CHECK-MESSAGES: :[@LINE]:10: warning: variable should use '{}' syntax for initialization  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:19: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:22: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :10:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :10:19: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :10:22: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   char *p1, *p2, *p3;         // All three should trigger warnings
-// CHECK-MESSAGES: :[@LINE]:9: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:14: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:19: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :14:9: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :14:14: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :14:19: error: variable is not initialized  [codelint-init]
 
   int arr1[5], arr2[10]; // Both should trigger C-style array warnings
-// CHECK-MESSAGES: :[@LINE]:7: error: C-style array is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:16: error: C-style array is not initialized  [codelint-init]
+// CHECK-MESSAGES: :19:7: error: C-style array is not initialized  [codelint-init]
+// CHECK-MESSAGES: :19:16: error: C-style array is not initialized  [codelint-init]
   float f1{}, f2, f3{};  // Only f2 should trigger warning
-// CHECK-MESSAGES: :[@LINE]:15: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :22:15: error: variable is not initialized  [codelint-init]
 }
 
 void test_mixed_initialization() {
   int initialized = 10, uninitialized, also_initialized = 20; // Only uninitialized should warn
-// CHECK-MESSAGES: :[@LINE]:7: warning: variable should use '{}' syntax for initialization  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:25: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:40: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :27:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :27:25: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :27:40: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   unsigned u1 = 1U, u2, u3 = 3U; // u2 should warn, and suggest U suffix
-// CHECK-MESSAGES: :[@LINE]:12: warning: variable should use '{}' syntax for initialization  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:21: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:25: warning: variable should use '{}' syntax for initialization  [codelint-init]
+// CHECK-MESSAGES: :31:12: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :31:21: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :31:25: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 void test_single_declarators() {
   int single;        // Should trigger warning
-// CHECK-MESSAGES: :[@LINE]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :38:7: error: variable is not initialized  [codelint-init]
   int initialized{}; // Should NOT trigger warning
 }
 
@@ -44,22 +44,22 @@ class TestClass {
 public:
   void method() {
     int m1, m2, m3;     // All three should trigger warnings
-// CHECK-MESSAGES: :[@LINE]:9: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:13: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:17: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :46:9: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :46:13: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :46:17: error: variable is not initialized  [codelint-init]
     bool b1 = true, b2; // Both should trigger warnings
-// CHECK-MESSAGES: :[@LINE]:10: warning: variable should use '{}' syntax for initialization  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:21: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :50:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :50:21: error: variable is not initialized  [codelint-init]
   }
 };
 
 int global1, global2, global3; // All three should trigger warnings
-// CHECK-MESSAGES: :[@LINE]:5: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:14: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :[@LINE]:23: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :56:5: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :56:14: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :56:23: error: variable is not initialized  [codelint-init]
 
 static int s1, s2{}; // Only s1 should trigger warning
-// CHECK-MESSAGES: :[@LINE]:12: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :61:12: error: variable is not initialized  [codelint-init]
 
 // === Expected Fixed Output ===
 // CHECK-FIXES: void test_multiple_declarators() {

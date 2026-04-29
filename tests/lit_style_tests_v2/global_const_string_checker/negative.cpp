@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-global-const-string %t -- -std=c++17
+// RUN: %codelint %s codelint-global-const-string %t
 #include <cstdlib>
 #include <string>
 

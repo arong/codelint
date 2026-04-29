@@ -1,39 +1,39 @@
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 // Test for pointer type initialization
 // Focus: raw pointers, pointer arrays, pointer-to-member
 
 // 1. BASIC POINTER TYPES
 int* ptr1;
-// CHECK-MESSAGES: :[@LINE]:6: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :6:6: error: variable is not initialized  [codelint-init]
 const int* ptr2;
-// CHECK-MESSAGES: :[@LINE]:12: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :8:12: error: variable is not initialized  [codelint-init]
 int** ptr3;
-// CHECK-MESSAGES: :[@LINE]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :10:7: error: variable is not initialized  [codelint-init]
 void* void_ptr;
-// CHECK-MESSAGES: :[@LINE]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :12:7: error: variable is not initialized  [codelint-init]
 
 // 2. ARRAY OF POINTERS
 int* ptr_array1[10];
-// CHECK-MESSAGES: :[@LINE]:6: error: C-style array is not initialized  [codelint-init]
+// CHECK-MESSAGES: :16:6: error: C-style array is not initialized  [codelint-init]
 const char* str_ptr_array[5];
-// CHECK-MESSAGES: :[@LINE]:13: error: C-style array is not initialized  [codelint-init]
+// CHECK-MESSAGES: :18:13: error: C-style array is not initialized  [codelint-init]
 
 // 3. POINTER TO MEMBER
 class ClassForMemberPtr {
 public:
   int member;
-// CHECK-MESSAGES: :[@LINE]:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :24:7: error: field is not initialized  [codelint-init]
 };
 int ClassForMemberPtr::* pmem;
-// CHECK-MESSAGES: :[@LINE]:26: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :27:26: error: variable is not initialized  [codelint-init]
 
 void test_local_pointers() {
   int* local_ptr;
-// CHECK-MESSAGES: :[@LINE]:8: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :31:8: error: variable is not initialized  [codelint-init]
   double* local_dptr;
-// CHECK-MESSAGES: :[@LINE]:11: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :33:11: error: variable is not initialized  [codelint-init]
   int** local_pptr;
-// CHECK-MESSAGES: :[@LINE]:9: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :35:9: error: variable is not initialized  [codelint-init]
 }
 
 // === Expected Fixed Output ===

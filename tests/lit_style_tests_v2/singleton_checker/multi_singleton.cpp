@@ -1,4 +1,4 @@
-// RUN: %check_codelint %s codelint-singleton %t -- -std=c++17
+// RUN: %codelint %s codelint-singleton %t
 // Test file: multi_singleton.cpp
 // Scenario: Multiple Singleton classes in one file
 // Expected: 2 singleton patterns detected
@@ -7,7 +7,7 @@
 class Database {
 public:
   static Database& instance() {
-// CHECK-MESSAGES: :[@LINE]:20: warning: Meyer's Singleton pattern detected in 'instance'  [codelint-singleton]
+// CHECK-MESSAGES: :9:20: warning: Meyer's Singleton pattern detected in 'instance'  [codelint-singleton]
     static Database inst;
     return inst;
   }
@@ -21,7 +21,7 @@ private:
 class Logger {
 public:
   static Logger& getInstance() {
-// CHECK-MESSAGES: :[@LINE]:18: warning: Meyer's Singleton pattern detected in 'getInstance'  [codelint-singleton]
+// CHECK-MESSAGES: :23:18: warning: Meyer's Singleton pattern detected in 'getInstance'  [codelint-singleton]
     static Logger log;
     return log;
   }
