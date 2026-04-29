@@ -53,16 +53,25 @@ fi
 echo "Using clang-tidy: $CLANG_TIDY"
 echo ""
 
-if ! command -v FileCheck &> /dev/null; then
+FILECHECK=""
+for cmd in FileCheck FileCheck-21 FileCheck-15; do
+    if command -v "$cmd" &> /dev/null; then
+        FILECHECK="$(command -v "$cmd")"
+        break
+    fi
+done
+
+if [ -z "$FILECHECK" ]; then
     for llvm_dir in /usr/lib/llvm-21/bin /usr/lib/llvm-15/bin /opt/homebrew/opt/llvm@21/bin /opt/homebrew/opt/llvm@15/bin; do
         if [ -x "$llvm_dir/FileCheck" ]; then
+            FILECHECK="$llvm_dir/FileCheck"
             export PATH="$llvm_dir:$PATH"
             break
         fi
     done
 fi
 
-if ! command -v FileCheck &> /dev/null; then
+if [ -z "$FILECHECK" ]; then
     echo "ERROR: FileCheck not found (required for lit tests)"
     echo "Install LLVM tools or ensure LLVM bin directory is in PATH"
     exit 1
