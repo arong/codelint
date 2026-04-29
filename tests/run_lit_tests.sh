@@ -28,15 +28,24 @@ fi
 echo "Using plugin: $PLUGIN"
 echo ""
 
-if command -v clang-tidy &> /dev/null; then
-    CLANG_TIDY="clang-tidy"
-elif command -v clang-tidy-21 &> /dev/null; then
-    CLANG_TIDY="clang-tidy-21"
-elif [ -d "/usr/lib/llvm-21/bin" ]; then
-    CLANG_TIDY="/usr/lib/llvm-21/bin/clang-tidy"
-elif [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
-    CLANG_TIDY="/opt/homebrew/opt/llvm@21/bin/clang-tidy"
-else
+CLANG_TIDY=""
+for cmd in clang-tidy clang-tidy-21 clang-tidy-15; do
+    if command -v "$cmd" &> /dev/null; then
+        CLANG_TIDY="$(command -v "$cmd")"
+        break
+    fi
+done
+
+if [ -z "$CLANG_TIDY" ]; then
+    for llvm_dir in /usr/lib/llvm-21/bin /usr/lib/llvm-15/bin /opt/homebrew/opt/llvm@21/bin /opt/homebrew/opt/llvm@15/bin; do
+        if [ -x "$llvm_dir/clang-tidy" ]; then
+            CLANG_TIDY="$llvm_dir/clang-tidy"
+            break
+        fi
+    done
+fi
+
+if [ -z "$CLANG_TIDY" ]; then
     echo "ERROR: clang-tidy not found"
     exit 1
 fi
@@ -45,16 +54,17 @@ echo "Using clang-tidy: $CLANG_TIDY"
 echo ""
 
 if ! command -v FileCheck &> /dev/null; then
-    if [ -d "/usr/lib/llvm-21/bin" ]; then
-        export PATH="/usr/lib/llvm-21/bin:$PATH"
-    elif [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
-        export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"
-    fi
+    for llvm_dir in /usr/lib/llvm-21/bin /usr/lib/llvm-15/bin /opt/homebrew/opt/llvm@21/bin /opt/homebrew/opt/llvm@15/bin; do
+        if [ -x "$llvm_dir/FileCheck" ]; then
+            export PATH="$llvm_dir:$PATH"
+            break
+        fi
+    done
 fi
 
 if ! command -v FileCheck &> /dev/null; then
     echo "ERROR: FileCheck not found (required for lit tests)"
-    echo "Install LLVM tools or ensure /usr/lib/llvm-21/bin is in PATH"
+    echo "Install LLVM tools or ensure LLVM bin directory is in PATH"
     exit 1
 fi
 

@@ -155,7 +155,6 @@ jobs:
         run: cmake --build build --target test-all
 
       - name: Run lit-style tests
-        if: matrix.llvm_version == 21
         run: |
           echo "========================================"
           echo "Running Lit-Style Test Suite"
