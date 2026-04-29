@@ -145,11 +145,11 @@ jobs:
       - name: Run lit-style tests
         run: |
           echo "========================================"
-          echo "Running Lit-Style Test Suite (Beta)"
+          echo "Running Lit-Style Test Suite"
           echo "========================================"
           
           chmod +x tests/run_lit_tests.sh
-          bash tests/run_lit_tests.sh || echo "Lit-style tests failed - currently in beta, not blocking CI"
+          bash tests/run_lit_tests.sh
 
       - name: Check code formatting
         if: github.event_name == 'pull_request'
