@@ -40,9 +40,9 @@ public:
 
 class FullyInitialized {
   int x;
-// CHECK-MESSAGES: :8:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :42:7: error: field is not initialized  [codelint-init]
   int y;
-// CHECK-MESSAGES: :11:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :44:7: error: field is not initialized  [codelint-init]
 
 public:
   FullyInitialized() : x(0), y(0) {
@@ -62,8 +62,8 @@ public:
 class MixedInitialization {
   int a = 10;
   int b;
-// CHECK-MESSAGES: :29:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :29:7: error: member variable 'b' is not initialized in constructor  [codelint-init]
+// CHECK-MESSAGES: :64:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :64:7: error: member variable 'b' is not initialized in constructor  [codelint-init]
   int c = 30;
 
 public:
@@ -89,7 +89,7 @@ public:
 
 struct StructMembers {
   int x;
-// CHECK-MESSAGES: :8:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :91:7: error: field is not initialized  [codelint-init]
   double y;
 // CHECK-MESSAGES: :93:10: error: field is not initialized  [codelint-init]
   char c;
@@ -118,8 +118,8 @@ public:
 class ReferenceMembers {
   int& ref;
   int value;
-// CHECK-MESSAGES: :75:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :75:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
+// CHECK-MESSAGES: :120:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :120:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
 
 public:
   ReferenceMembers(int& r) : ref(r) {

@@ -39,21 +39,21 @@ void test_reference_in_struct() {
   };
 
   int x = 5;
-// CHECK-MESSAGES: :22:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :41:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   RefStruct rs1{x, 10}; // OK
 }
 
 void test_reference_parameters(int& param) {
   int& local_ref = param; // Should suggest brace init
-// CHECK-MESSAGES: :47:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :43:13: warning: Value stored to 'rs1' during its initialization is never read  [clang-analyzer-deadcode.DeadStores]
   int& param_ref{param};  // OK - already using brace init
 }
 
 class ReferenceClass {
   int& member_ref;
   int value; // Should trigger warning: not initialized
+// CHECK-MESSAGES: :47:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 // CHECK-MESSAGES: :54:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :54:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
 
 public:
   ReferenceClass(int& r) : member_ref(r) {
@@ -62,9 +62,9 @@ public:
 
 void test_rvalue_references() {
   int x = 10;
-// CHECK-MESSAGES: :64:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :54:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
   int&& rref1 = std::move(x); // Should suggest brace init
-// CHECK-MESSAGES: :66:9: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+// CHECK-MESSAGES: :64:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int&& rref2{std::move(x)};  // OK - already using brace init
 }
 

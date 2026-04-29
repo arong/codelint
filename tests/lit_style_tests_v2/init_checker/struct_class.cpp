@@ -28,7 +28,7 @@ StructWithMethod swm1;
 class TestClass {
 public:
   int value;
-// CHECK-MESSAGES: :19:7: error: field is not initialized  [codelint-init]
+// CHECK-MESSAGES: :30:7: error: field is not initialized  [codelint-init]
   std::string name;
 // CHECK-MESSAGES: :32:15: warning: field is not explicitly initialized  [codelint-init]
   TestClass() : value(0) {
