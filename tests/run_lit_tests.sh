@@ -65,7 +65,6 @@ if [ -z "$FILECHECK" ]; then
     for llvm_dir in /usr/lib/llvm-21/bin /usr/lib/llvm-15/bin /opt/homebrew/opt/llvm@21/bin /opt/homebrew/opt/llvm@15/bin; do
         if [ -x "$llvm_dir/FileCheck" ]; then
             FILECHECK="$llvm_dir/FileCheck"
-            export PATH="$llvm_dir:$PATH"
             break
         fi
     done
@@ -75,6 +74,13 @@ if [ -z "$FILECHECK" ]; then
     echo "ERROR: FileCheck not found (required for lit tests)"
     echo "Install LLVM tools or ensure LLVM bin directory is in PATH"
     exit 1
+fi
+
+if [ "$(basename "$FILECHECK")" != "FileCheck" ]; then
+    FILECHECK_DIR="$(mktemp -d)"
+    ln -sf "$FILECHECK" "$FILECHECK_DIR/FileCheck"
+    export PATH="$FILECHECK_DIR:$PATH"
+    trap 'rm -rf "$FILECHECK_DIR"' EXIT
 fi
 
 echo "Using FileCheck: $(which FileCheck)"
