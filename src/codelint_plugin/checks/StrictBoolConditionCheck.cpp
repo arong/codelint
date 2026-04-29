@@ -65,8 +65,8 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   }
 
   const auto& SrcMgr = Ctx->getSourceManager();
-  if (const SourceLocation ExpansionLoc{SrcMgr.getExpansionLoc(Cond->getBeginLoc())};
-      !SrcMgr.isInMainFile(ExpansionLoc)) {
+  const SourceLocation ExpansionLoc = SrcMgr.getExpansionLoc(Cond->getBeginLoc());
+  if (!SrcMgr.isInMainFile(ExpansionLoc)) {
     return;
   }
 
@@ -152,14 +152,15 @@ bool StrictBoolConditionCheck::isBoolType(const clang::Expr* expr) {
     }
   }
 
-  if (const clang::QualType qualType{TrueExpr->getType()}; qualType->isBooleanType()) {
+  const clang::QualType qualType = TrueExpr->getType();
+  if (qualType->isBooleanType()) {
     return true;
   }
 
   if (const auto* ICE = llvm::dyn_cast<clang::ImplicitCastExpr>(expr); ICE != nullptr) {
-    if (const CastKind Kind{ICE->getCastKind()}; Kind == CK_IntegralToBoolean ||
-                                                 Kind == CK_PointerToBoolean ||
-                                                 Kind == CK_FloatingToBoolean) {
+    const CastKind Kind = ICE->getCastKind();
+    if (Kind == CK_IntegralToBoolean || Kind == CK_PointerToBoolean ||
+        Kind == CK_FloatingToBoolean) {
       return false;
     }
   }
