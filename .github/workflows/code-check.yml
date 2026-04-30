@@ -172,11 +172,11 @@ jobs:
           clang-tidy-${LLVM_VERSION} --load=build/lib/codelint-plugin.so --checks='codelint-*' --list-checks | grep codelint
 
       - name: Check code formatting
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && matrix.llvm_version == 21
         run: |
           echo "🔍 Checking C++ formatting..."
           find src -name '*.cpp' -o -name '*.h' | \
-            xargs -r clang-format-${LLVM_VERSION} --dry-run --Werror
+            xargs -r clang-format-21 --dry-run --Werror
 
       - name: Run clang-tidy with codelint plugin
         if: github.event_name == 'pull_request'

@@ -41,8 +41,8 @@ void GlobalCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
   }
 
   const auto& srcMgr = Result.Context->getSourceManager();
-  const SourceLocation ExpansionLoc = srcMgr.getExpansionLoc(varDecl->getLocation());
-  if (!srcMgr.isInMainFile(ExpansionLoc)) {
+  if (const SourceLocation ExpansionLoc{srcMgr.getExpansionLoc(varDecl->getLocation())};
+      !srcMgr.isInMainFile(ExpansionLoc)) {
     return;
   }
 

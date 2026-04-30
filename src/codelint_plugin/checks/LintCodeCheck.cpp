@@ -374,8 +374,8 @@ void LintCodeCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
                             CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::ULongLong) ||
                             CanonicalTy->isSpecificBuiltinType(clang::BuiltinType::UInt128)};
 
-  const Expr* InitExprInner = Init->IgnoreImplicit();
-  if ((IsUnsignedInt || IsUnsignedLong) && isa<IntegerLiteral>(InitExprInner)) {
+  if (const Expr* InitExprInner{Init->IgnoreImplicit()};
+      (IsUnsignedInt || IsUnsignedLong) && isa<IntegerLiteral>(InitExprInner)) {
     bool HasSuffix{false};
     for (const char Ch : Value) {
       if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
