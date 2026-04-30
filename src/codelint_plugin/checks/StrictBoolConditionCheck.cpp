@@ -14,6 +14,13 @@
 
 namespace clang::tidy::codelint {
 
+static std::string normalizeTypeName(const std::string& TypeName) {
+  if (TypeName == "std::nullptr_t") {
+    return "nullptr_t";
+  }
+  return TypeName;
+}
+
 void StrictBoolConditionCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
   if (Finder == nullptr) {
     return;
@@ -85,12 +92,12 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
         Lexer::getSourceText(CharSourceRange::getTokenRange(NonBoolRange), SrcMgr, LangOpts);
 
     diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
-        << CondType.getAsString()
+        << normalizeTypeName(CondType.getAsString())
         << FixItHint::CreateReplacement(CharSourceRange::getTokenRange(NonBoolRange),
                                         NonBoolText.str() + Fix);
   } else {
     diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
-        << CondType.getAsString();
+        << normalizeTypeName(CondType.getAsString());
   }
 }
 

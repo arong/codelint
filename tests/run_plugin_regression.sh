@@ -36,12 +36,12 @@ generate_coverage_report() {
     LLVM_COV=$(which llvm-cov 2>/dev/null || echo "")
 
     if [ -z "$LLVM_PROFDATA" ] || [ -z "$LLVM_COV" ]; then
-        if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
-            LLVM_PROFDATA="/opt/homebrew/opt/llvm@21/bin/llvm-profdata"
-            LLVM_COV="/opt/homebrew/opt/llvm@21/bin/llvm-cov"
-        elif [ -d "/usr/lib/llvm-21/bin" ]; then
-            LLVM_PROFDATA="/usr/lib/llvm-21/bin/llvm-profdata"
-            LLVM_COV="/usr/lib/llvm-21/bin/llvm-cov"
+        if [ -d "/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin" ]; then
+            LLVM_PROFDATA="/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/llvm-profdata"
+            LLVM_COV="/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/llvm-cov"
+        elif [ -d "/usr/lib/llvm-${LLVM_VERSION}/bin" ]; then
+            LLVM_PROFDATA="/usr/lib/llvm-${LLVM_VERSION}/bin/llvm-profdata"
+            LLVM_COV="/usr/lib/llvm-${LLVM_VERSION}/bin/llvm-cov"
         fi
     fi
 
@@ -83,33 +83,31 @@ generate_coverage_report() {
 }
 
 
-# Alias clang-tidy-21 to clang-tidy for compatibility
-if command -v clang-tidy-21 >/dev/null 2>&1; then
-    alias clang-tidy=clang-tidy-21
-fi
-
 detect_coverage_build
 
 BUILD_DIR="$PROJECT_ROOT/build"
 TEST_BUILD_DIR="$PROJECT_ROOT/tests/CodeLintTest/build"
 COMPILE_COMMANDS="$TEST_BUILD_DIR/compile_commands.json"
 
+# Detect LLVM version from environment or default to 21
+LLVM_VERSION="${LLVM_VERSION:-21}"
+
 # Setup clang-tidy PATH based on platform
 if command -v clang-tidy &> /dev/null; then
     # clang-tidy already in PATH
     :
-elif command -v clang-tidy-21 &> /dev/null; then
-    # Ubuntu apt.llvm.org installs clang-tidy-21
-    alias clang-tidy=clang-tidy-21
-elif [ -x "/usr/bin/clang-tidy-21" ]; then
-    # Ubuntu with clang-tidy-21 in /usr/bin
-    alias clang-tidy=clang-tidy-21
-elif [ -d "/usr/lib/llvm-21/bin" ]; then
-    # Ubuntu with LLVM 21 in /usr/lib/llvm-21/bin
-    export PATH="/usr/lib/llvm-21/bin:$PATH"
-elif [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
+elif command -v "clang-tidy-${LLVM_VERSION}" &> /dev/null; then
+    # Versioned clang-tidy (e.g., clang-tidy-15, clang-tidy-21)
+    alias clang-tidy="clang-tidy-${LLVM_VERSION}"
+elif [ -x "/usr/bin/clang-tidy-${LLVM_VERSION}" ]; then
+    # Ubuntu with versioned clang-tidy in /usr/bin
+    alias clang-tidy="clang-tidy-${LLVM_VERSION}"
+elif [ -d "/usr/lib/llvm-${LLVM_VERSION}/bin" ]; then
+    # Ubuntu with LLVM in /usr/lib/llvm-${VERSION}/bin
+    export PATH="/usr/lib/llvm-${LLVM_VERSION}/bin:$PATH"
+elif [ -d "/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin" ]; then
     # macOS with homebrew clang-tidy
-    export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"
+    export PATH="/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin:$PATH"
 fi
 
 echo "========================================"
@@ -130,8 +128,8 @@ else
 fi
 
 CLANG_TIDY_BIN=clang-tidy
-if command -v clang-tidy-21 > /dev/null 2>&1; then
-    CLANG_TIDY_BIN=clang-tidy-21
+if command -v "clang-tidy-${LLVM_VERSION}" > /dev/null 2>&1; then
+    CLANG_TIDY_BIN="clang-tidy-${LLVM_VERSION}"
 fi
 
 CLANG_TIDY=$(which $CLANG_TIDY_BIN 2>/dev/null || echo "")
@@ -141,16 +139,16 @@ if [ -z "$CLANG_TIDY" ]; then
 fi
 
 CLANG_FORMAT_BIN=clang-format
-if command -v clang-format-21 > /dev/null 2>&1; then
-    CLANG_FORMAT_BIN=clang-format-21
+if command -v "clang-format-${LLVM_VERSION}" > /dev/null 2>&1; then
+    CLANG_FORMAT_BIN="clang-format-${LLVM_VERSION}"
 fi
 
 CLANG_FORMAT=$(which $CLANG_FORMAT_BIN 2>/dev/null || echo "")
 if [ -z "$CLANG_FORMAT" ]; then
-    if [ -d "/opt/homebrew/opt/llvm@21/bin" ]; then
-        CLANG_FORMAT="/opt/homebrew/opt/llvm@21/bin/clang-format"
-    elif [ -d "/usr/lib/llvm-21/bin" ]; then
-        CLANG_FORMAT="/usr/lib/llvm-21/bin/clang-format"
+    if [ -d "/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin" ]; then
+        CLANG_FORMAT="/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/clang-format"
+    elif [ -d "/usr/lib/llvm-${LLVM_VERSION}/bin" ]; then
+        CLANG_FORMAT="/usr/lib/llvm-${LLVM_VERSION}/bin/clang-format"
     fi
 fi
 

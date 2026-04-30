@@ -11,6 +11,12 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
+    strategy:
+      matrix:
+        llvm_version: [15, 21]
+      fail-fast: false
+    env:
+      LLVM_VERSION: ${{ matrix.llvm_version }}
 
     steps:
       - name: Checkout code
@@ -25,20 +31,24 @@ jobs:
             lsb-release software-properties-common gnupg \
             patchelf tar gzip
 
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          ./llvm.sh 21
+          # LLVM 21 requires apt.llvm.org; LLVM 15 is in Ubuntu 22.04 default repos
+          if [ "${LLVM_VERSION}" = "21" ]; then
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            ./llvm.sh 21
+          fi
 
           apt-get install -y --no-install-recommends \
-            llvm-21-dev \
-            clang-21 \
-            clang-tidy-21 \
-            libclang-21-dev
+            llvm-${LLVM_VERSION}-dev \
+            clang-${LLVM_VERSION} \
+            clang-tidy-${LLVM_VERSION} \
+            libclang-${LLVM_VERSION}-dev
 
       - name: Configure CMake
         run: |
           cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION}/lib/cmake/llvm
 
       - name: Build plugin
         run: cmake --build build -j$(nproc)
@@ -48,17 +58,27 @@ jobs:
           ls -la build/lib/
           file build/lib/codelint-plugin.so
 
-      - name: Create codelint package
+      - name: Upload shared library artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codelint-plugin-linux-llvm${{ matrix.llvm_version }}
+          path: build/lib/codelint-plugin.so
+          retention-days: 5
+
+      - name: Create codelint package (LLVM 21 only)
+        if: matrix.llvm_version == 21
         run: |
           chmod +x packaging/scripts/bundle_libs.sh
           ./packaging/scripts/bundle_libs.sh
 
-      - name: Create skill package
+      - name: Create skill package (LLVM 21 only)
+        if: matrix.llvm_version == 21
         run: |
           chmod +x packaging/scripts/bundle_skill.sh
           ./packaging/scripts/bundle_skill.sh --codelint
 
-      - name: Verify codelint package
+      - name: Verify codelint package (LLVM 21 only)
+        if: matrix.llvm_version == 21
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           ARCH=$(uname -m)
@@ -72,7 +92,8 @@ jobs:
 
           tar -tzf package-output/${PACKAGE_NAME}.tar.gz | head -20
 
-      - name: Verify skill package
+      - name: Verify skill package (LLVM 21 only)
+        if: matrix.llvm_version == 21
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           ARCH=$(uname -m)
@@ -87,7 +108,8 @@ jobs:
 
           tar -tzf package-output/${SKILL_PACKAGE_NAME}.tar.gz | head -30
 
-      - name: Test codelint package functionality
+      - name: Test codelint package functionality (LLVM 21 only)
+        if: matrix.llvm_version == 21
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           ARCH=$(uname -m)
@@ -108,7 +130,8 @@ jobs:
 
           ./bin/codelint /tmp/test.cpp 2>&1 | head -20 || true
 
-      - name: Test skill package functionality
+      - name: Test skill package functionality (LLVM 21 only)
+        if: matrix.llvm_version == 21
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           ARCH=$(uname -m)
@@ -132,14 +155,16 @@ jobs:
 
           ./bin/clang-tidy --load=lib/codelint-plugin.so --checks='codelint-*' /tmp/test_skill.cpp 2>&1 | head -20 || true
 
-      - name: Upload codelint package artifact (Linux)
+      - name: Upload codelint package artifact (LLVM 21 only)
+        if: matrix.llvm_version == 21
         uses: actions/upload-artifact@v4
         with:
           name: codelint-package-linux
           path: package-output/codelint-*.tar.gz
           retention-days: 5
 
-      - name: Upload skill package artifact (Linux)
+      - name: Upload skill package artifact (LLVM 21 only)
+        if: matrix.llvm_version == 21
         uses: actions/upload-artifact@v4
         with:
           name: clang-tidy-skill-package-linux
@@ -162,12 +187,36 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: "*-package-*"
+          pattern: "*"
 
       - name: List artifacts
         run: |
           ls -la artifacts/
-          find artifacts -type f -name "*.tar.gz" | sort
+          find artifacts -type f | sort
+
+      - name: Prepare release assets
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ARCH=$(uname -m)
+          mkdir -p release-assets
+
+          # Copy LLVM 15 shared library with descriptive name
+          if [ -f "artifacts/codelint-plugin-linux-llvm15/codelint-plugin.so" ]; then
+            cp "artifacts/codelint-plugin-linux-llvm15/codelint-plugin.so" \
+               "release-assets/codelint-plugin-${VERSION}-linux-${ARCH}-llvm15.so"
+          fi
+
+          # Copy LLVM 21 shared library with descriptive name
+          if [ -f "artifacts/codelint-plugin-linux-llvm21/codelint-plugin.so" ]; then
+            cp "artifacts/codelint-plugin-linux-llvm21/codelint-plugin.so" \
+               "release-assets/codelint-plugin-${VERSION}-linux-${ARCH}-llvm21.so"
+          fi
+
+          # Copy full packages (LLVM 21)
+          cp artifacts/codelint-package-linux/codelint-*.tar.gz release-assets/ 2>/dev/null || true
+          cp artifacts/clang-tidy-skill-package-linux/clang-tidy-skill-*.tar.gz release-assets/ 2>/dev/null || true
+
+          ls -la release-assets/
 
       - name: Create GitHub Release
         run: |
@@ -176,7 +225,7 @@ jobs:
           gh release create v$VERSION \
             --title "v$VERSION" \
             --generate-notes \
-            artifacts/*/*/*.tar.gz
+            release-assets/*
 
       - name: Verify release
         run: |

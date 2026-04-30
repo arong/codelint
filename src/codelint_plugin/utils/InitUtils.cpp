@@ -7,6 +7,7 @@
 #include <clang/AST/ExprCXX.h>
 #include <clang/AST/Type.h>
 #include <clang/Basic/SourceManager.h>
+#include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/SmallVector.h>
 
 namespace clang::tidy::codelint::utils {
