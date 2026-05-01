@@ -47,7 +47,7 @@ def get_check_flag(check_name):
     )
 
     if check_name == 'codelint-init':
-        return all_checks
+        return '-*,' + check_name
     elif check_name == 'codelint-lint-code':
         return '-*,' + check_name
     elif check_name.startswith('codelint-'):
@@ -178,7 +178,7 @@ def extract_check_lines(test_lines, suffix=None):
 
     check_lines = []
     for i, line in enumerate(test_lines):
-        match = messages_pattern.match(line)
+        match = messages_pattern.search(line)
         if match:
             check_type = match.group(1) or '-MESSAGES'
             check_content = match.group(2)

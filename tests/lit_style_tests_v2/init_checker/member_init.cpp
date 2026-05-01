@@ -6,17 +6,21 @@
 
 class UninitializedMembers {
   int x;
-// CHECK-MESSAGES: :8:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :8:7: error: member variable 'x' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'x' is not initialized in constructor
+  // [codelint-init]
   int y;
-// CHECK-MESSAGES: :11:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :11:7: error: member variable 'y' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'y' is not initialized in constructor
+  // [codelint-init]
   double d;
-// CHECK-MESSAGES: :14:10: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :14:10: error: member variable 'd' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:10: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:10: error: member variable 'd' is not initialized in constructor
+  // [codelint-init]
   char* ptr;
-// CHECK-MESSAGES: :17:9: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :17:9: error: member variable 'ptr' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:9: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:9: error: member variable 'ptr' is not initialized in constructor
+  // [codelint-init]
 
 public:
   UninitializedMembers() {
@@ -25,13 +29,15 @@ public:
 
 class PartiallyInitialized {
   int a;
-// CHECK-MESSAGES: :27:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
   int b;
-// CHECK-MESSAGES: :29:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :29:7: error: member variable 'b' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'b' is not initialized in constructor
+  // [codelint-init]
   int c;
-// CHECK-MESSAGES: :32:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :32:7: error: member variable 'c' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'c' is not initialized in constructor
+  // [codelint-init]
 
 public:
   PartiallyInitialized() : a(1) {
@@ -40,9 +46,9 @@ public:
 
 class FullyInitialized {
   int x;
-// CHECK-MESSAGES: :42:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
   int y;
-// CHECK-MESSAGES: :44:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
 
 public:
   FullyInitialized() : x(0), y(0) {
@@ -62,8 +68,9 @@ public:
 class MixedInitialization {
   int a = 10;
   int b;
-// CHECK-MESSAGES: :64:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :64:7: error: member variable 'b' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'b' is not initialized in constructor
+  // [codelint-init]
   int c = 30;
 
 public:
@@ -73,10 +80,11 @@ public:
 
 class MultipleConstructors {
   int value;
-// CHECK-MESSAGES: :75:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :75:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'value' is not initialized in constructor
+  // [codelint-init]
   std::string name;
-// CHECK-MESSAGES: :78:15: warning: field is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: field is not explicitly initialized  [codelint-init]
 
 public:
   MultipleConstructors() {
@@ -89,26 +97,27 @@ public:
 
 struct StructMembers {
   int x;
-// CHECK-MESSAGES: :91:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
   double y;
-// CHECK-MESSAGES: :93:10: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:10: error: field is not initialized  [codelint-init]
   char c;
-// CHECK-MESSAGES: :95:8: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:8: error: field is not initialized  [codelint-init]
 };
 
 class StaticMembers {
   static int static_var; // Static members should NOT trigger warnings
-// CHECK-MESSAGES: :100:14: error: variable is not initialized  [codelint-init]
-  int instance_var;      // Should trigger warning if not initialized
-// CHECK-MESSAGES: :102:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:14: error: variable is not initialized  [codelint-init]
+  int instance_var; // Should trigger warning if not initialized
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
 };
 
 class ConstMembers {
   const int const_val;
-// CHECK-MESSAGES: :107:13: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:13: error: field is not initialized  [codelint-init]
   int regular_val;
-// CHECK-MESSAGES: :109:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :109:7: error: member variable 'regular_val' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'regular_val' is not initialized in
+  // constructor  [codelint-init]
 
 public:
   ConstMembers() : const_val(42) {
@@ -118,8 +127,9 @@ public:
 class ReferenceMembers {
   int& ref;
   int value;
-// CHECK-MESSAGES: :120:7: error: field is not initialized  [codelint-init]
-// CHECK-MESSAGES: :120:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-2]:7: error: member variable 'value' is not initialized in constructor
+  // [codelint-init]
 
 public:
   ReferenceMembers(int& r) : ref(r) {

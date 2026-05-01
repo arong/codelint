@@ -15,10 +15,10 @@ struct BitfieldWithInit {
 
 struct MixedBitfield {
   int normal_member;
-// CHECK-MESSAGES: :17:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
   int bitfield : 4;
   double regular;
-// CHECK-MESSAGES: :20:10: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:10: error: field is not initialized  [codelint-init]
 };
 
 class BitfieldClass {

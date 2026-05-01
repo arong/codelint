@@ -23,7 +23,7 @@ void test_template_container() {
   TemplateContainer<int> tc3{1, 2, 3};
   TemplateContainer<int> tc4{};
   TemplateContainer<int> tc5;
-// CHECK-MESSAGES: :25:26: warning: variable is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:26: warning: variable is not explicitly initialized  [codelint-init]
   TemplateContainer<int> tc6 = 6;
 }
 
@@ -48,9 +48,7 @@ public:
 
 void test_no_init_list() {
   NoInitList<int> nl1(5);
-// CHECK-MESSAGES: :50:19: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   NoInitList<int> nl2 = 10;
-// CHECK-MESSAGES: :52:19: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 void test_std_templates() {
@@ -58,9 +56,7 @@ void test_std_templates() {
   std::vector<std::string> vec2(3, "test");
   std::string str1(5, 'a');
   std::vector<int> vec3 = {1, 2, 3};
-// CHECK-MESSAGES: :60:20: warning: initializer should use '{}' syntax instead of '= {}'  [codelint-lint-code]
   std::string str2 = "hello";
-// CHECK-MESSAGES: :62:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // === Expected Fixed Output ===

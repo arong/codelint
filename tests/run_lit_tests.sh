@@ -113,6 +113,7 @@ run_lit_test() {
         "signed_to_unsigned_checker") check_name="codelint-signed-to-unsigned-return" ;;
         "global_const_string_checker") check_name="codelint-global-const-string" ;;
         "lint_code_checker") check_name="codelint-lint-code" ;;
+        "lint_code") check_name="codelint-lint-code" ;;
         *) check_name="$checker_dir" ;;
     esac
 
@@ -147,6 +148,7 @@ CHECKER_DIRS=(
     "signed_to_unsigned_checker"
     "global_const_string_checker"
     "lint_code_checker"
+    "lint_code"
 )
 
 for CHECKER in "${CHECKER_DIRS[@]}"; do

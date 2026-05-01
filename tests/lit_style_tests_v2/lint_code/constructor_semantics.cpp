@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %codelint %s codelint-lint-code %t
 // Test for constructor semantics - cases where = -> {} would change behavior
 // CRITICAL: These cases should NOT trigger warnings because brace init changes semantics
 
@@ -40,12 +40,15 @@ void test_iterator_range_constructor() {
 
 void test_safe_to_convert() {
   std::string str1 = "hello";
-// CHECK-MESSAGES: :42:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: variable should use '{}' syntax for initialization
+  // [codelint-lint-code]
   std::string str2("world");
-// CHECK-MESSAGES: :44:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: variable should use '{}' syntax for initialization
+  // [codelint-lint-code]
 
   std::vector<int> vec1 = {1, 2, 3};
-// CHECK-MESSAGES: :47:20: warning: initializer should use '{}' syntax instead of '= {}'  [codelint-lint-code]
+  // CHECK-MESSAGES: :[@LINE-1]:20: warning: initializer should use '{}' syntax instead of '= {}'
+  // [codelint-lint-code]
 }
 
 void test_already_brace_init() {
@@ -59,7 +62,8 @@ void test_mixed_types() {
   std::vector<std::string> vec1(3, "test");
 
   std::string str1 = "text";
-// CHECK-MESSAGES: :61:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: variable should use '{}' syntax for initialization
+  // [codelint-lint-code]
 }
 
 // === Expected Fixed Output ===
