@@ -35,14 +35,14 @@ unsigned u = 100;
 // CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
 // [codelint-lint-code]
 uint64_t big = 42;
-// CHECK-MESSAGES: :[@LINE-1]:11: warning: variable should use '{}' syntax for initialization
+// CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
 // [codelint-lint-code]
 
 unsigned ul_bad = 100u;
 // CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
 // [codelint-lint-code]
 uint64_t ul2_bad = 42ul;
-// CHECK-MESSAGES: :[@LINE-1]:11: warning: variable should use '{}' syntax for initialization
+// CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
 // [codelint-lint-code]
 
 std::string str("world");
