@@ -178,7 +178,7 @@ def extract_check_lines(test_lines, suffix=None):
 
     check_lines = []
     for i, line in enumerate(test_lines):
-        match = messages_pattern.match(line)
+        match = messages_pattern.search(line)
         if match:
             check_type = match.group(1) or '-MESSAGES'
             check_content = match.group(2)
