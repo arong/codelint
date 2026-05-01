@@ -27,18 +27,15 @@ static bool violatesNamingConvention(StringRef Name) {
     return false;
   }
 
-  // Starts with underscore
-  if (Name.starts_with("_")) {
+  if (Name[0] == '_') {
     return true;
   }
 
-  // Starts with "m_"
-  if (Name.starts_with("m_")) {
+  if (Name.size() >= 2 && Name[0] == 'm' && Name[1] == '_') {
     return true;
   }
 
-  // Ends with underscore
-  if (Name.ends_with("_")) {
+  if (Name[Name.size() - 1] == '_') {
     return true;
   }
 
