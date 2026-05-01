@@ -16,6 +16,9 @@ const auto* cp = &a;
 unsigned u{100U};
 uint64_t big{42UL};
 
+unsigned ul_bad{100U};
+uint64_t ul2_bad{42UL};
+
 std::string str{"world"};
 
 int valid{10};
