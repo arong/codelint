@@ -187,6 +187,8 @@ get_check_flag() {
     case "$checker" in
         "init_checker")    echo "codelint-init,codelint-lint-code,-codelint-global,-codelint-singleton,-codelint-strict-bool-condition,-codelint-signed-to-unsigned-return" ;;
         "lint_code_checker") echo "-*,codelint-lint-code" ;;
+        "local_var_naming_checker") echo "-*,codelint-local-var-naming" ;;
+        "function_size_checker") echo "-*,codelint-function-size" ;;
         "global_checker")  echo "-*,codelint-global" ;;
         "singleton_checker") echo "-*,codelint-singleton" ;;
         "strict_bool_condition_checker") echo "-*,codelint-strict-bool-condition" ;;
@@ -202,6 +204,8 @@ has_fix_phase() {
         "init_checker") echo "true" ;;
         "lint_code_checker") echo "true" ;;
         "global_const_string_checker") echo "true" ;;
+        "local_var_naming_checker") echo "false" ;;
+        "function_size_checker") echo "false" ;;
         *) echo "false" ;;
     esac
 }
@@ -301,6 +305,10 @@ run_check_output_test() {
         /error: .* \[codelint-init\]/ { found=1; count=4; print; next }
         /warning: .* \[codelint-lint-code\]/ { found=1; count=4; print; next }
         /error: .* \[codelint-lint-code\]/ { found=1; count=4; print; next }
+        /warning: .* \[codelint-local-var-naming\]/ { found=1; count=4; print; next }
+        /error: .* \[codelint-local-var-naming\]/ { found=1; count=4; print; next }
+        /warning: .* \[codelint-function-size\]/ { found=1; count=4; print; next }
+        /error: .* \[codelint-function-size\]/ { found=1; count=4; print; next }
         /warning: .* \[codelint-global\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-singleton\]/ { found=1; count=3; print; next }
         /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
@@ -465,7 +473,7 @@ run_compilation_error_test() {
 }
 
 # Run tests for each checker
-CHECKERS=("init_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker" "global_const_string_checker")
+CHECKERS=("init_checker" "local_var_naming_checker" "function_size_checker" "global_checker" "singleton_checker" "strict_bool_condition_checker" "signed_to_unsigned_checker" "global_const_string_checker")
 
 for CHECKER in "${CHECKERS[@]}"; do
     TEST_DIR="$PROJECT_ROOT/tests/CodeLintTest/src/$CHECKER"
