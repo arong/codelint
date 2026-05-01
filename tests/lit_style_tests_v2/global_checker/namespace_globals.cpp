@@ -1,14 +1,20 @@
 // RUN: %codelint %s codelint-global %t
-// Test file: namespace_globals.cpp
-// Scenario: Global variables inside named namespace
-// Expected: 2 global variables detected
 
 namespace MyApp {
-int app_config = 100;    // Namespace-level global - SHOULD detect
-// CHECK-MESSAGES: :7:5: warning: global variable 'app_config' detected  [codelint-global]
-const int kMaxSize = 50; // Const namespace global - SHOULD detect
-// CHECK-MESSAGES: :9:11: warning: global variable 'kMaxSize' detected  [codelint-global]
+int app_config = 100;
+// CHECK-MESSAGES: :[@LINE-1]:5: warning: global variable 'app_config' detected  [codelint-global]
+const int kMaxSize = 50;
+// CHECK-MESSAGES: :[@LINE-1]:11: warning: global variable 'kMaxSize' detected  [codelint-global]
 } // namespace MyApp
+
+#include <string>
+
+namespace {
+int anon_var1 = 10;
+// CHECK-MESSAGES: :[@LINE-1]:5: warning: global variable 'anon_var1' detected  [codelint-global]
+std::string anon_var2 = "test";
+// CHECK-MESSAGES: :[@LINE-1]:13: warning: global variable 'anon_var2' detected  [codelint-global]
+} // namespace
 
 int main() {
   return 0;
