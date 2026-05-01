@@ -437,6 +437,9 @@ void LintCodeCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* C
   }
 
   const auto InitRange = Init->getSourceRange();
+  const SourceLocation InitBeginLoc = Init->getBeginLoc();
+  const SourceLocation InitEndLoc = Init->getEndLoc();
+  const SourceLocation TokEndLoc = Lexer::getLocForEndOfToken(InitEndLoc, 0, SrcMgr, LangOpts);
   auto ValueText =
       Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SrcMgr, LangOpts);
 
@@ -444,10 +447,93 @@ void LintCodeCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* C
     return;
   }
 
-  for (const char Ch : ValueText) {
+  std::string FullText = ValueText.str();
+
+  char SuffixBuf[16] = {};
+  const char* ExtraBuf = SrcMgr.getCharacterData(InitEndLoc);
+  const char* P = ExtraBuf;
+  const char* End = P + static_cast<int>(ValueText.size()) + 8;
+  for (char SuffixChar : FullText) {
+    (void)SuffixChar;
+    P++;
+  }
+  std::size_t SuffixLen = 0;
+  while (P < End && SuffixLen < sizeof(SuffixBuf) - 1) {
+    if (*P == 'U' || *P == 'u' || *P == 'L' || *P == 'l') {
+      SuffixBuf[SuffixLen++] = *P;
+      P++;
+    } else if (*P == '\0' || *P == '\n' || *P == ' ' || *P == ',' || *P == ';' || *P == ')') {
+      break;
+    } else {
+      P++;
+      break;
+    }
+  }
+  if (SuffixLen > 0) {
+    FullText.append(SuffixBuf, SuffixLen);
+  }
+
+  bool HasSuffix = false;
+  for (const char Ch : FullText) {
     if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
+      HasSuffix = true;
+      break;
+    }
+  }
+
+  if (HasSuffix) {
+    std::size_t SuffixLength = 0;
+    for (std::size_t i = 0; i < FullText.size() && SuffixLength < 4; ++i) {
+      const auto RevIdx = FullText.size() - 1 - i;
+      const char Ch = FullText[RevIdx];
+      if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
+        SuffixLength++;
+      } else {
+        break;
+      }
+    }
+
+    if (SuffixLength == 0) {
       return;
     }
+
+    const std::size_t NumericLen = FullText.size() - SuffixLength;
+
+    bool HasLowerU = false;
+    bool HasLowerL = false;
+    for (std::size_t i = NumericLen; i < FullText.size(); ++i) {
+      if (FullText[i] == 'u')
+        HasLowerU = true;
+      if (FullText[i] == 'l')
+        HasLowerL = true;
+    }
+
+    if (HasLowerU || HasLowerL) {
+      std::string UpperSuffix;
+      UpperSuffix.reserve(SuffixLength);
+      for (std::size_t i = NumericLen; i < FullText.size(); ++i) {
+        if (FullText[i] == 'u' || FullText[i] == 'U')
+          UpperSuffix += 'U';
+        else if (FullText[i] == 'l' || FullText[i] == 'L')
+          UpperSuffix += 'L';
+      }
+
+      const auto InitBeginDecomp = SrcMgr.getDecomposedLoc(Init->getBeginLoc());
+      const auto TokBeginDecomp = SrcMgr.getDecomposedLoc(TokEndLoc);
+      const FileID FID = InitBeginDecomp.first;
+      const FileID FID2 = TokBeginDecomp.first;
+      if (FID == FID2) {
+        const SourceLocation SuffixStartLoc =
+            Init->getBeginLoc().getLocWithOffset(static_cast<int>(NumericLen));
+        diag(Init->getBeginLoc(), "unsigned integer literal should use uppercase 'U'/'L' suffix")
+            << FixItHint::CreateReplacement(
+                   CharSourceRange::getTokenRange(SourceRange(SuffixStartLoc, TokEndLoc)),
+                   UpperSuffix);
+        return;
+      }
+      return;
+    }
+    return;
   }
 
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SrcMgr, LangOpts);

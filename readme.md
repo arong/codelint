@@ -376,7 +376,7 @@ clang-tidy --load=/path/to/codelint-plugin.so \
 
 ## Requirements
 
-- LLVM/Clang 21+
+- LLVM/Clang 15+
 - CMake 3.20+
 - C++20 compiler
 

@@ -80,6 +80,7 @@ clang-tidy --load=~/.local/lib/clang-tidy/codelint-plugin.so --checks='codelint-
 ### "LLVM version mismatch"
 - Match plugin LLVM version with system clang-tidy
 - Check: `clang-tidy --version`
+- Ensure LLVM version is 15 or higher
 
 ### "Missing libraries"
 - Use `bundle_libs.sh` to package dependencies
