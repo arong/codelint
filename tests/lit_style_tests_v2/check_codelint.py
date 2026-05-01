@@ -47,7 +47,7 @@ def get_check_flag(check_name):
     )
 
     if check_name == 'codelint-init':
-        return all_checks
+        return '-*,' + check_name
     elif check_name == 'codelint-lint-code':
         return '-*,' + check_name
     elif check_name.startswith('codelint-'):

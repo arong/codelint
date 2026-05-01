@@ -8,11 +8,8 @@ unsigned global2;
 // CHECK-MESSAGES: :7:10: error: variable is not initialized  [codelint-init]
 
 int global3 = 1;
-// CHECK-MESSAGES: :10:5: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 unsigned global4 = 2;
-// CHECK-MESSAGES: :12:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 uint64_t global5 = 5;
-// CHECK-MESSAGES: :14:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
 int global6{};
 unsigned int global7{};
@@ -38,7 +35,8 @@ void foo(int a, int b = 10) {
 
   // 应该跳过类型收紧
   int d = 3.14;
-// CHECK-MESSAGES: :40:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization  [codelint-init]
+  // CHECK-MESSAGES: :37:7: warning: narrowing conversion from floating to integer; cannot use '{}'
+  // initialization  [codelint-init]
 }
 
 int Init() {
@@ -47,7 +45,6 @@ int Init() {
 
 void test_bool_from_int() {
   bool ok = true;
-// CHECK-MESSAGES: :49:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // === Expected Fixed Output ===

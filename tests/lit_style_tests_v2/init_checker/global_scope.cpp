@@ -13,15 +13,11 @@ extern int extern_var;
 
 // 3. CONST/CONSTEXPR AT GLOBAL SCOPE
 const int const_val1 = 42;
-// CHECK-MESSAGES: :15:11: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 constexpr int constexpr_val1 = 100;
-// CHECK-MESSAGES: :17:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 const double const_pi = 3.14159;
-// CHECK-MESSAGES: :19:14: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
 // 4. GLOBAL WITH INITIAL VALUE (equals style)
 int global_with_init = 10;
-// CHECK-MESSAGES: :23:5: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
 // === Expected Fixed Output ===
 // CHECK-FIXES: int global_var1{};

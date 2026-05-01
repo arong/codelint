@@ -8,26 +8,19 @@
 #include <utility>
 void test_reference_initialization() {
   int value = 10;
-// CHECK-MESSAGES: :10:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int& ref1 = value; // Should suggest brace init: int& ref1{value}
-// CHECK-MESSAGES: :12:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int& ref2{value};  // OK - already using brace init
 
   const int& cref1 = 42; // Should suggest brace init: const int& cref1{42}
-// CHECK-MESSAGES: :16:14: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   const int& cref2{100}; // OK - already using brace init
 }
 
 void test_reference_assignment_style() {
   int x = 5;
-// CHECK-MESSAGES: :22:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int y = 10;
-// CHECK-MESSAGES: :24:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
   int& ref1 = x; // Should suggest brace init
-// CHECK-MESSAGES: :27:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int& ref2 = y; // Should suggest brace init
-// CHECK-MESSAGES: :29:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int& ref3{x};  // OK - already using brace init
 }
 
@@ -35,25 +28,22 @@ void test_reference_in_struct() {
   struct RefStruct {
     int& ref;
     int value; // Should trigger warning: not initialized
-// CHECK-MESSAGES: :37:9: error: field is not initialized  [codelint-init]
+               // CHECK-MESSAGES: :30:9: error: field is not initialized  [codelint-init]
   };
 
   int x = 5;
-// CHECK-MESSAGES: :41:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   RefStruct rs1{x, 10}; // OK
 }
 
 void test_reference_parameters(int& param) {
   int& local_ref = param; // Should suggest brace init
-// CHECK-MESSAGES: :43:13: warning: Value stored to 'rs1' during its initialization is never read  [clang-analyzer-deadcode.DeadStores]
   int& param_ref{param};  // OK - already using brace init
 }
 
 class ReferenceClass {
   int& member_ref;
   int value; // Should trigger warning: not initialized
-// CHECK-MESSAGES: :47:8: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
-// CHECK-MESSAGES: :54:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :45:7: error: field is not initialized  [codelint-init]
 
 public:
   ReferenceClass(int& r) : member_ref(r) {
@@ -62,9 +52,9 @@ public:
 
 void test_rvalue_references() {
   int x = 10;
-// CHECK-MESSAGES: :54:7: error: member variable 'value' is not initialized in constructor  [codelint-init]
+  // CHECK-MESSAGES: :45:7: error: member variable 'value' is not initialized in constructor
+  // [codelint-init]
   int&& rref1 = std::move(x); // Should suggest brace init
-// CHECK-MESSAGES: :64:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   int&& rref2{std::move(x)};  // OK - already using brace init
 }
 

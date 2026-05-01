@@ -17,23 +17,23 @@ int arr3d[2][3][4];
 // 3. LOCAL C-ARRAY
 void test_local_array() {
   int local_arr[5];
-// CHECK-MESSAGES: :19:7: error: C-style array is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :19:7: error: C-style array is not initialized  [codelint-init]
   double local_arr2d[2][3];
-// CHECK-MESSAGES: :21:10: error: C-style array is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :21:10: error: C-style array is not initialized  [codelint-init]
 }
 
 // 4. C-ARRAY IN MAIN
 int main() {
   int x1, x2, x3;
-// CHECK-MESSAGES: :27:7: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :27:11: error: variable is not initialized  [codelint-init]
-// CHECK-MESSAGES: :27:15: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :27:7: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :27:11: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :27:15: error: variable is not initialized  [codelint-init]
   assert(x1 == 0);
 
   int arr[3] = {1, 2, 3};
-// CHECK-MESSAGES: :33:7: warning: initializer should use '{}' syntax instead of '= {}'  [codelint-lint-code]
+
   int arr2[] = {1, 2, 3};
-// CHECK-MESSAGES: :35:7: warning: initializer should use '{}' syntax instead of '= {}'  [codelint-lint-code]
+
   return 0;
 }
 

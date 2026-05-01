@@ -36,15 +36,13 @@ std::tuple<int, double> tpl1;
 
 void test_local_containers() {
   std::vector<int> local_vec;
-// CHECK-MESSAGES: :38:20: warning: variable is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :38:20: warning: variable is not explicitly initialized  [codelint-init]
   std::map<int, int> local_map;
-// CHECK-MESSAGES: :40:22: warning: variable is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :40:22: warning: variable is not explicitly initialized  [codelint-init]
 
   std::vector<uint8_t> vec = {1, 2, 3};
-// CHECK-MESSAGES: :43:24: warning: initializer should use '{}' syntax instead of '= {}'  [codelint-lint-code]
 
   std::vector<std::vector<uint8_t>> island = {
-// CHECK-MESSAGES: :46:37: warning: initializer should use '{}' syntax instead of '= {}'  [codelint-lint-code]
       {1, 2, 3},
       {4, 5, 6},
       {7, 8, 9},

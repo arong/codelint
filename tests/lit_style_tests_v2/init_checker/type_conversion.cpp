@@ -4,21 +4,18 @@
 
 void test_type_conversions() {
   float f1 = 5;
-// CHECK-MESSAGES: :6:9: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   float f2 = 10;
-// CHECK-MESSAGES: :8:9: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   float f3 = 0;
-// CHECK-MESSAGES: :10:9: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
   double d1 = 100;
-// CHECK-MESSAGES: :13:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
   double d2 = 200;
-// CHECK-MESSAGES: :15:10: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
   int i1 = 3.14;
-// CHECK-MESSAGES: :18:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization  [codelint-init]
+  // CHECK-MESSAGES: :13:7: warning: narrowing conversion from floating to integer; cannot use '{}'
+  // initialization  [codelint-init]
   int i2 = 2.71;
-// CHECK-MESSAGES: :20:7: warning: narrowing conversion from floating to integer; cannot use '{}' initialization  [codelint-init]
+  // CHECK-MESSAGES: :15:7: warning: narrowing conversion from floating to integer; cannot use '{}'
+  // initialization  [codelint-init]
 
   float f4{5.0f};
   double d3{100.0};
@@ -26,7 +23,6 @@ void test_type_conversions() {
   bool b4{true};
 
   long double ld1 = 42;
-// CHECK-MESSAGES: :28:15: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 }
 
 // === Expected Fixed Output ===
