@@ -23,7 +23,7 @@ void test_template_container() {
   TemplateContainer<int> tc3{1, 2, 3};
   TemplateContainer<int> tc4{};
   TemplateContainer<int> tc5;
-  // CHECK-MESSAGES: :25:26: warning: variable is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:26: warning: variable is not explicitly initialized  [codelint-init]
   TemplateContainer<int> tc6 = 6;
 }
 

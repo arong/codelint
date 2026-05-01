@@ -11,11 +11,11 @@ void test_type_conversions() {
   double d2 = 200;
 
   int i1 = 3.14;
-  // CHECK-MESSAGES: :13:7: warning: narrowing conversion from floating to integer; cannot use '{}'
-  // initialization  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: warning: narrowing conversion from floating to integer; cannot
+  // use '{}' initialization  [codelint-init]
   int i2 = 2.71;
-  // CHECK-MESSAGES: :15:7: warning: narrowing conversion from floating to integer; cannot use '{}'
-  // initialization  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: warning: narrowing conversion from floating to integer; cannot
+  // use '{}' initialization  [codelint-init]
 
   float f4{5.0f};
   double d3{100.0};

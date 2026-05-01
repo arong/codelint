@@ -7,13 +7,13 @@
 // 1. UNINITIALIZED LOCAL VARIABLES
 void test_uninit_local() {
   int local1;
-  // CHECK-MESSAGES: :9:7: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
   double local3;
-  // CHECK-MESSAGES: :11:10: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:10: error: variable is not initialized  [codelint-init]
   char local4;
-  // CHECK-MESSAGES: :13:8: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:8: error: variable is not initialized  [codelint-init]
   bool local5;
-  // CHECK-MESSAGES: :15:8: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:8: error: variable is not initialized  [codelint-init]
 }
 
 // 2. EQUALS STYLE (should suggest brace)
@@ -37,13 +37,13 @@ void test_nonbuiltin_local() {
 // 5. COMPLEX SCENARIO
 struct ComplexStruct {
   int x;
-  // CHECK-MESSAGES: :39:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
   double y;
-  // CHECK-MESSAGES: :41:10: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:10: error: field is not initialized  [codelint-init]
 };
 void test_complex_local() {
   ComplexStruct cs;
-  // CHECK-MESSAGES: :45:17: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:17: error: variable is not initialized  [codelint-init]
 }
 
 // === Expected Fixed Output ===

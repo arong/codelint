@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %codelint %s codelint-lint-code %t
 #include <initializer_list>
 #include <iostream>
 #include <vector>

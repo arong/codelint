@@ -28,7 +28,7 @@ void test_reference_in_struct() {
   struct RefStruct {
     int& ref;
     int value; // Should trigger warning: not initialized
-               // CHECK-MESSAGES: :30:9: error: field is not initialized  [codelint-init]
+               // CHECK-MESSAGES: :[@LINE-1]:9: error: field is not initialized  [codelint-init]
   };
 
   int x = 5;
@@ -43,7 +43,7 @@ void test_reference_parameters(int& param) {
 class ReferenceClass {
   int& member_ref;
   int value; // Should trigger warning: not initialized
-  // CHECK-MESSAGES: :45:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
 
 public:
   ReferenceClass(int& r) : member_ref(r) {
@@ -52,7 +52,7 @@ public:
 
 void test_rvalue_references() {
   int x = 10;
-  // CHECK-MESSAGES: :45:7: error: member variable 'value' is not initialized in constructor
+  // CHECK-MESSAGES: :[@LINE-10]:7: error: member variable 'value' is not initialized in constructor
   // [codelint-init]
   int&& rref1 = std::move(x); // Should suggest brace init
   int&& rref2{std::move(x)};  // OK - already using brace init

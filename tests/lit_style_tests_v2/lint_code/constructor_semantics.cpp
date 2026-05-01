@@ -40,14 +40,14 @@ void test_iterator_range_constructor() {
 
 void test_safe_to_convert() {
   std::string str1 = "hello";
-  // CHECK-MESSAGES: :42:15: warning: variable should use '{}' syntax for initialization
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
   std::string str2("world");
-  // CHECK-MESSAGES: :44:15: warning: variable should use '{}' syntax for initialization
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
 
   std::vector<int> vec1 = {1, 2, 3};
-  // CHECK-MESSAGES: :47:20: warning: initializer should use '{}' syntax instead of '= {}'
+  // CHECK-MESSAGES: :[@LINE-1]:20: warning: initializer should use '{}' syntax instead of '= {}'
   // [codelint-lint-code]
 }
 
@@ -62,7 +62,7 @@ void test_mixed_types() {
   std::vector<std::string> vec1(3, "test");
 
   std::string str1 = "text";
-  // CHECK-MESSAGES: :61:15: warning: variable should use '{}' syntax for initialization
+  // CHECK-MESSAGES: :[@LINE-1]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
 }
 

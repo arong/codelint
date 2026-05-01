@@ -4,9 +4,9 @@
 
 // 1. GLOBAL VARIABLES
 int global_var1;
-// CHECK-MESSAGES: :6:5: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[@LINE-1]:5: error: variable is not initialized  [codelint-init]
 static int static_global1;
-// CHECK-MESSAGES: :8:12: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[@LINE-1]:12: error: variable is not initialized  [codelint-init]
 
 // 2. EXTERN DECLARATION (should NOT trigger warning - no initialization)
 extern int extern_var;

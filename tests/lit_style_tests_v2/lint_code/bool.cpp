@@ -1,7 +1,7 @@
 // RUN: %codelint %s codelint-lint-code %t
 void testb() {
   bool flag = false;
-  // CHECK-MESSAGES: :3:8: warning: variable should use '{}' syntax for initialization
+  // CHECK-MESSAGES: :[@LINE-1]:8: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
 }
 

@@ -36,7 +36,7 @@ void test_simple_macro_vars() {
 
 void test_regular_vars() {
   int a;
-  // CHECK-MESSAGES: :38:7: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
   int b = 10;
 }
 
