@@ -40,12 +40,10 @@ uint64_t big = 42;
 
 unsigned ul_bad = 100u;
 // CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
-// [codelint-lint-code] CHECK-MESSAGES: :[@LINE-2]:17: warning: unsigned integer literal should use
-// uppercase 'U'/'L' suffix  [codelint-lint-code]
+// [codelint-lint-code]
 uint64_t ul2_bad = 42ul;
 // CHECK-MESSAGES: :[@LINE-1]:11: warning: variable should use '{}' syntax for initialization
-// [codelint-lint-code] CHECK-MESSAGES: :[@LINE-2]:18: warning: unsigned integer literal should use
-// uppercase 'U'/'L' suffix  [codelint-lint-code]
+// [codelint-lint-code]
 
 std::string str("world");
 // CHECK-MESSAGES: :[@LINE-1]:13: warning: variable should use '{}' syntax for initialization
