@@ -1,74 +1,99 @@
-# Lit-Style Tests V2 - Full Conversion
+# Lit-Style Tests V2
 
-This directory contains **all existing CodeLintTest tests** converted to lit-style format.
+This directory contains **lit-style tests** for the codelint clang-tidy plugin, inspired by LLVM's own test format.
 
-## Converted Test Statistics
+## Test Statistics
 
-| Checker | Files Converted |
-|---------|-----------------|
-| init_checker | 29 |
-| global_checker | 14 |
-| singleton_checker | 11 |
-| strict_bool_condition_checker | 7 |
-| signed_to_unsigned_checker | 1 |
-| global_const_string_checker | 2 |
-| lint_code_checker | 1 |
-| **Total** | **65** |
+| Checker Directory | Check Name | Files | What It Tests |
+|-------------------|------------|-------|---------------|
+| `init_checker` | `codelint-init` | 22 | Uninitialized variables, dangerous conversions (int→bool, narrowing) |
+| `lint_code` | `codelint-lint-code` | 7 | Initialization style (`=`→`{}`), unsigned suffix (`U`/`UL`) |
+| `lint_code_checker` | `codelint-lint-code` | 1 | Brace style conversion |
+| `global_checker` | `codelint-global` | 14 | Global variable detection |
+| `singleton_checker` | `codelint-singleton` | 11 | Meyer's Singleton pattern detection |
+| `strict_bool_condition_checker` | `codelint-strict-bool-condition` | 7 | Bool-only condition enforcement |
+| `signed_to_unsigned_checker` | `codelint-signed-to-unsigned-return` | 1 | Signed→unsigned return value detection |
+| `global_const_string_checker` | `codelint-global-const-string` | 2 | Global const string detection |
+| **Total** | | **65** | |
+
+### init_checker vs lint_code
+
+The `init_checker` and `lint_code` directories test different aspects of initialization checking:
+
+- **`init_checker/`** — Tests `codelint-init`: semantic correctness issues (error-level)
+  - Uninitialized variables (trivial types = error, non-trivial = warning)
+  - Dangerous conversions (int→bool, narrowing)
+  - Constructor member initialization
+
+- **`lint_code/`** — Tests `codelint-lint-code`: style enforcement (warning-level)
+  - Equals → brace syntax (`int x = 5` → `int x{5}`)
+  - Auto brace → equals (`auto x{42}` → `auto x = 42`)
+  - Unsigned suffix (`unsigned u = 1` → `unsigned u{1U}`)
+  - Skip rules (initializer_list constructors, for loops, etc.)
 
 ## Directory Structure
 
 ```
 lit_style_tests_v2/
-├── check_codelint.py           # Test runner (borrowed from lit_style_test)
-├── convert_to_lit.py           # Conversion script (for reference)
+├── check_codelint.py           # Test runner (Python)
+├── run_lit_tests.sh            # Shell-based test runner
 ├── lit.cfg.py                  # Lit configuration
 ├── lit.cfg.py.in               # CMake template
 ├── CMakeLists.txt              # CMake integration
 ├── README.md                   # This file
 │
-├── init_checker/               # 29 test files
-│   ├── integer.cpp
-│   ├── std.cpp
-│   ├── bool.cpp
+├── init_checker/               # 22 files — codelint-init tests
+│   ├── integer.cpp             # Integer type initialization
+│   ├── local_variables.cpp     # Local variable initialization
+│   ├── member_init.cpp         # Class member initialization
+│   ├── bitfield.cpp            # Bitfield member handling
 │   └── ...
 │
-├── global_checker/             # 14 test files
-│   ├── basic_globals.cpp
-│   ├── static_globals.cpp
-│   └── ...
+├── lint_code/                  # 7 files — codelint-lint-code tests
+│   ├── auto_brace.cpp          # Auto type brace→equals conversion
+│   ├── bool.cpp                # Bool variable style
+│   ├── constructor_semantics.cpp # Constructor initialization style
+│   ├── exception.cpp           # Exception object style
+│   ├── initializer_list.cpp    # initializer_list constructor skip rule
+│   ├── stl_fill_constructors.cpp # STL fill constructor skip rule
+│   └── valarray_fill.cpp       # valarray fill constructor skip rule
 │
-├── singleton_checker/          # 11 test files
-│   ├── meyers_singleton.cpp
-│   └── ...
-│
-├── strict_bool_condition_checker/  # 7 test files
-│   ├── if_statements.cpp
-│   └── ...
-│
-├── signed_to_unsigned_checker/     # 1 test file
-│   └── signed_to_unsigned.cpp
-│
-├── global_const_string_checker/    # 2 test files
-│   ├── basic.cpp
-│   └── negative.cpp
-│
-└── lint_code_checker/              # 1 test file
-    └── brace_style.cpp
+├── global_checker/             # 14 files — codelint-global tests
+├── singleton_checker/          # 11 files — codelint-singleton tests
+├── strict_bool_condition_checker/ # 7 files
+├── signed_to_unsigned_checker/    # 1 file
+├── global_const_string_checker/   # 2 files
+└── lint_code_checker/             # 1 file — brace_style.cpp
 ```
 
 ## Test Format
 
-Each test file follows clang-tidy's lit pattern:
+Each test file follows clang-tidy's lit pattern with `@LINE` references:
 
 ```cpp
-// RUN: %check_codelint %s codelint-init %t -- -std=c++17
+// RUN: %codelint %s codelint-init %t
 
 int global1;
-// CHECK-MESSAGES: :[@LINE]:5: error: variable is not initialized [codelint-init]
+// CHECK-MESSAGES: :[@LINE-1]:5: error: variable is not initialized  [codelint-init]
+
+int global3 = 1;
+// No CHECK-MESSAGES — not tested by codelint-init
 
 // === Expected Fixed Output ===
 // CHECK-FIXES: int global1{};
 ```
+
+### @LINE Reference Syntax
+
+Line references use `[@LINE-N]` to avoid hardcoding line numbers:
+
+| Syntax | Meaning |
+|--------|---------|
+| `[@LINE-1]` | The line before this CHECK comment |
+| `[@LINE-2]` | Two lines before this CHECK comment |
+| `[@LINE]` | The same line as this CHECK comment |
+
+**Why @LINE?** When CHECK-MESSAGES lines are added or removed, fixed line numbers break. `@LINE` references stay correct regardless of edits.
 
 ## Running Tests
 
@@ -92,23 +117,7 @@ Or directly:
 bash tests/run_lit_tests.sh
 ```
 
-### Option 3: Via GitHub Actions CI
-
-```bash
-# Build plugin first
-cmake --build build
-
-# Run lit tests
-lit.py -v tests/lit_style_tests_v2/
-```
-
-### Option 2: Via CMake
-
-```bash
-cmake --build build --target check-codelint-lit-v2
-```
-
-### Option 3: Direct Python
+### Option 3: Direct Python (single test)
 
 ```bash
 python3 tests/lit_style_tests_v2/check_codelint.py \
@@ -118,6 +127,45 @@ python3 tests/lit_style_tests_v2/check_codelint.py \
     --clang-tidy /opt/homebrew/opt/llvm@21/bin/clang-tidy
 ```
 
+## Adding New Tests
+
+### For codelint-init (uninitialized variable checks)
+
+Create a `.cpp` file in `init_checker/`:
+
+```cpp
+// RUN: %codelint %s codelint-init %t
+
+void test() {
+  int x;
+  // CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
+
+  int y{}; // OK — no warning
+}
+```
+
+### For codelint-lint-code (style checks)
+
+Create a `.cpp` file in `lint_code/`:
+
+```cpp
+// RUN: %codelint %s codelint-lint-code %t
+
+void test() {
+  int x = 5;
+  // CHECK-MESSAGES: :[@LINE-1]:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+
+  int y{5}; // OK — already using brace init
+}
+```
+
+### Key Rules
+
+1. **One check per directory**: `init_checker/` tests only `codelint-init`, `lint_code/` tests only `codelint-lint-code`
+2. **Use `@LINE` references**: Never hardcode line numbers — use `[@LINE-1]`, `[@LINE-2]`, etc.
+3. **Include CHECK-FIXES**: Add expected fixed output after `// === Expected Fixed Output ===`
+4. **No mixed check types**: Don't put `codelint-init` and `codelint-lint-code` CHECK-MESSAGES in the same file
+
 ## Comparison with Original Tests
 
 | Aspect | Original (CodeLintTest) | Lit-Style (lit_style_tests_v2) |
@@ -125,8 +173,9 @@ python3 tests/lit_style_tests_v2/check_codelint.py \
 | Source files | `src/*.cpp` | Inline in test file |
 | Expected output | `check-output/*.txt` | `// CHECK-MESSAGES:` inline |
 | Expected fixed | `fixed/*.cpp` | `// CHECK-FIXES:` inline |
-| Test runner | `run_plugin_regression.sh` | `check_codelint.py` + lit |
-| Line references | Manual | `[@LINE+N]` syntax |
+| Test runner | `run_plugin_regression.sh` | `check_codelint.py` + FileCheck |
+| Line references | Manual (fragile) | `[@LINE-N]` syntax (robust) |
+| Check isolation | Mixed (init + lint-code) | Separated by directory |
 
 ## Original Tests Preserved
 
@@ -143,30 +192,3 @@ tests/CodeLintTest/src/
 Both test systems can coexist:
 - **Original**: For comprehensive regression, CI/CD, complex scenarios
 - **Lit-style**: For TDD, quick iteration, inline documentation
-
-## Manual Adjustments Needed
-
-The conversion script may need manual adjustments for:
-
-1. **Line references**: `[@LINE]` should be `[[@LINE]]` per clang-tidy convention
-2. **CHECK-FIXES**: Some complex fixes may need manual refinement
-3. **Multi-line messages**: May need to group related CHECK-MESSAGES
-
-## Re-running Conversion
-
-If you need to re-convert after updating original tests:
-
-```bash
-python3 tests/lit_style_tests_v2/convert_to_lit.py init_checker
-python3 tests/lit_style_tests_v2/convert_to_lit.py global_checker
-# ... etc
-```
-
-## Coverage Comparison
-
-| Metric | Original Tests | Lit Tests |
-|--------|----------------|-----------|
-| Test count | 82 source files | 65 converted |
-| Output verification | check-output/*.txt | inline CHECK-MESSAGES |
-| Fix verification | fixed/*.cpp | inline CHECK-FIXES |
-| Standards coverage | Hardcoded | Can use `-std=` variants |
