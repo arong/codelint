@@ -1,4 +1,3 @@
----
 ## ⚡ First-Time Setup
 
 ```bash
