@@ -1,21 +1,18 @@
 // RUN: %codelint %s codelint-global %t
-// Test file: namespace_globals.cpp (MERGED: namespace_globals.cpp + anon_namespace_globals.cpp)
-// Scenario: Global variables inside namespaces
-// Expected: 4 global variables detected (2 named + 2 anonymous)
 
 namespace MyApp {
-int app_config = 100; // Namespace-level global - SHOULD detect
+int app_config = 100;
 // CHECK-MESSAGES: :[@LINE-1]:5: warning: global variable 'app_config' detected  [codelint-global]
-const int kMaxSize = 50; // Const namespace global - SHOULD detect
+const int kMaxSize = 50;
 // CHECK-MESSAGES: :[@LINE-1]:11: warning: global variable 'kMaxSize' detected  [codelint-global]
 } // namespace MyApp
 
 #include <string>
 
 namespace {
-int anon_var1 = 10; // Anonymous namespace var
+int anon_var1 = 10;
 // CHECK-MESSAGES: :[@LINE-1]:5: warning: global variable 'anon_var1' detected  [codelint-global]
-std::string anon_var2 = "test"; // Anonymous namespace string
+std::string anon_var2 = "test";
 // CHECK-MESSAGES: :[@LINE-1]:13: warning: global variable 'anon_var2' detected  [codelint-global]
 } // namespace
 
