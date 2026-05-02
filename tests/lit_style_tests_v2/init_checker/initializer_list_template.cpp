@@ -27,6 +27,10 @@ void test_template_container() {
   // [codelint-init]
 
   TemplateContainer<int> tc6 = 6;
+  TemplateContainer<int> tc7{7};
+  // CHECK-MESSAGES: :[[@LINE-1]]:26: warning: brace initialization with single element calls
+  // initializer_list constructor; consider using direct initialization '()' to call the
+  // single-argument constructor [codelint-init]
 }
 
 template <typename T> class OnlyInitList {
