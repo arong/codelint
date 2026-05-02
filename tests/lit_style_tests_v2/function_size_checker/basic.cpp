@@ -50,6 +50,6 @@ void big_function() { // VIOLATES: has 10 effective lines (>= 50)
   int e3 = 3;
   int e4 = 4;
   int e5 = 5;
-  // CHECK-MESSAGES: :[@LINE-10]:6: warning: function 'big_function' has 50 lines (exceeds 50 line
+  // CHECK-MESSAGES: :[[@LINE-10]]:6: warning: function 'big_function' has 50 lines (exceeds 50 line
   // limit)  [codelint-function-size]
 }
