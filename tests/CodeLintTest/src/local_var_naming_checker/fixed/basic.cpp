@@ -7,4 +7,5 @@ void test_local_var_naming() {
 
   int valid = 4;
   int mvalid = 5;
+  int _ = 6;
 }

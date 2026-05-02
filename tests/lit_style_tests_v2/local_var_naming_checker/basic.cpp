@@ -16,4 +16,5 @@ void test() {
   int valid = 4;  // OK - no underscore prefix/suffix
   int mvalid = 5; // OK - m not followed by underscore
   int var = 6;    // OK - no underscore at all
+  int _ = 7;      // OK - standalone underscore is allowed (structured binding discard)
 }

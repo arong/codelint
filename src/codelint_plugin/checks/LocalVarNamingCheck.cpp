@@ -43,6 +43,10 @@ void LocalVarNamingCheck::check(const ast_matchers::MatchFinder::MatchResult& Re
     return;
   }
 
+  if (name == "_") {
+    return;
+  }
+
   if (name.size() >= 2 && name[0] == 'm' && name[1] == '_') {
     diag(varDecl->getLocation(), "local variable '%0' should not use 'm_' prefix") << name;
   } else if (name[0] == '_') {
