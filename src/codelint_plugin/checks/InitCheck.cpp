@@ -327,6 +327,42 @@ void InitCheck::checkInitializerListSingleElement(const CXXConstructExpr* CCE, A
     return;
   }
 
+  const CXXRecordDecl* Record = Ctor->getParent();
+  if (Record == nullptr) {
+    return;
+  }
+
+  bool hasOtherSingleArgCtor = false;
+  for (const CXXConstructorDecl* C : Record->ctors()) {
+    if (C == Ctor) {
+      continue;
+    }
+
+    if (C->isImplicit()) {
+      continue;
+    }
+
+    if (C->getNumParams() != 1) {
+      continue;
+    }
+
+    const ParmVarDecl* P = C->getParamDecl(0);
+    const Type* PTy = P->getType().getTypePtr();
+    if (const auto* PTST = PTy->getAs<TemplateSpecializationType>(); PTST != nullptr) {
+      const auto* PTemplateDecl = PTST->getTemplateName().getAsTemplateDecl();
+      if (PTemplateDecl != nullptr && PTemplateDecl->getName() == "initializer_list") {
+        continue;
+      }
+    }
+
+    hasOtherSingleArgCtor = true;
+    break;
+  }
+
+  if (!hasOtherSingleArgCtor) {
+    return;
+  }
+
   diag(CCE->getBeginLoc(),
        "brace initialization with single element calls initializer_list constructor; "
        "consider using direct initialization '()' to call the single-argument constructor");
