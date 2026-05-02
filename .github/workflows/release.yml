@@ -82,7 +82,7 @@ jobs:
           cd package-output/${PLUGIN_PACKAGE_NAME}
 
           # Test that plugin loads with system clang-tidy-15
-          clang-tidy-15 --load=codelint-plugin.so --checks='codelint-*' --list-checks | grep codelint
+          clang-tidy-15 --load=$PWD/codelint-plugin.so --checks='codelint-*' --list-checks | grep codelint
 
           cat > /tmp/test.cpp << 'EOF'
           void test() {
@@ -91,7 +91,7 @@ jobs:
           }
           EOF
 
-          clang-tidy-15 --load=codelint-plugin.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
+          clang-tidy-15 --load=$PWD/codelint-plugin.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
 
       - name: Upload plugin package artifact
         uses: actions/upload-artifact@v4

@@ -45,15 +45,6 @@ fi
 SKILL_PACKAGE_NAME="clang-tidy-skill-${VERSION}-${PLATFORM_NAME}-${ARCH}"
 SKILL_PACKAGE_DIR="${OUTPUT_DIR}/${SKILL_PACKAGE_NAME}"
 
-echo "========================================"
-echo "Creating clang-tidy skill package"
-echo "========================================"
-echo "Version: ${VERSION}"
-echo "Platform: ${PLATFORM_NAME}-${ARCH}"
-echo "Skill directory: ${SKILL_DIR}"
-echo "Output: ${SKILL_PACKAGE_DIR}"
-echo ""
-
 find_plugin() {
     if [ "$PLATFORM_NAME" = "darwin" ]; then
         plugin="${BUILD_DIR}/lib/codelint-plugin.dylib"
@@ -91,73 +82,6 @@ find_llvm_share_dir() {
 
     echo ""
 }
-
-echo "Creating skill package..."
-echo ""
-
-rm -rf "${SKILL_PACKAGE_DIR}"
-mkdir -p "${SKILL_PACKAGE_DIR}/lib"
-mkdir -p "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts"
-mkdir -p "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs"
-
-PLUGIN=$(find_plugin)
-if [ -z "$PLUGIN" ]; then
-    echo "ERROR: codelint plugin not found!"
-    echo "Build: cmake --build build"
-    exit 1
-fi
-echo "[1/4] plugin: $PLUGIN"
-
-LLVM_SHARE_DIR=$(find_llvm_share_dir)
-
-echo "[2/4] Copying plugin..."
-cp "$PLUGIN" "${SKILL_PACKAGE_DIR}/lib/"
-PLUGIN_NAME=$(basename "$PLUGIN")
-echo "    Copied: $PLUGIN_NAME"
-
-echo "[3/4] Copying skill scripts..."
-if [ -d "${SKILL_DIR}/scripts" ] && [ "$(ls -A ${SKILL_DIR}/scripts 2>/dev/null)" ]; then
-    cp -r "${SKILL_DIR}/scripts/"* "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"
-    chmod +x "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"*
-    echo "    Copied scripts:"
-    ls "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/" | while read f; do
-        echo "      $f"
-    done
-else
-    echo "    WARNING: No skill scripts found"
-fi
-
-echo "[4/4] Copying skill configs..."
-if [ -d "${SKILL_DIR}/configs" ] && [ "$(ls -A ${SKILL_DIR}/configs 2>/dev/null)" ]; then
-    shopt -s dotglob
-    cp -r "${SKILL_DIR}/configs/"* "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/"
-    shopt -u dotglob
-    echo "    Copied configs:"
-    ls "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/" | while read f; do
-        echo "      $f"
-    done
-else
-    echo "    WARNING: No skill configs found"
-fi
-
-create_skill_readme "${SKILL_PACKAGE_DIR}"
-
-echo ""
-echo "Creating skill tarball..."
-mkdir -p "${OUTPUT_DIR}"
-cd "${OUTPUT_DIR}"
-tar -czvf "${SKILL_PACKAGE_NAME}.tar.gz" "${SKILL_PACKAGE_NAME}"
-TARBALL_SIZE=$(du -h "${SKILL_PACKAGE_NAME}.tar.gz" | cut -f1)
-
-echo ""
-echo "========================================"
-echo "Skill package created!"
-echo "========================================"
-echo "Package: ${OUTPUT_DIR}/${SKILL_PACKAGE_NAME}.tar.gz"
-echo "Size: ${TARBALL_SIZE}"
-echo ""
-echo "Contents:"
-tar -tzf "${SKILL_PACKAGE_NAME}.tar.gz"
 
 create_skill_readme() {
     local pkg_dir="$1"
@@ -239,3 +163,79 @@ cp share/clang-tidy-skill/configs/.clang-tidy.codelint .clang-tidy
 MIT License
 EOF
 }
+
+echo "========================================"
+echo "Creating clang-tidy skill package"
+echo "========================================"
+echo "Version: ${VERSION}"
+echo "Platform: ${PLATFORM_NAME}-${ARCH}"
+echo "Skill directory: ${SKILL_DIR}"
+echo "Output: ${SKILL_PACKAGE_DIR}"
+echo ""
+
+echo "Creating skill package..."
+echo ""
+
+rm -rf "${SKILL_PACKAGE_DIR}"
+mkdir -p "${SKILL_PACKAGE_DIR}/lib"
+mkdir -p "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts"
+mkdir -p "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs"
+
+PLUGIN=$(find_plugin)
+if [ -z "$PLUGIN" ]; then
+    echo "ERROR: codelint plugin not found!"
+    echo "Build: cmake --build build"
+    exit 1
+fi
+echo "[1/4] plugin: $PLUGIN"
+
+LLVM_SHARE_DIR=$(find_llvm_share_dir)
+
+echo "[2/4] Copying plugin..."
+cp "$PLUGIN" "${SKILL_PACKAGE_DIR}/lib/"
+PLUGIN_NAME=$(basename "$PLUGIN")
+echo "    Copied: $PLUGIN_NAME"
+
+echo "[3/4] Copying skill scripts..."
+if [ -d "${SKILL_DIR}/scripts" ] && [ "$(ls -A ${SKILL_DIR}/scripts 2>/dev/null)" ]; then
+    cp -r "${SKILL_DIR}/scripts/"* "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"
+    chmod +x "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/"*
+    echo "    Copied scripts:"
+    ls "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/scripts/" | while read f; do
+        echo "      $f"
+    done
+else
+    echo "    WARNING: No skill scripts found"
+fi
+
+echo "[4/4] Copying skill configs..."
+if [ -d "${SKILL_DIR}/configs" ] && [ "$(ls -A ${SKILL_DIR}/configs 2>/dev/null)" ]; then
+    shopt -s dotglob
+    cp -r "${SKILL_DIR}/configs/"* "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/"
+    shopt -u dotglob
+    echo "    Copied configs:"
+    ls "${SKILL_PACKAGE_DIR}/share/clang-tidy-skill/configs/" | while read f; do
+        echo "      $f"
+    done
+else
+    echo "    WARNING: No skill configs found"
+fi
+
+create_skill_readme "${SKILL_PACKAGE_DIR}"
+
+echo ""
+echo "Creating skill tarball..."
+mkdir -p "${OUTPUT_DIR}"
+cd "${OUTPUT_DIR}"
+tar -czvf "${SKILL_PACKAGE_NAME}.tar.gz" "${SKILL_PACKAGE_NAME}"
+TARBALL_SIZE=$(du -h "${SKILL_PACKAGE_NAME}.tar.gz" | cut -f1)
+
+echo ""
+echo "========================================"
+echo "Skill package created!"
+echo "========================================"
+echo "Package: ${OUTPUT_DIR}/${SKILL_PACKAGE_NAME}.tar.gz"
+echo "Size: ${TARBALL_SIZE}"
+echo ""
+echo "Contents:"
+tar -tzf "${SKILL_PACKAGE_NAME}.tar.gz"
