@@ -27,7 +27,7 @@ void test_reference_assignment_style() {
 void test_reference_in_struct() {
   struct RefStruct {
     int& ref;
-    int value; // Should trigger msg: not initialized
+    int value; // Should trigger warning: not initialized
                // CHECK-MESSAGES: :[[@LINE-1]]:9: error: field is not initialized  [codelint-init]
   };
 
@@ -42,7 +42,7 @@ void test_reference_parameters(int& param) {
 
 class ReferenceClass {
   int& member_ref;
-  int value; // Should trigger msg: not initialized
+  int value; // Should trigger warning: not initialized
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
 
 public:

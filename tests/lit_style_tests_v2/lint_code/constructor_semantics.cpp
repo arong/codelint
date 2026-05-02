@@ -1,6 +1,6 @@
 // RUN: %check_codelint %s codelint-lint-code %t
 // Test for constructor semantics - cases where = -> {} would change behavior
-// CRITICAL: These cases should NOT trigger msgs because brace init changes semantics
+// CRITICAL: These cases should NOT trigger warnings because brace init changes semantics
 
 #include <deque>
 #include <list>

@@ -8,7 +8,7 @@ int global_var1;
 static int static_global1;
 // CHECK-MESSAGES: :[[@LINE-1]]:12: error: variable is not initialized  [codelint-init]
 
-// 2. EXTERN DECLARATION (should NOT trigger msg - no initialization)
+// 2. EXTERN DECLARATION (should NOT trigger warning - no initialization)
 extern int extern_var;
 
 // 3. CONST/CONSTEXPR AT GLOBAL SCOPE
