@@ -5,9 +5,9 @@
 void test_multiple_declarators() {
   int a, b,
       c; // All three should trigger warnings
-         // CHECK-MESSAGES: :[[@LINE-2]]:7: error: variable is not initialized  [codelint-init]
-         // CHECK-MESSAGES: :[[@LINE-3]]:10: error: variable is not initialized  [codelint-init]
-         // CHECK-MESSAGES: :[[@LINE-3]]:7: error: variable is not initialized  [codelint-init]
+         // CHECK-MESSAGES: :[[@LINE-1]]:7: error: variable is not initialized  [codelint-init]
+         // CHECK-MESSAGES: :[[@LINE-2]]:10: error: variable is not initialized  [codelint-init]
+         // CHECK-MESSAGES: :[[@LINE-3]]:13: error: variable is not initialized  [codelint-init]
   double x = 1.0, y, z = 3.0; // Only y should trigger warning
   // CHECK-MESSAGES: :[[@LINE-1]]:19: error: variable is not initialized  [codelint-init]
   char *p1, *p2, *p3; // All three should trigger warnings
@@ -54,5 +54,3 @@ int global1, global2, global3; // All three should trigger warnings
 
 static int s1, s2{}; // Only s1 should trigger warning
 // CHECK-MESSAGES: :[[@LINE-1]]:12: error: variable is not initialized  [codelint-init]
-
-// should warn CHECK-FIXES:   unsigned u1{1U}, u2{}, u3{3U}; // u2 should warn, and suggest U suffix

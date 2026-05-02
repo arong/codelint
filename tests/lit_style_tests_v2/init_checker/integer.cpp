@@ -36,7 +36,7 @@ void foo(int a, int b = 10) {
   // 应该跳过类型收紧
   int d = 3.14;
   // CHECK-MESSAGES: :[[@LINE-1]]:7: warning: narrowing conversion from floating to integer; cannot
-  // use '{}' initialization  [codelint-init]
+  // use '{}' initialization [codelint-init]
 }
 
 int Init() {

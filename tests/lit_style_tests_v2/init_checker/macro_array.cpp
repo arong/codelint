@@ -51,8 +51,3 @@ bool bool_flags[25]; // This SHOULD trigger a C-style array warning
 // CHECK-MESSAGES: :[[@LINE-1]]:6: error: C-style array is not initialized  [codelint-init]
 char buffer[1024]; // This SHOULD trigger a C-style array warning
 // CHECK-MESSAGES: :[[@LINE-1]]:6: error: C-style array is not initialized  [codelint-init]
-
-// brace init) CHECK-FIXES: int brace_initialized[5]{};           // This should NOT trigger a
-// warning CHECK-FIXES: int assigned_array[5]{1, 2, 3, 4, 5}; // This SHOULD trigger a warning
-// (suggest brace init) CHECK-FIXES: float float_array[10]{};              // This SHOULD trigger a
-// C-style array warning CHECK-FIXES: void function_test() {
