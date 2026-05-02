@@ -13,7 +13,7 @@ enum class ErrorCode {
   Unknown = 2,
   Timeout = 3,
 };
-ErrorCode ec1;                     // will generate msg, but not fix
+ErrorCode ec1;                     // will generate warning, but not fix
 ErrorCode ec2 = ErrorCode::None;   // will be fixed
 ErrorCode ec3{ErrorCode::Unknown}; // OK
 
@@ -31,5 +31,5 @@ Status sts2{Status::Fail}; // OK
 void test_local_enum() {
   Color local_color;
   // CHECK-MESSAGES: :[[@LINE-1]]:9: error: variable is not initialized  [codelint-init]
-  ErrorCode local_ec; // will generate msg, but not fix
+  ErrorCode local_ec; // will generate warning, but not fix
 }
