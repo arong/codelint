@@ -1,3 +1,0 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/singleton_checker/src/getinstance_singleton.cpp:4:24: warning: Meyer's Singleton pattern detected in 'getInstance' [codelint-singleton]
-    4 |     static LogManager& getInstance() {
-      |                        ^

@@ -1,9 +1,0 @@
-tests/CodeLintTest/src/local_var_naming_checker/src/basic.cpp:4:7: warning: local variable '_var' should not start with '_' [codelint-local-var-naming]
-    4 |   int _var = 1;
-      |       ^
-tests/CodeLintTest/src/local_var_naming_checker/src/basic.cpp:5:7: warning: local variable 'var_' should not end with '_' [codelint-local-var-naming]
-    5 |   int var_ = 2;
-      |       ^
-tests/CodeLintTest/src/local_var_naming_checker/src/basic.cpp:6:7: warning: local variable 'm_var' should not use 'm_' prefix [codelint-local-var-naming]
-    6 |   int m_var = 3;
-      |       ^

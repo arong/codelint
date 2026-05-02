@@ -1,9 +1,0 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/basic_globals.cpp:5:5: warning: global variable 'global_int' detected [codelint-global]
-    5 | int global_int = 42;           // Basic int global
-      |     ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/basic_globals.cpp:6:11: warning: global variable 'global_const' detected [codelint-global]
-    6 | const int global_const = 100;  // Const int global
-      |           ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/basic_globals.cpp:7:14: warning: global variable 'global_uint' detected [codelint-global]
-    7 | unsigned int global_uint = 5U; // Unsigned int with suffix
-      |              ^

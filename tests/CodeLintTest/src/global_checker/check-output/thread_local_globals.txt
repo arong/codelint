@@ -1,3 +1,0 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/thread_local_globals.cpp:5:21: warning: global variable 'tl_value' detected [codelint-global]
-    5 | thread_local double tl_value = 3.14;  // Thread-local double
-      |                     ^
