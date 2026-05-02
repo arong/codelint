@@ -95,9 +95,9 @@ cmake --preset default
 cmake --build build
 ```
 
-LLVM 21 path:
-- macOS: `/opt/homebrew/opt/llvm@21/bin/`
-- Linux: `/usr/lib/llvm-21/bin/`
+LLVM 15+ path:
+- macOS: `/opt/homebrew/opt/llvm@21/bin/`  # adjust version as needed
+- Linux: `/usr/lib/llvm-15/bin/`           # adjust version as needed
 
 ---
 

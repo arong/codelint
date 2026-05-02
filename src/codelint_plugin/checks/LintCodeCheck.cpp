@@ -42,6 +42,8 @@ void LintCodeCheck::registerMatchers(MatchFinder* Finder) {
                              unless(hasAncestor(forStmt())), unless(hasAncestor(cxxForRangeStmt())))
                          .bind("equals_brace"),
                      this);
+
+  Finder->addMatcher(integerLiteral().bind("lowercase_suffix"), this);
 }
 
 void LintCodeCheck::check(const MatchFinder::MatchResult& Result) {
@@ -61,6 +63,9 @@ void LintCodeCheck::check(const MatchFinder::MatchResult& Result) {
   } else if (const auto* VarDeclPtr = Result.Nodes.getNodeAs<VarDecl>("equals_brace");
              VarDeclPtr != nullptr) {
     checkEqualsBraceInit(VarDeclPtr, Result.Context);
+  } else if (const auto* IntLit = Result.Nodes.getNodeAs<IntegerLiteral>("lowercase_suffix");
+             IntLit != nullptr) {
+    checkLowercaseLiteralSuffix(IntLit, Result.Context);
   }
 }
 
@@ -437,6 +442,9 @@ void LintCodeCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* C
   }
 
   const auto InitRange = Init->getSourceRange();
+  const SourceLocation InitBeginLoc = Init->getBeginLoc();
+  const SourceLocation InitEndLoc = Init->getEndLoc();
+  const SourceLocation TokEndLoc = Lexer::getLocForEndOfToken(InitEndLoc, 0, SrcMgr, LangOpts);
   auto ValueText =
       Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SrcMgr, LangOpts);
 
@@ -444,10 +452,42 @@ void LintCodeCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* C
     return;
   }
 
-  for (const char Ch : ValueText) {
-    if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
-      return;
+  std::string FullText = ValueText.str();
+
+  char SuffixBuf[16] = {};
+  const char* ExtraBuf = SrcMgr.getCharacterData(InitEndLoc);
+  const char* P = ExtraBuf;
+  const char* End = P + static_cast<int>(ValueText.size()) + 8;
+  for (char SuffixChar : FullText) {
+    (void)SuffixChar;
+    P++;
+  }
+  std::size_t SuffixLen = 0;
+  while (P < End && SuffixLen < sizeof(SuffixBuf) - 1) {
+    if (*P == 'U' || *P == 'u' || *P == 'L' || *P == 'l') {
+      SuffixBuf[SuffixLen++] = *P;
+      P++;
+    } else if (*P == '\0' || *P == '\n' || *P == ' ' || *P == ',' || *P == ';' || *P == ')') {
+      break;
+    } else {
+      P++;
+      break;
     }
+  }
+  if (SuffixLen > 0) {
+    FullText.append(SuffixBuf, SuffixLen);
+  }
+
+  bool HasSuffix = false;
+  for (const char Ch : FullText) {
+    if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
+      HasSuffix = true;
+      break;
+    }
+  }
+
+  if (HasSuffix) {
+    return;
   }
 
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SrcMgr, LangOpts);
@@ -552,6 +592,106 @@ void LintCodeCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* 
   diag(VarDeclPtr->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
       << FixItHint::CreateReplacement(CharSourceRange::getCharRange(BraceStartLoc, InitStartLoc),
                                       "");
+}
+
+void LintCodeCheck::checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, ASTContext* Ctx) {
+  if (IntLit == nullptr || Ctx == nullptr) {
+    return;
+  }
+
+  auto& SrcMgr = Ctx->getSourceManager();
+  if (!SrcMgr.isInMainFile(SrcMgr.getExpansionLoc(IntLit->getBeginLoc()))) {
+    return;
+  }
+
+  auto LangOpts = Ctx->getLangOpts();
+
+  const auto LitRange = IntLit->getSourceRange();
+  const SourceLocation LitEndLoc = IntLit->getEndLoc();
+  const SourceLocation TokEndLoc = Lexer::getLocForEndOfToken(LitEndLoc, 0, SrcMgr, LangOpts);
+
+  auto ValueText = Lexer::getSourceText(CharSourceRange::getTokenRange(LitRange), SrcMgr, LangOpts);
+  if (ValueText.empty() || ValueText.size() > kMaxValueTextLength) {
+    return;
+  }
+
+  std::string FullText = ValueText.str();
+
+  char SuffixBuf[16] = {};
+  const char* ExtraBuf = SrcMgr.getCharacterData(LitEndLoc);
+  const char* P = ExtraBuf;
+  const char* End = P + static_cast<int>(ValueText.size()) + 8;
+  for (char SuffixChar : FullText) {
+    (void)SuffixChar;
+    P++;
+  }
+  std::size_t SuffixLen = 0;
+  while (P < End && SuffixLen < sizeof(SuffixBuf) - 1) {
+    if (*P == 'U' || *P == 'u' || *P == 'L' || *P == 'l') {
+      SuffixBuf[SuffixLen++] = *P;
+      P++;
+    } else if (*P == '\0' || *P == '\n' || *P == ' ' || *P == ',' || *P == ';' || *P == ')') {
+      break;
+    } else {
+      P++;
+      break;
+    }
+  }
+  if (SuffixLen > 0) {
+    FullText.append(SuffixBuf, SuffixLen);
+  }
+
+  std::size_t SuffixLength = 0;
+  for (std::size_t i = 0; i < FullText.size() && SuffixLength < 4; ++i) {
+    const auto RevIdx = FullText.size() - 1 - i;
+    const char Ch = FullText[RevIdx];
+    if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
+      SuffixLength++;
+    } else {
+      break;
+    }
+  }
+
+  if (SuffixLength == 0) {
+    return;
+  }
+
+  bool HasLower = false;
+  for (std::size_t i = FullText.size() - SuffixLength; i < FullText.size(); ++i) {
+    if (FullText[i] == 'u' || FullText[i] == 'l') {
+      HasLower = true;
+      break;
+    }
+  }
+
+  if (!HasLower) {
+    return;
+  }
+
+  const std::size_t NumericLen = FullText.size() - SuffixLength;
+
+  std::string UpperSuffix;
+  UpperSuffix.reserve(SuffixLength);
+  for (std::size_t i = NumericLen; i < FullText.size(); ++i) {
+    if (FullText[i] == 'u' || FullText[i] == 'U') {
+      UpperSuffix += 'U';
+    } else if (FullText[i] == 'l' || FullText[i] == 'L') {
+      UpperSuffix += 'L';
+    }
+  }
+
+  const auto LitBeginDecomp = SrcMgr.getDecomposedLoc(IntLit->getBeginLoc());
+  const auto TokBeginDecomp = SrcMgr.getDecomposedLoc(TokEndLoc);
+  if (LitBeginDecomp.first != TokBeginDecomp.first) {
+    return;
+  }
+
+  const SourceLocation SuffixStartLoc =
+      IntLit->getBeginLoc().getLocWithOffset(static_cast<int>(NumericLen));
+
+  diag(IntLit->getBeginLoc(), "integer literal suffix should be uppercase")
+      << FixItHint::CreateReplacement(
+             CharSourceRange::getTokenRange(SourceRange(SuffixStartLoc, TokEndLoc)), UpperSuffix);
 }
 
 } // namespace clang::tidy::codelint

@@ -1,0 +1,3 @@
+tests/CodeLintTest/src/function_size_checker/src/basic.cpp:7:6: warning: function 'big_function' has 62 lines (exceeds 50 line limit) [codelint-function-size]
+    7 | void big_function() {
+      |      ^

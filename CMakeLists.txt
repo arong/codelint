@@ -51,6 +51,8 @@ add_llvm_library(codelint-plugin SHARED
     src/codelint_plugin/utils/InitUtils.cpp
     src/codelint_plugin/checks/InitCheck.cpp
     src/codelint_plugin/checks/LintCodeCheck.cpp
+    src/codelint_plugin/checks/LocalVarNamingCheck.cpp
+    src/codelint_plugin/checks/FunctionSizeCheck.cpp
     src/codelint_plugin/checks/GlobalCheck.cpp
     src/codelint_plugin/checks/GlobalConstStringCheck.cpp
     src/codelint_plugin/checks/SingletonCheck.cpp
