@@ -42,4 +42,8 @@ bool isInsideMacro(const VarDecl* VarDeclPtr, ASTContext* Ctx);
 /// For array types, checks the element type recursively
 [[nodiscard]] bool hasNonTrivialDefaultConstructor(QualType QualTypeRef);
 
+/// Check if a CXXRecordDecl has a constructor taking std::initializer_list
+/// Returns the element type of the initializer_list if found, or std::nullopt otherwise
+[[nodiscard]] std::optional<QualType> hasInitializerListConstructor(const CXXRecordDecl* Record);
+
 } // namespace clang::tidy::codelint::utils

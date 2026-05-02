@@ -170,4 +170,32 @@ bool hasNonTrivialDefaultConstructor(QualType QualTypeRef) {
   return false;
 }
 
+std::optional<QualType> hasInitializerListConstructor(const CXXRecordDecl* Record) {
+  if (Record == nullptr) {
+    return std::nullopt;
+  }
+
+  for (const CXXConstructorDecl* Ctor : Record->ctors()) {
+    for (const ParmVarDecl* Param : Ctor->parameters()) {
+      const Type* ParamTy = Param->getType().getTypePtr();
+      if (const auto* TST = ParamTy->getAs<TemplateSpecializationType>(); TST != nullptr) {
+        const auto* TemplateDecl = TST->getTemplateName().getAsTemplateDecl();
+        if (TemplateDecl == nullptr) {
+          continue;
+        }
+
+        if (TemplateDecl->getName() == "initializer_list") {
+          auto TemplateArgs = TST->template_arguments();
+          if (!TemplateArgs.empty()) {
+            return TemplateArgs[0].getAsType();
+          }
+          return std::nullopt;
+        }
+      }
+    }
+  }
+
+  return std::nullopt;
+}
+
 } // namespace clang::tidy::codelint::utils

@@ -14,6 +14,7 @@ namespace clang::tidy::codelint {
 
 using namespace ast_matchers;
 using utils::hasExplicitInitializer;
+using utils::hasInitializerListConstructor;
 using utils::hasNonTrivialDefaultConstructor;
 using utils::isInsideMacro;
 using utils::isInSystemHeader;
@@ -45,6 +46,10 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
                      this);
 
   Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
+
+  Finder->addMatcher(cxxConstructExpr(has(expr().bind("single_arg")), isListInitialization())
+                         .bind("init_list_single"),
+                     this);
 }
 
 void InitCheck::check(const MatchFinder::MatchResult& Result) {
@@ -64,6 +69,9 @@ void InitCheck::check(const MatchFinder::MatchResult& Result) {
   } else if (const auto* VarDeclPtr = Result.Nodes.getNodeAs<VarDecl>("dangerous");
              VarDeclPtr != nullptr) {
     checkDangerousConversion(VarDeclPtr, Result.Context);
+  } else if (const auto* CCE = Result.Nodes.getNodeAs<CXXConstructExpr>("init_list_single");
+             CCE != nullptr) {
+    checkInitializerListSingleElement(CCE, Result.Context);
   } else if (const auto* Ctor = Result.Nodes.getNodeAs<CXXConstructorDecl>("constructor");
              Ctor != nullptr) {
     checkUninitializedMemberVariablesInConstructors(Ctor, Result.Context);
@@ -244,6 +252,120 @@ void InitCheck::checkDangerousConversion(const VarDecl* VarDeclPtr, ASTContext* 
          "assigning integer to bool is dangerous; use explicit comparison", DiagnosticIDs::Error);
     return;
   }
+}
+
+void InitCheck::checkInitializerListSingleElement(const CXXConstructExpr* CCE, ASTContext* Ctx) {
+  if ((CCE == nullptr) || (Ctx == nullptr)) {
+    return;
+  }
+
+  if (isInSystemHeader(CCE->getBeginLoc(), Ctx)) {
+    return;
+  }
+
+  if (!CCE->isListInitialization()) {
+    return;
+  }
+
+  const CXXConstructorDecl* Ctor = CCE->getConstructor();
+  if (Ctor == nullptr) {
+    return;
+  }
+
+  if (Ctor->getNumParams() != 1) {
+    return;
+  }
+
+  const ParmVarDecl* Param = Ctor->getParamDecl(0);
+  const Type* ParamTy = Param->getType().getTypePtr();
+
+  const auto* TST = ParamTy->getAs<TemplateSpecializationType>();
+  if (TST == nullptr) {
+    return;
+  }
+
+  const auto* TemplateDecl = TST->getTemplateName().getAsTemplateDecl();
+  if (TemplateDecl == nullptr || TemplateDecl->getName() != "initializer_list") {
+    return;
+  }
+
+  if (CCE->getNumArgs() != 1) {
+    return;
+  }
+
+  const Expr* Arg = CCE->getArg(0);
+  if (Arg == nullptr) {
+    return;
+  }
+
+  const auto* StdInitList = dyn_cast<CXXStdInitializerListExpr>(Arg->IgnoreImplicit());
+  if (StdInitList == nullptr) {
+    return;
+  }
+
+  const Expr* SubExpr = StdInitList->getSubExpr();
+  if (SubExpr == nullptr) {
+    return;
+  }
+
+  const auto* MatTemp = dyn_cast<MaterializeTemporaryExpr>(SubExpr);
+  if (MatTemp == nullptr) {
+    return;
+  }
+
+  const Expr* TempExpr = MatTemp->getSubExpr();
+  if (TempExpr == nullptr) {
+    return;
+  }
+
+  const auto* InitList = dyn_cast<InitListExpr>(TempExpr);
+  if (InitList == nullptr) {
+    return;
+  }
+
+  if (InitList->getNumInits() != 1) {
+    return;
+  }
+
+  const CXXRecordDecl* Record = Ctor->getParent();
+  if (Record == nullptr) {
+    return;
+  }
+
+  bool hasOtherSingleArgCtor = false;
+  for (const CXXConstructorDecl* C : Record->ctors()) {
+    if (C == Ctor) {
+      continue;
+    }
+
+    if (C->isImplicit()) {
+      continue;
+    }
+
+    if (C->getNumParams() != 1) {
+      continue;
+    }
+
+    const ParmVarDecl* P = C->getParamDecl(0);
+    const Type* PTy = P->getType().getTypePtr();
+    if (const auto* PTST = PTy->getAs<TemplateSpecializationType>(); PTST != nullptr) {
+      const auto* PTemplateDecl = PTST->getTemplateName().getAsTemplateDecl();
+      if (PTemplateDecl != nullptr && PTemplateDecl->getName() == "initializer_list") {
+        continue;
+      }
+    }
+
+    hasOtherSingleArgCtor = true;
+    break;
+  }
+
+  if (!hasOtherSingleArgCtor) {
+    return;
+  }
+
+  diag(CCE->getBeginLoc(),
+       "brace initialization with single element calls initializer_list constructor; "
+       "consider using direct initialization '()' to call the single-argument constructor");
 }
 
 void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
