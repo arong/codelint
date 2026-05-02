@@ -5,9 +5,9 @@
 void test_multiple_declarators() {
   int a, b,
       c; // All three should trigger warnings
-         // CHECK-MESSAGES: :[[@LINE-1]]:7: error: variable is not initialized  [codelint-init]
-         // CHECK-MESSAGES: :[[@LINE-2]]:10: error: variable is not initialized  [codelint-init]
-         // CHECK-MESSAGES: :[[@LINE-3]]:13: error: variable is not initialized  [codelint-init]
+         // CHECK-MESSAGES: :6:7: error: variable is not initialized  [codelint-init]
+         // CHECK-MESSAGES: :6:10: error: variable is not initialized  [codelint-init]
+         // CHECK-MESSAGES: :7:7: error: variable is not initialized  [codelint-init]
   double x = 1.0, y, z = 3.0; // Only y should trigger warning
   // CHECK-MESSAGES: :[[@LINE-1]]:19: error: variable is not initialized  [codelint-init]
   char *p1, *p2, *p3; // All three should trigger warnings
