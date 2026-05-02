@@ -21,6 +21,7 @@ private:
   void checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
+  void checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, ASTContext* Ctx);
 
   static bool wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE);
   static std::optional<bool>

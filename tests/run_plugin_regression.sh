@@ -301,25 +301,26 @@ run_check_output_test() {
     "$CLANG_TIDY" -p "$COMPILE_COMMANDS" --load="$PLUGIN" --checks="$check_flag" --header-filter=.* "$src_file" -- --std=c++17 -I"$TEST_DIR/src" -I"$TEST_BUILD_DIR" 2>&1 > "$temp_full" || true
 
     awk '
-        /warning: .* \[codelint-init\]/ { found=1; count=4; print; next }
-        /error: .* \[codelint-init\]/ { found=1; count=4; print; next }
-        /warning: .* \[codelint-lint-code\]/ { found=1; count=4; print; next }
-        /error: .* \[codelint-lint-code\]/ { found=1; count=4; print; next }
-        /warning: .* \[codelint-local-var-naming\]/ { found=1; count=4; print; next }
-        /error: .* \[codelint-local-var-naming\]/ { found=1; count=4; print; next }
-        /warning: .* \[codelint-function-size\]/ { found=1; count=4; print; next }
-        /error: .* \[codelint-function-size\]/ { found=1; count=4; print; next }
-        /warning: .* \[codelint-global\]/ { found=1; count=3; print; next }
-        /warning: .* \[codelint-singleton\]/ { found=1; count=3; print; next }
-        /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
-        /error: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; print; next }
-        /warning: .* \[codelint-signed-to-unsigned-return\]/ { found=1; count=3; print; next }
-        /warning: .* \[codelint-global-const-string\]/ { found=1; count=3; print; next }
+        /warning: .* \[codelint-init\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /error: .* \[codelint-init\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-lint-code\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /error: .* \[codelint-lint-code\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-local-var-naming\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /error: .* \[codelint-local-var-naming\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-function-size\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /error: .* \[codelint-function-size\]/ { found=1; count=4; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-global\]/ { found=1; count=3; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-singleton\]/ { found=1; count=3; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; sub(/[[:space:]]+$/, ""); print; next }
+        /error: .* \[codelint-strict-bool-condition\]/ { found=1; count=3; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-signed-to-unsigned-return\]/ { found=1; count=3; sub(/[[:space:]]+$/, ""); print; next }
+        /warning: .* \[codelint-global-const-string\]/ { found=1; count=3; sub(/[[:space:]]+$/, ""); print; next }
+        /note:/ { next }
         /warning:/ { found=0 }
         /error:/ { found=0 }
         /Suppressed/ { found=0 }
         /Found compiler/ { found=0 }
-        found && count > 0 { print; count-- }
+        found && count > 0 { sub(/[[:space:]]+$/, ""); print; count-- }
         found && count == 0 { found=0 }
     ' "$temp_full" > "$temp_output"
 

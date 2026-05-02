@@ -24,3 +24,6 @@ std::string str{"world"};
 int valid{10};
 auto valid2 = 42;
 unsigned valid3{100U};
+uint32_t ul3{0U};
+long lv{1L};
+uint64_t ul4{1024UL};

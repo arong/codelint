@@ -41,12 +41,26 @@ uint64_t big = 42;
 unsigned ul_bad = 100u;
 // CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
 // [codelint-lint-code]
+// CHECK-MESSAGES: :[@LINE-3]:19: warning: integer literal suffix should be uppercase
+// [codelint-lint-code]
 uint64_t ul2_bad = 42ul;
 // CHECK-MESSAGES: :[@LINE-1]:10: warning: variable should use '{}' syntax for initialization
+// [codelint-lint-code]
+// CHECK-MESSAGES: :[@LINE-3]:20: warning: integer literal suffix should be uppercase
 // [codelint-lint-code]
 
 std::string str("world");
 // CHECK-MESSAGES: :[@LINE-1]:13: warning: variable should use '{}' syntax for initialization
+// [codelint-lint-code]
+
+uint32_t ul3{0u};
+// CHECK-MESSAGES: :[@LINE-1]:14: warning: integer literal suffix should be uppercase
+// [codelint-lint-code]
+long lv{1l};
+// CHECK-MESSAGES: :[@LINE-1]:9: warning: integer literal suffix should be uppercase
+// [codelint-lint-code]
+uint64_t ul4{1024ul};
+// CHECK-MESSAGES: :[@LINE-1]:14: warning: integer literal suffix should be uppercase
 // [codelint-lint-code]
 
 int valid{10};
