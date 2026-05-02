@@ -23,7 +23,6 @@ Checks: >
   -misc-include-cleaner,
   -misc-no-recursion,
   -modernize-use-trailing-return-type,
-  -readability-convert-member-functions-to-static,
   -readability-else-after-return,
   -readability-function-cognitive-complexity
 
@@ -35,6 +34,7 @@ CheckOptions:
   readability-identifier-naming.ConstructorCase: PascalCase
   readability-identifier-naming.ClassCase: PascalCase
   readability-identifier-naming.EnumCase: PascalCase
+  readability-inconsistent-declaration-parameter-name.Strict: true
   readability-braces-around-statements.BracesAroundStatements: true
   cppcoreguidelines-rvalue-reference-param-not-moved.MinimumVersion: 0
   # 返回值检查：禁止忽略安全函数的返回值

@@ -1,325 +1,343 @@
 #!/usr/bin/env python3
-"""
-Codelint Test Helper (check_codelint.py)
-=========================================
 
-This script is adapted from clang-tidy's check_clang_tidy.py to provide
-a simplified lit-based testing approach for codelint checks.
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+"""
+Codelint Test Helper for Clang-Tidy
+
+Provides a test harness for Codelint checks using the same infrastructure
+as Clang-Tidy's check_clang_tidy.py script.
 
 Usage:
-    // RUN: %check_codelint %s codelint-init %t -- -std=c++17
+    # From run_lit_tests.sh
+    python3 check_codelint.py test_file.cpp check_name temp_dir
+         --clang-tidy path_to_clang_tidy
+         --plugin path_to_codelint_plugin
+         --std c++17
 
-CHECK Directives:
-    // CHECK-MESSAGES: :[[@LINE-1]]:col: warning: message [check-name]
-    // CHECK-FIXES: expected_fixed_code
-    // CHECK-MESSAGES-NOT: message that should NOT appear
+    # From lit-style tests
+    // RUN: %check_codelint %s check-name %t -- -std=c++17
 
-Key Features:
-- Filters CHECK lines from test files
-- Runs clang-tidy with codelint plugin
-- Uses FileCheck to verify messages and fixes
-- Supports line references (@LINE+N, @LINE-N)
-- Supports test suffixes for multiple scenarios
+    // RUN: %check_codelint %s readability-inconsistent-declaration-parameter-name %t -- \
+    // RUN:   -config="{CheckOptions: {readability-inconsistent-declaration-parameter-name.Strict: true}}"
 """
 
-import subprocess
-import sys
+import argparse
 import os
 import re
-import tempfile
-import argparse
+import subprocess
+import sys
+import difflib
 
 
-def create_temp_file_with_content(content):
-    """Create a temporary file with the given content."""
-    fd, path = tempfile.mkstemp(suffix='.cpp')
-    with os.fdopen(fd, 'w') as f:
-        f.write(content)
-    return path
+class TryRunFailed(Exception):
+    pass
 
 
-def get_check_flag(check_name):
-    """Get the clang-tidy --checks flag for a codelint check."""
-    all_checks = (
-        'codelint-init,codelint-lint-code,-codelint-global,'
-        '-codelint-singleton,-codelint-strict-bool-condition,'
-        '-codelint-signed-to-unsigned-return,-codelint-global-const-string'
-    )
-
-    if check_name == 'codelint-init':
-        return '-*,' + check_name
-    elif check_name == 'codelint-lint-code':
-        return '-*,' + check_name
-    elif check_name.startswith('codelint-'):
-        return '-*,' + check_name
-    else:
-        return check_name
-
-
-def run_clang_tidy(source_file, check_name, temp_dir, clang_tidy_path,
-                   plugin_path, extra_args, standards):
-    """Run clang-tidy on the source file and return the output."""
-    check_flag = get_check_flag(check_name)
-
-    cmd = [
-        clang_tidy_path,
-        '-p', temp_dir,
-        '--load=' + plugin_path,
-        '--checks=' + check_flag,
-        '--header-filter=.*',
-    ]
-
-    # Add fix if we need to verify fixes
-    if standards:
-        for std in standards.split(','):
-            cmd_extra = cmd + ['--', '-std=' + std] + extra_args
-            result = subprocess.run(cmd_extra, capture_output=True, text=True)
-            if result.returncode != 0 and 'error' not in result.stderr.lower():
-                continue
-            break
-
-    # Run without fix first to get messages
-    result = subprocess.run(
-        cmd + [source_file, '--'] + ['-std=c++17'] + extra_args,
-        capture_output=True,
-        text=True
-    )
-
-    return result.stdout + result.stderr
-
-
-def run_clang_tidy_with_fix(source_file, check_name, temp_dir, clang_tidy_path,
-                            plugin_path, extra_args):
-    """Run clang-tidy with --fix and return the fixed content."""
-    check_flag = get_check_flag(check_name)
-
-    # Create a copy since --fix modifies the file
-    fd, temp_copy = tempfile.mkstemp(suffix='.cpp')
-    with open(source_file, 'r') as f:
-        content = f.read()
-    with os.fdopen(fd, 'w') as f:
-        f.write(content)
-
-    cmd = [
-        clang_tidy_path,
-        '-p', temp_dir,
-        '--load=' + plugin_path,
-        '--checks=' + check_flag,
-        '--header-filter=.*',
-        '--fix',
-        '--fix-errors',
-        temp_copy,
-        '--',
-        '-std=c++17'
-    ] + extra_args
-
-    subprocess.run(cmd, capture_output=True)
-
-    with open(temp_copy, 'r') as f:
-        fixed_content = f.read()
-
-    os.unlink(temp_copy)
-    return fixed_content
-
-
-def filter_messages(output):
-    """Filter codelint warnings/errors from clang-tidy output."""
-    lines = []
-    in_codelint_warning = False
-    count = 0
-
-    for line in output.split('\n'):
-        # Check if this is a codelint warning/error line
-        if re.search(r'(warning|error):.*\[codelint-', line):
-            in_codelint_warning = True
-            count = 4  # Include next 4 lines (context)
-            lines.append(line)
-        elif in_codelint_warning:
-            lines.append(line)
-            count -= 1
-            if count <= 0:
-                in_codelint_warning = False
-
-    return '\n'.join(lines)
-
-
-def resolve_line_reference(line_ref, current_line):
-    """Resolve @LINE+N or @LINE-N reference to actual line number."""
-    match = re.match(r'@LINE([+-]\d+)?', line_ref)
-    if not match:
-        return line_ref
-
-    offset = match.group(1)
-    if offset is None:
-        return current_line
-
-    offset_val = int(offset)
-    return current_line + offset_val
-
-
-def expand_check_line(line, line_num, lines):
-    def replace_line_ref(match):
-        line_ref = match.group(1)
-        resolved_line = resolve_line_reference('@' + line_ref, line_num)
-        return str(resolved_line)
-
-    result = re.sub(r'\[@(LINE[+-]?\d*)\]', replace_line_ref, line)
+def try_run(args, raise_error=True):
+    result = subprocess.run(args, capture_output=True, text=True, timeout=600)
+    if result.returncode != 0 and raise_error:
+        output = result.stdout + result.stderr
+        print(f"{' '.join(args)} failed:\n{output}")
+        raise TryRunFailed(output)
     return result
 
 
-def extract_check_lines(test_lines, suffix=None):
-    check_prefix = 'CHECK'
-    if suffix:
-        check_prefix = f'CHECK-{suffix}'
-
-    messages_pattern = re.compile(
-        rf'//\s*{check_prefix}(-MESSAGES|-MESSAGES-NOT|-FIXES|-FIXES-NOT)?:(.*)$'
-    )
-
-    check_lines = []
-    for i, line in enumerate(test_lines):
-        match = messages_pattern.search(line)
-        if match:
-            check_type = match.group(1) or '-MESSAGES'
-            check_content = match.group(2)
-
-            # Expand @LINE references
-            expanded_content = expand_check_line(check_content, i + 1, test_lines)
-
-            check_lines.append((check_type, expanded_content))
-
-    return check_lines
+def _remove_filecheck_content(text):
+    return re.sub(r"// *CHECK-[A-Z0-9\-]*:[^\r\n]*", "//", text)
 
 
-def write_filecheck_input(check_lines, output_file):
-    """Write FileCheck input file."""
-    with open(output_file, 'w') as f:
-        for check_type, content in check_lines:
-            # FileCheck expects CHECK: or CHECK-NOT:
-            if '-NOT' in check_type:
-                f.write(f'CHECK-NOT: {content}\n')
-            else:
-                f.write(f'CHECK: {content}\n')
+class MessagePrefix:
+    def __init__(self, label):
+        self.has_message = False
+        self.prefixes = []
+        self.label = label
+
+    def check(self, file_check_suffix, input_text):
+        prefix = self.label + file_check_suffix
+        self.has_message = prefix in input_text
+        if self.has_message:
+            self.prefixes.append(prefix)
+        return self.has_message
 
 
-def run_filecheck(input_file, check_file):
-    """Run FileCheck to verify output."""
-    cmd = ['FileCheck', '--input-file', input_file, check_file]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    return result.returncode == 0, result.stdout + result.stderr
+class CheckRunner:
+    def __init__(self, args, extra_args):
+        self.input_file_name = args.test_file
+        self.check_name = args.check_name
+        self.temp_file_name = args.temp_dir
+        self.clang_tidy_binary = args.clang_tidy
+        self.plugin_path = args.plugin
+        self.std = args.std
+        self.check_suffix = args.check_suffix or ['']
+        if isinstance(self.check_suffix, str):
+            self.check_suffix = [s.strip() for s in self.check_suffix.split(',')]
+        self.export_fixes = args.export_fixes
+
+        file_name_with_extension = self.input_file_name
+        _, extension = os.path.splitext(file_name_with_extension)
+        if extension not in ['.c', '.hpp', '.m', '.mm', '.cu']:
+            extension = '.cpp'
+        self.temp_file_name = os.path.join(self.temp_file_name, 'test' + extension)
+
+        self.clang_tidy_extra_args = list(extra_args) if extra_args else []
+        self.clang_extra_args = []
+
+        if '--' in self.clang_tidy_extra_args:
+            i = self.clang_tidy_extra_args.index('--')
+            self.clang_extra_args = self.clang_tidy_extra_args[i + 1:]
+            self.clang_tidy_extra_args = self.clang_tidy_extra_args[:i]
+
+        if not any(re.match(r'^-?-config(-file)?=', arg)
+                   for arg in self.clang_tidy_extra_args):
+            self.clang_tidy_extra_args.append('--config={}')
+
+        self.clang_extra_args.append(f'-std={self.std}')
+
+        self.input_text = ''
+        self.has_check_fixes = False
+        self.has_check_messages = False
+        self.has_check_notes = False
+        self.expect_no_diagnosis = False
+        self.fixes = MessagePrefix('CHECK-FIXES')
+        self.messages = MessagePrefix('CHECK-MESSAGES')
+        self.notes = MessagePrefix('CHECK-NOTES')
+        self.match_partial_fixes = args.match_partial_fixes
+
+    def read_input(self):
+        with open(self.input_file_name, 'r', encoding='utf-8') as f:
+            self.input_text = f.read()
+
+    def get_prefixes(self):
+        for suffix in self.check_suffix:
+            if suffix and not re.match(r'^[A-Z0-9\-]+$', suffix):
+                sys.exit(
+                    'Only A..Z, 0..9 and "-" are allowed in check suffixes, '
+                    f'but "{suffix}" was given')
+
+            file_check_suffix = ('-' + suffix) if suffix else ''
+
+            has_check_fix = self.fixes.check(file_check_suffix, self.input_text)
+            self.has_check_fixes = self.has_check_fixes or has_check_fix
+
+            has_check_message = self.messages.check(file_check_suffix, self.input_text)
+            self.has_check_messages = self.has_check_messages or has_check_message
+
+            has_check_note = self.notes.check(file_check_suffix, self.input_text)
+            self.has_check_notes = self.has_check_notes or has_check_note
+
+            if has_check_note and has_check_message:
+                sys.exit(
+                    f"Please use either {self.notes.prefix} or {self.messages.prefix} "
+                    f"but not both")
+
+            if not has_check_fix and not has_check_message and not has_check_note:
+                self.expect_no_diagnosis = True
+
+        expect_diagnosis = (
+            self.has_check_fixes or self.has_check_messages or self.has_check_notes)
+        if self.expect_no_diagnosis and expect_diagnosis:
+            sys.exit(
+                f"{self.fixes.prefix}, {self.messages.prefix} or "
+                f"{self.notes.prefix} not found in the input")
+        assert expect_diagnosis or self.expect_no_diagnosis
+
+    def _filter_prefixes(self, prefixes, check_file):
+        if check_file == self.input_file_name:
+            content = self.input_text
+        else:
+            with open(check_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+        return [p for p in prefixes if p in content]
+
+    def prepare_test_inputs(self):
+        cleaned_test = _remove_filecheck_content(self.input_text)
+
+        temp_dir = os.path.dirname(self.temp_file_name)
+        os.makedirs(temp_dir, exist_ok=True)
+
+        with open(self.temp_file_name, 'w', encoding='utf-8') as f:
+            f.write(cleaned_test)
+            f.truncate()
+
+        self.original_file_name = self.temp_file_name + '.orig'
+        with open(self.original_file_name, 'w', encoding='utf-8') as f:
+            f.write(cleaned_test)
+            f.truncate()
+
+    def run_clang_tidy(self):
+        args = [
+            self.clang_tidy_binary,
+            self.temp_file_name,
+        ]
+
+        if self.plugin_path:
+            args.append('--load=' + self.plugin_path)
+
+        if self.export_fixes is not None:
+            args.append(f'--export-fixes={self.export_fixes}')
+        else:
+            args.append('--fix')
+            args.append('--fix-errors')
+
+        args.append(f'--checks=-*,{self.check_name}')
+        args.extend(self.clang_tidy_extra_args)
+        args.append('--')
+        args.extend(self.clang_extra_args)
+
+        print(f"Running {repr(args)}...")
+        try:
+            process_output = subprocess.check_output(
+                args, stderr=subprocess.STDOUT, timeout=600
+            ).decode(errors='ignore')
+        except subprocess.CalledProcessError as e:
+            process_output = e.output.decode(errors='ignore')
+        except subprocess.TimeoutExpired:
+            process_output = 'TIMEOUT'
+
+        print("------------------------ clang-tidy output -----------------------")
+        print(process_output)
+        print("------------------------------------------------------------------")
+
+        diff_result = subprocess.run(
+            ['diff', '-u', self.original_file_name, self.temp_file_name],
+            capture_output=True, text=True)
+        diff_output = diff_result.stdout or ''
+
+        print("------------------------------ Fixes -----------------------------")
+        print(diff_output)
+        print("------------------------------------------------------------------")
+
+        return process_output, diff_output
+
+    def check_no_diagnosis(self, clang_tidy_output):
+        clean_output = clang_tidy_output.strip()
+        if clean_output:
+            sys.exit(f"No diagnostics were expected, but found:\n{clean_output}")
+
+    def check_fixes(self):
+        if not self.has_check_fixes:
+            return
+
+        active_prefixes = self._filter_prefixes(
+            self.fixes.prefixes, self.input_file_name)
+        if not active_prefixes:
+            return
+
+        filecheck_args = [
+            'FileCheck',
+            f'--input-file={self.temp_file_name}',
+            self.input_file_name,
+            f'--check-prefixes={",".join(active_prefixes)}',
+        ]
+        filecheck_args.append('--strict-whitespace')
+
+        try_run(filecheck_args)
+
+    def check_messages(self, clang_tidy_output):
+        if not self.has_check_messages:
+            return
+
+        active_prefixes = self._filter_prefixes(
+            self.messages.prefixes, self.input_file_name)
+        if not active_prefixes:
+            return
+
+        # Filter to only keep actual diagnostic lines (file:line:col: level: message [check])
+        # Remove metadata lines like "Error while processing" and "N errors generated"
+        diagnostic_pattern = re.compile(r'^.*:\d+:\d+: (warning|error|note): .*$')
+        filtered_output = [
+            line for line in clang_tidy_output.splitlines()
+            if diagnostic_pattern.match(line)
+        ]
+
+        messages_file = self.temp_file_name + '.msg'
+        with open(messages_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(filtered_output))
+
+        try_run([
+            'FileCheck',
+            f'--input-file={messages_file}',
+            self.input_file_name,
+            f'--check-prefixes={",".join(active_prefixes)}',
+            '-implicit-check-not={{warning|error}}:',
+        ])
+
+    def check_notes(self, clang_tidy_output):
+        if not self.has_check_notes:
+            return
+
+        active_prefixes = self._filter_prefixes(
+            self.notes.prefixes, self.input_file_name)
+        if not active_prefixes:
+            return
+
+        filtered_output = [
+            line for line in clang_tidy_output.splitlines()
+            if 'note: FIX-IT applied' not in line
+        ]
+
+        notes_file = self.temp_file_name + '.notes'
+        with open(notes_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(filtered_output))
+
+        try_run([
+            'FileCheck',
+            f'--input-file={notes_file}',
+            self.input_file_name,
+            f'--check-prefixes={",".join(active_prefixes)}',
+            '-implicit-check-not={{note|warning|error}}:',
+        ])
+
+    def run(self):
+        self.read_input()
+        if self.export_fixes is None:
+            self.get_prefixes()
+        self.prepare_test_inputs()
+        clang_tidy_output, diff_output = self.run_clang_tidy()
+
+        if self.expect_no_diagnosis:
+            self.check_no_diagnosis(clang_tidy_output)
+        elif self.export_fixes is None:
+            self.check_fixes()
+            self.check_messages(clang_tidy_output)
+            self.check_notes(clang_tidy_output)
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Codelint Test Helper')
+def csv_list(string):
+    return string.split(',')
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description='Codelint test helper for clang-tidy checks.')
     parser.add_argument('test_file', help='Path to the test file')
-    parser.add_argument('check_name', help='Name of the codelint check')
-    parser.add_argument('temp_dir', help='Temporary directory for compile commands')
+    parser.add_argument('check_name', help='Name of the codelint check to run')
+    parser.add_argument('temp_dir', help='Temporary directory for test files')
     parser.add_argument('--clang-tidy', default='clang-tidy',
                         help='Path to clang-tidy binary')
     parser.add_argument('--plugin', required=True,
-                        help='Path to codelint plugin')
-    parser.add_argument('--extra-arg', action='append', default=[],
-                        help='Extra arguments to pass to clang-tidy')
+                        help='Path to codelint plugin (.so or .dylib)')
     parser.add_argument('--std', default='c++17',
-                        help='C++ standard version')
-    parser.add_argument('--check-suffix', default=None,
-                        help='Run only tests with this suffix')
-    parser.add_argument('--verify-fix', action='store_true',
-                        help='Also verify code fixes')
+                        help='C++ standard to use')
+    parser.add_argument('-check-suffix', '-check-suffixes',
+                        default=[''], type=csv_list,
+                        help='Comma-separated list of FileCheck suffixes')
+    parser.add_argument('--export-fixes', default=None,
+                        help='Export fixes to YAML file instead of verifying')
+    parser.add_argument('--match-partial-fixes', action='store_true',
+                        help='Allow partial line matches for fixes')
 
-    args = parser.parse_args()
+    args, extra_args = parser.parse_known_args()
+    return args, extra_args
 
-    # Read test file
-    with open(args.test_file, 'r') as f:
-        test_content = f.read()
 
-    test_lines = test_content.split('\n')
-
-    # Find RUN line to get test configuration
-    run_pattern = re.compile(r'//\s*RUN:\s*(.+)')
-    run_args = None
-    for line in test_lines:
-        match = run_pattern.match(line)
-        if match:
-            run_args = match.group(1)
-            break
-
-    # Extract check lines
-    check_lines = extract_check_lines(test_lines, args.check_suffix)
-
-    # Separate message and fix checks
-    message_checks = [(t, c) for t, c in check_lines if 'FIXES' not in t]
-    fix_checks = [(t, c) for t, c in check_lines if 'FIXES' in t]
-
-    # Run clang-tidy to get messages
-    messages_output = run_clang_tidy(
-        args.test_file,
-        args.check_name,
-        args.temp_dir,
-        args.clang_tidy,
-        args.plugin,
-        args.extra_arg,
-        None
-    )
-
-    # Filter to just codelint warnings
-    filtered_messages = filter_messages(messages_output)
-
-    if not message_checks:
-        if filtered_messages.strip():
-            print("FAIL: Expected no warnings but got:")
-            print(filtered_messages)
-            return 1
-        print("PASS: No warnings (as expected)")
-        return 0
-
-    message_check_file = create_temp_file_with_content('\n'.join(
-        [f'CHECK: {content}' for _, content in message_checks]
-    ))
-    message_input_file = create_temp_file_with_content(filtered_messages)
-
-    msg_ok, msg_result = run_filecheck(message_input_file, message_check_file)
-
-    # Clean up message check temp files
-    os.unlink(message_check_file)
-    os.unlink(message_input_file)
-
-    # If fix verification is enabled
-    fix_ok = True
-    fix_result = ""
-    if args.verify_fix and fix_checks:
-        fixed_content = run_clang_tidy_with_fix(
-            args.test_file,
-            args.check_name,
-            args.temp_dir,
-            args.clang_tidy,
-            args.plugin,
-            args.extra_arg
-        )
-
-        fix_input_file = create_temp_file_with_content(fixed_content)
-        fix_check_file = create_temp_file_with_content('\n'.join(
-            [f'CHECK: {content}' for _, content in fix_checks]
-        ))
-
-        fix_ok, fix_result = run_filecheck(fix_input_file, fix_check_file)
-
-        os.unlink(fix_input_file)
-        os.unlink(fix_check_file)
-
-    # Report results
-    if msg_ok and (not args.verify_fix or fix_ok):
-        return 0
-    else:
-        print("FileCheck failed!")
-        if not msg_ok:
-            print("Messages check failed:")
-            print(msg_result)
-        if not fix_ok:
-            print("Fix check failed:")
-            print(fix_result)
-        return 1
+def main():
+    args, extra_args = parse_arguments()
+    CheckRunner(args, extra_args).run()
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-singleton %t
+// RUN: %check_codelint %s codelint-singleton %t
 // Test file: param_singleton.cpp
 // Scenario: getInstance with parameter - may not match classic pattern
 // Expected: 0 or 1 singleton patterns (depends on matcher strictness)
@@ -9,7 +9,9 @@ class Config {
 public:
   // This takes a parameter - still matches reference return + static local
   static Config& getInstance(const std::string& name) {
-// CHECK-MESSAGES: :11:18: warning: Meyer's Singleton pattern detected in 'getInstance'  [codelint-singleton]
+    // CHECK-MESSAGES: [[@LINE-1]]:18: warning: Meyer's Singleton pattern detected in 'getInstance'
+    // [codelint-singleton]
+
     static Config cfg;
     return cfg;
   }

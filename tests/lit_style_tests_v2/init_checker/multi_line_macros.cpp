@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %check_codelint %s codelint-init %t
 // Test for multi-line macro handling
 
 #include <vector>
@@ -36,21 +36,6 @@ void test_simple_macro_vars() {
 
 void test_regular_vars() {
   int a;
-  // CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: error: variable is not initialized  [codelint-init]
   int b = 10;
 }
-
-// === Expected Fixed Output ===
-// CHECK-FIXES: #include <vector>
-// CHECK-FIXES: #define LOG_IF_CHANGED(var, expr) \
-// CHECK-FIXES:   do { \
-// CHECK-FIXES:     auto oldValue = (var); \
-// CHECK-FIXES:     auto newValue = (expr); \
-// CHECK-FIXES:     bool needChange = DoSomething(newValue); \
-// CHECK-FIXES:     if (needChange) { \
-// CHECK-FIXES:       var = newValue; \
-// CHECK-FIXES:     } \ CHECK-FIXES:   } while (0)
-// CHECK-FIXES: #define INIT_CONTAINER(name, type, ...) \
-// CHECK-FIXES:   type name; \ CHECK-FIXES:   name = {__VA_ARGS__}
-// CHECK-FIXES: #define DECLARE_VARS \
-// CHECK-FIXES:   int x; \

@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-strict-bool-condition %t
+// RUN: %check_codelint %s codelint-strict-bool-condition %t
 void test_valid_bool_conditions() {
   bool flag = true;
   bool condition = false;

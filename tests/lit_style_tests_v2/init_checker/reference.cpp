@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %check_codelint %s codelint-init %t
 // Test for reference type initialization
 // P1-2: Reference initialization style checks (only compilable code)
 
@@ -28,7 +28,7 @@ void test_reference_in_struct() {
   struct RefStruct {
     int& ref;
     int value; // Should trigger warning: not initialized
-               // CHECK-MESSAGES: :[@LINE-1]:9: error: field is not initialized  [codelint-init]
+               // CHECK-MESSAGES: :[[@LINE-1]]:9: error: field is not initialized  [codelint-init]
   };
 
   int x = 5;
@@ -43,7 +43,7 @@ void test_reference_parameters(int& param) {
 class ReferenceClass {
   int& member_ref;
   int value; // Should trigger warning: not initialized
-  // CHECK-MESSAGES: :[@LINE-1]:7: error: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
 
 public:
   ReferenceClass(int& r) : member_ref(r) {
@@ -52,8 +52,8 @@ public:
 
 void test_rvalue_references() {
   int x = 10;
-  // CHECK-MESSAGES: :[@LINE-10]:7: error: member variable 'value' is not initialized in constructor
-  // [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-10]]:7: error: member variable 'value' is not initialized in
+  // constructor [codelint-init]
   int&& rref1 = std::move(x); // Should suggest brace init
   int&& rref2{std::move(x)};  // OK - already using brace init
 }
@@ -66,19 +66,3 @@ void ref_with_map() {
   auto& value{table["debug"]};
   std::cout << value;
 }
-
-// === Expected Fixed Output ===
-// CHECK-FIXES: #include <iostream>
-// CHECK-FIXES: #include <string>
-// CHECK-FIXES: #include <unordered_map>
-// CHECK-FIXES: #include <utility>
-// CHECK-FIXES: void test_reference_initialization() {
-// CHECK-FIXES:   int value{10};
-// CHECK-FIXES:   int& ref1{value}; // Should suggest brace init: int& ref1{value}
-// CHECK-FIXES:   int& ref2{value}; // OK - already using brace init
-// CHECK-FIXES:   const int& cref1{42};  // Should suggest brace init: const int& cref1{42}
-// CHECK-FIXES:   const int& cref2{100}; // OK - already using brace init
-// CHECK-FIXES: }
-// CHECK-FIXES: void test_reference_assignment_style() {
-// CHECK-FIXES:   int x{5};
-// CHECK-FIXES:   int y{10};

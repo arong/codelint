@@ -23,11 +23,13 @@ config.suffixes = ['.cpp', '.c', '.h']
 config.test_source_root = build_dir
 config.test_exec_root = build_dir
 
-required_tools = ['clang-tidy', 'FileCheck']
-
 check_codelint_py = os.path.join(build_dir, 'check_codelint.py')
-check_codelint_cmd = f'{sys.executable} {check_codelint_py} --clang-tidy {clang_tidy_path} --plugin {plugin_file or "PATH_TO_PLUGIN"}'
-config.substitutions.append(('%codelint', check_codelint_cmd))
+config.substitutions.append(
+    ('%check_codelint',
+     f'{sys.executable} {check_codelint_py} '
+     f'--clang-tidy {clang_tidy_path} '
+     f'--plugin {plugin_file or "PATH_TO_PLUGIN"}')
+)
 
 config.available_features = []
 if lit.util.which('FileCheck'):

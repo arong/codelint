@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-lint-code %t
+// RUN: %check_codelint %s codelint-lint-code %t
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -69,8 +69,9 @@ void test_catch_used() {
   } catch (const std::string& msg) {
     // msg is initialized - should NOT be flagged
     std::string copy = msg; // copy the catch variable
-    // CHECK-MESSAGES: :[@LINE-1]:17: warning: variable should use '{}' syntax for initialization
+    // CHECK-MESSAGES: :[[@LINE-1]]:17: warning: variable should use '{}' syntax for initialization
     // [codelint-lint-code]
+
     std::cout << copy << std::endl;
   }
 }
