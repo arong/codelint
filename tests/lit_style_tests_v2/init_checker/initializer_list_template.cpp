@@ -151,8 +151,10 @@ void test_concrete_only_init_list() {
 // CHECK-FIXES: template <typename T>
 // CHECK-FIXES: class OnlyInitListNoSingle {
 // CHECK-FIXES: public:
-// CHECK-FIXES:   OnlyInitListNoSingle(std::initializer_list<T> list) {}
-// CHECK-FIXES:   OnlyInitListNoSingle() {}
+// CHECK-FIXES:   OnlyInitListNoSingle(std::initializer_list<T> list) {
+// CHECK-FIXES:   }
+// CHECK-FIXES:   OnlyInitListNoSingle() {
+// CHECK-FIXES:   }
 // CHECK-FIXES: };
 // CHECK-FIXES: void test_only_init_list_no_single() {
 // CHECK-FIXES:   OnlyInitListNoSingle<int> obj1{5};
@@ -161,8 +163,10 @@ void test_concrete_only_init_list() {
 // CHECK-FIXES: }
 // CHECK-FIXES: class ConcreteOnlyInitList {
 // CHECK-FIXES: public:
-// CHECK-FIXES:   ConcreteOnlyInitList(std::initializer_list<int> list) {}
-// CHECK-FIXES:   ConcreteOnlyInitList() {}
+// CHECK-FIXES:   ConcreteOnlyInitList(std::initializer_list<int> list) {
+// CHECK-FIXES:   }
+// CHECK-FIXES:   ConcreteOnlyInitList() {
+// CHECK-FIXES:   }
 // CHECK-FIXES: };
 // CHECK-FIXES: void test_concrete_only_init_list() {
 // CHECK-FIXES:   ConcreteOnlyInitList obj1{5};
