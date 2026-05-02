@@ -43,7 +43,9 @@ void process() {
 | Check | What It Does | Auto-fix | Language Support |
 |-------|--------------|----------|------------------|
 | **codelint-init** | Uninitialized variables, dangerous conversions (int→bool, narrowing) | ✅ Yes (uninit) | C++14/17/20 |
-| **codelint-lint-code** | Initialization style (`=`→`{}`), unsigned suffix (`U`/`UL`) | ✅ Yes | C++14/17/20 |
+| **codelint-lint-code** | Initialization style (`=`→`{}`), unsigned suffix (`U`/`UL`), lowercase suffix enforcement | ✅ Yes | C++14/17/20 |
+| **codelint-local-var-naming** | Local variable naming convention (`_` prefix/suffix, `m_` prefix) | ❌ No | C++ |
+| **codelint-function-size** | Oversized function detection (≥50 effective lines) | ❌ No | C++ |
 | **codelint-strict-bool-condition** | Bool-only condition enforcement | ✅ Yes | C++14/17/20 |
 | **codelint-global** | Global variable detection | ❌ No | C++ |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No | C++ |
@@ -147,7 +149,22 @@ uint64_t val = 42;      // → uint64_t val{42UL};
 unsigned long big = 100; // → unsigned long big{100UL};
 ```
 
-### 3. Smart Skip List (Style Checks)
+### 3. Lowercase Suffix Enforcement
+
+Codelint enforces uppercase `U`/`L` suffixes on integer literals. Lowercase `u`/`l` can be confused with the digit `1`, reducing readability.
+
+```cpp
+uint32_t a{0u};        // ❌ Warning: integer literal suffix should be uppercase → 0U
+long lv{1l};           // ❌ Warning: integer literal suffix should be uppercase → 1L
+uint64_t b{1024ul};    // ❌ Warning: integer literal suffix should be uppercase → 1024UL
+uint64_t c{1024Ul};    // ❌ Warning: mixed case → 1024UL
+uint64_t d{1024uL};    // ❌ Warning: mixed case → 1024UL
+unsigned e{100U};      // ✅ OK: already uppercase
+```
+
+**Works in all contexts** — equals init, brace init, signed and unsigned types.
+
+### 4. Smart Skip List (Style Checks)
 
 Codelint intelligently skips these cases where modification is unsafe or intentional:
 
@@ -172,7 +189,7 @@ Codelint intelligently skips these cases where modification is unsafe or intenti
 | **Type widening** | `float f = 5` | Safe implicit conversion |
 | **initializer_list constructors** | `MyArray arr = 1` (class has `initializer_list<int>`) | Brace init would change constructor selection |
 
-### 4. initializer_list Constructor Handling
+### 5. initializer_list Constructor Handling
 
 Classes with `std::initializer_list` constructors require special care:
 
@@ -188,6 +205,67 @@ MyArray arr2{10};  // ✅ OK - explicit brace init, user's choice
 std::string s = "hello";  // ✅ FIXED to std::string s{"hello"}
 // std::string has initializer_list<char>, but "hello" is const char*, not initializer_list
 ```
+
+## codelint-local-var-naming Features
+
+This check enforces naming conventions for local variables to improve code consistency.
+
+### What It Detects
+
+| Violation | Example | Diagnostic |
+|-----------|---------|------------|
+| `_` prefix | `int _var = 1;` | "should not start with '_'" |
+| `_` suffix | `int var_ = 2;` | "should not end with '_'" |
+| `m_` prefix | `int m_var = 3;` | "should not use 'm_' prefix" |
+
+```cpp
+int _count = 0;        // ❌ local variable '_count' should not start with '_'
+int count_ = 0;        // ❌ local variable 'count_' should not end with '_'
+int m_count = 0;       // ❌ local variable 'm_count' should not use 'm_' prefix
+int count = 0;         // ✅ OK: no underscore prefix/suffix
+int mcount = 0;        // ✅ OK: 'm' not followed by underscore
+```
+
+### Standalone `_` Exception
+
+A single `_` is allowed — it is the standard C++ syntax for discarding values in structured bindings:
+
+```cpp
+auto [_, ok] = queryValue(key);  // ✅ OK: standalone '_' for structured binding discard
+```
+
+### Scope
+
+Only checks **local variables** — does not warn on:
+- Function parameters
+- Global/static variables
+- Class member variables
+
+## codelint-function-size Features
+
+This check warns when a function exceeds 50 effective lines (including the threshold), helping keep functions focused and maintainable.
+
+### What It Detects
+
+Functions with **≥50 effective lines** of code, where effective lines exclude:
+- Blank lines
+- Comment-only lines (`//` style)
+
+```cpp
+void largeFunction() {
+    // 50+ effective lines of code
+    // ❌ Warning: function 'largeFunction' exceeds 50 effective lines (has N)
+}
+```
+
+### Line Counting Rules
+
+| Line Type | Counted? | Example |
+|-----------|----------|---------|
+| Code line | ✅ Yes | `int x = 42;` |
+| Blank line | ❌ No | _(empty line)_ |
+| Comment line | ❌ No | `// This is a comment` |
+| Mixed code+comment | ✅ Yes | `int x = 42; // with comment` |
 
 ## codelint-init: Constructor Member Initialization
 
