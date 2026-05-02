@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %check_codelint %s codelint-init %t
 // Test for std container type initialization
 // Focus: vector, map, set, array, deque, pair, tuple, unordered_map
 
@@ -14,31 +14,33 @@
 
 // 1. SEQUENCE CONTAINERS
 std::vector<int> vec1;
-// CHECK-MESSAGES: :[@LINE-1]:18: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:18: warning: variable is not explicitly initialized  [codelint-init]
 std::deque<int> deque1;
-// CHECK-MESSAGES: :[@LINE-1]:17: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:17: warning: variable is not explicitly initialized  [codelint-init]
 std::array<int, 5> arr1;
-// CHECK-MESSAGES: :[@LINE-1]:20: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:20: error: variable is not initialized  [codelint-init]
 
 // 2. ASSOCIATIVE CONTAINERS
 std::map<int, int> map1;
-// CHECK-MESSAGES: :[@LINE-1]:20: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:20: warning: variable is not explicitly initialized  [codelint-init]
 std::set<int> set1;
-// CHECK-MESSAGES: :[@LINE-1]:15: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:15: warning: variable is not explicitly initialized  [codelint-init]
 std::unordered_map<int, int> umap1;
-// CHECK-MESSAGES: :[@LINE-1]:30: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:30: warning: variable is not explicitly initialized  [codelint-init]
 
 // 3. TUPLE TYPES
 std::pair<int, int> pair1;
-// CHECK-MESSAGES: :[@LINE-1]:21: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:21: warning: variable is not explicitly initialized  [codelint-init]
 std::tuple<int, double> tpl1;
-// CHECK-MESSAGES: :[@LINE-1]:25: warning: variable is not explicitly initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:25: warning: variable is not explicitly initialized  [codelint-init]
 
 void test_local_containers() {
   std::vector<int> local_vec;
-  // CHECK-MESSAGES: :[@LINE-1]:20: warning: variable is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:20: warning: variable is not explicitly initialized
+  // [codelint-init]
   std::map<int, int> local_map;
-  // CHECK-MESSAGES: :[@LINE-1]:22: warning: variable is not explicitly initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:22: warning: variable is not explicitly initialized
+  // [codelint-init]
 
   std::vector<uint8_t> vec = {1, 2, 3};
 

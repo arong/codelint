@@ -1,48 +1,48 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %check_codelint %s codelint-init %t
 // Test for builtin primitive types initialization
 // Focus: char, float, double, bool (int types covered in integer.cpp)
 
 // 1. CHAR TYPES
 char c1;
-// CHECK-MESSAGES: :[@LINE-1]:6: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:6: error: variable is not initialized  [codelint-init]
 unsigned char uc1;
-// CHECK-MESSAGES: :[@LINE-1]:15: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:15: error: variable is not initialized  [codelint-init]
 signed char sc1;
-// CHECK-MESSAGES: :[@LINE-1]:13: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:13: error: variable is not initialized  [codelint-init]
 
 // 2. FLOATING POINT TYPES
 float f1;
-// CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:7: error: variable is not initialized  [codelint-init]
 double d1;
-// CHECK-MESSAGES: :[@LINE-1]:8: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:8: error: variable is not initialized  [codelint-init]
 long double ld1;
-// CHECK-MESSAGES: :[@LINE-1]:13: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:13: error: variable is not initialized  [codelint-init]
 
 // 3. BOOLEAN
 bool b1;
-// CHECK-MESSAGES: :[@LINE-1]:6: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:6: error: variable is not initialized  [codelint-init]
 
 // 4. STRING TYPES (const char* - pointer, std::string - non-builtin)
 const char* str1;
-// CHECK-MESSAGES: :[@LINE-1]:13: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:13: error: variable is not initialized  [codelint-init]
 
 // 5. SIGNED/UNSIGNED SHORT (distinct from integer.cpp)
 short s1;
-// CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:7: error: variable is not initialized  [codelint-init]
 unsigned short us1;
-// CHECK-MESSAGES: :[@LINE-1]:16: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:16: error: variable is not initialized  [codelint-init]
 signed short ss1;
-// CHECK-MESSAGES: :[@LINE-1]:14: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:14: error: variable is not initialized  [codelint-init]
 
 void test_local_builtin() {
   char local_char;
-  // CHECK-MESSAGES: :[@LINE-1]:8: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:8: error: variable is not initialized  [codelint-init]
   float local_float;
-  // CHECK-MESSAGES: :[@LINE-1]:9: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:9: error: variable is not initialized  [codelint-init]
   double local_double;
-  // CHECK-MESSAGES: :[@LINE-1]:10: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:10: error: variable is not initialized  [codelint-init]
   bool local_bool;
-  // CHECK-MESSAGES: :[@LINE-1]:8: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:8: error: variable is not initialized  [codelint-init]
 }
 
 // === Expected Fixed Output ===

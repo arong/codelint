@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-global %t
+// RUN: %check_codelint %s codelint-global %t
 
 // Function-local static variables should NOT be detected
 void counter() {

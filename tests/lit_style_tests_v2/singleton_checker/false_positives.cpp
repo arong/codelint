@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-singleton %t
+// RUN: %check_codelint %s codelint-singleton %t
 
 // Return Pointer - NOT a singleton
 class Resource {

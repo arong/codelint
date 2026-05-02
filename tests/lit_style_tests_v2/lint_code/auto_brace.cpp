@@ -1,23 +1,23 @@
-// RUN: %codelint %s codelint-lint-code %t
+// RUN: %check_codelint %s codelint-lint-code %t
 #include <cstddef>
 #include <cstdint>
 
 void test_auto_brace_to_equals() {
   int value = 10;
-  // CHECK-MESSAGES: :[@LINE-1]:7: warning: variable should use '{}' syntax for initialization
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
 
   // auto with direct brace init should use = assignment
   auto x{42};
-  // CHECK-MESSAGES: :[@LINE-1]:8: warning: auto type should use '=' assignment instead of brace
+  // CHECK-MESSAGES: :[[@LINE-1]]:8: warning: auto type should use '=' assignment instead of brace
   // initialization  [codelint-lint-code]
 
   // auto* with brace init should use = assignment
   auto* p{&value};
-  // CHECK-MESSAGES: :[@LINE-1]:9: warning: auto type should use '=' assignment instead of brace
+  // CHECK-MESSAGES: :[[@LINE-1]]:9: warning: auto type should use '=' assignment instead of brace
   // initialization  [codelint-lint-code]
   const auto* cp{&value};
-  // CHECK-MESSAGES: :[@LINE-1]:15: warning: auto type should use '=' assignment instead of brace
+  // CHECK-MESSAGES: :[[@LINE-1]]:15: warning: auto type should use '=' assignment instead of brace
   // initialization  [codelint-lint-code]
 
   // auto& should not trigger (reference)

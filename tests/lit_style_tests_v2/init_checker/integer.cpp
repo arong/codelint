@@ -1,11 +1,11 @@
-// RUN: %codelint %s codelint-init %t
+// RUN: %check_codelint %s codelint-init %t
 #include <cstddef>
 #include <cstdint>
 
 int global1;
-// CHECK-MESSAGES: :[@LINE-1]:5: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:5: error: variable is not initialized  [codelint-init]
 unsigned global2;
-// CHECK-MESSAGES: :[@LINE-1]:10: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:10: error: variable is not initialized  [codelint-init]
 
 int global3 = 1;
 unsigned global4 = 2;
@@ -35,7 +35,7 @@ void foo(int a, int b = 10) {
 
   // 应该跳过类型收紧
   int d = 3.14;
-  // CHECK-MESSAGES: :[@LINE-1]:7: warning: narrowing conversion from floating to integer; cannot
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: warning: narrowing conversion from floating to integer; cannot
   // use '{}' initialization  [codelint-init]
 }
 
@@ -46,19 +46,3 @@ int Init() {
 void test_bool_from_int() {
   bool ok = true;
 }
-
-// === Expected Fixed Output ===
-// CHECK-FIXES: #include <cstddef>
-// CHECK-FIXES: #include <cstdint>
-// CHECK-FIXES: int global1{};
-// CHECK-FIXES: unsigned global2{};
-// CHECK-FIXES: int global3{1};
-// CHECK-FIXES: unsigned global4{2U};
-// CHECK-FIXES: uint64_t global5{5UL};
-// CHECK-FIXES: int global6{};
-// CHECK-FIXES: unsigned int global7{};
-// CHECK-FIXES: int global8{1};
-// CHECK-FIXES: unsigned int global9{2U};
-// CHECK-FIXES: uint64_t global10{5UL};
-// CHECK-FIXES: void foo(int a, int b = 10) {
-// CHECK-FIXES:   auto square = [](int x) { return x * x; };

@@ -1,4 +1,4 @@
-// RUN: %codelint %s codelint-global-const-string %t
+// RUN: %check_codelint %s codelint-global-const-string %t
 #include <cstdlib>
 #include <string>
 
