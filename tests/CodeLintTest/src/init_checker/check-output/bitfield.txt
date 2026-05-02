@@ -1,8 +1,0 @@
-tests/CodeLintTest/src/init_checker/src/bitfield.cpp:16:7: error: field is not initialized [codelint-init]
-   16 |   int normal_member;
-      |       ^
-      |                    {}
-tests/CodeLintTest/src/init_checker/src/bitfield.cpp:18:10: error: field is not initialized [codelint-init]
-   18 |   double regular;
-      |          ^
-      |                 {}

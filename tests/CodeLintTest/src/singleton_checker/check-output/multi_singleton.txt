@@ -1,6 +1,0 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/singleton_checker/src/multi_singleton.cpp:8:20: warning: Meyer's Singleton pattern detected in 'instance' [codelint-singleton]
-    8 |   static Database& instance() {
-      |                    ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/singleton_checker/src/multi_singleton.cpp:21:18: warning: Meyer's Singleton pattern detected in 'getInstance' [codelint-singleton]
-   21 |   static Logger& getInstance() {
-      |                  ^

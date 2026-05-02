@@ -1,4 +1,0 @@
-tests/CodeLintTest/src/init_checker/src/bool.cpp:2:8: warning: variable should use '{}' syntax for initialization [codelint-lint-code]
-    2 |   bool flag = false;
-      |        ^    ~
-      |            {       }

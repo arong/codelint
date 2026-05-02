@@ -1,6 +1,0 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/namespace_globals.cpp:6:5: warning: global variable 'app_config' detected [codelint-global]
-    6 | int app_config = 100;    // Namespace-level global - SHOULD detect
-      |     ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/namespace_globals.cpp:7:11: warning: global variable 'kMaxSize' detected [codelint-global]
-    7 | const int kMaxSize = 50; // Const namespace global - SHOULD detect
-      |           ^

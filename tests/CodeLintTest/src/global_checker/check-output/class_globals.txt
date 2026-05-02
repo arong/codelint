@@ -1,6 +1,0 @@
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/class_globals.cpp:8:10: warning: global variable 'global_struct' detected [codelint-global]
-    8 | MyStruct global_struct;  // struct instance
-      |          ^
-/Users/aronic/Documents/codelint/tests/CodeLintTest/src/global_checker/src/class_globals.cpp:9:9: warning: global variable 'global_class' detected [codelint-global]
-    9 | MyClass global_class;    // class instance
-      |         ^

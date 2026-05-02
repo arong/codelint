@@ -2,16 +2,7 @@
 
 This directory contains tests for the codelint clang-tidy plugin.
 
-## Test Systems
-
-Codelint has two complementary test systems:
-
-| System | Location | Purpose |
-|--------|----------|---------|
-| **Lit-style tests** | `lit_style_tests_v2/` | TDD, quick iteration, inline checks |
-| **Regression tests** | `CodeLintTest/` | Comprehensive CI/CD validation |
-
-## Lit-Style Tests (Recommended for new tests)
+## Lit-Style Tests
 
 Lit-style tests put source code, expected diagnostics, and expected fixes all in a single `.cpp` file using `// CHECK-MESSAGES:` and `// CHECK-FIXES:` annotations.
 
@@ -62,37 +53,3 @@ void test() {
 - Include `// CHECK-FIXES:` for expected auto-fix output
 
 See `lit_style_tests_v2/README.md` for full details.
-
-## Regression Tests
-
-The regression test suite uses clang-tidy's plugin infrastructure to verify codelint checks across different environments.
-
-### Test Structure
-
-```
-tests/
-├── run_plugin_regression.sh      # Main regression test runner
-├── CodeLintTest/
-│   └── src/init_checker/
-│       ├── src/              # Source files WITH issues
-│       ├── fixed/            # Expected output after clang-tidy --fix
-│       └── check-output/     # Expected clang-tidy warnings
-```
-
-### Running Regression Tests
-
-```bash
-bash tests/run_plugin_regression.sh
-
-# Or via CMake (runs both regression + lit tests)
-cmake --build build --target test-all
-```
-
-### Test Phases
-
-| Phase | What It Does |
-|-------|-------------|
-| Phase 0 | Verify check output matches `check-output/*.txt` |
-| Phase 1 | Verify source files actually trigger warnings |
-| Phase 2 | Verify `fixed/` files have zero warnings |
-| Phase 3 | Apply `--fix` and compare with `fixed/` files |

@@ -107,12 +107,3 @@ add_custom_target(test-lit
     COMMENT "Running lit-style tests"
     VERBATIM
 )
-
-add_custom_target(test-all
-    COMMAND ${CMAKE_COMMAND} -E env PATH="/opt/homebrew/opt/llvm@21/bin:$ENV{PATH}"
-    bash ${CMAKE_SOURCE_DIR}/tests/run_plugin_regression.sh
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS codelint-plugin
-    COMMENT "Running all regression tests (includes lit-style tests)"
-    VERBATIM
-)

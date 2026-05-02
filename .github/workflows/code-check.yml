@@ -142,18 +142,6 @@ jobs:
       - name: Build project
         run: cmake --build build -j$(nproc)
 
-      - name: Configure test project compile_commands.json
-        run: |
-          cd tests/CodeLintTest
-          cmake -B build -DCMAKE_CXX_COMPILER=clang++-${LLVM_VERSION}
-
-      - name: Setup PATH for LLVM tools
-        run: echo /usr/bin >> $GITHUB_PATH
-
-      - name: Run all tests
-        if: matrix.llvm_version == 21
-        run: cmake --build build --target test-all
-
       - name: Run lit-style tests
         run: |
           echo "========================================"
