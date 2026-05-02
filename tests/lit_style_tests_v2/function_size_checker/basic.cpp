@@ -1,10 +1,10 @@
-// RUN: %codelint %s codelint-function-size %t
+// RUN: %check_codelint %s codelint-function-size %t
 
 void small_function() { // OK - only 1 line
   int x = 1;
 }
 
-void big_function() { // VIOLATES: has 10 effective lines (>= 50)
+void big_function() {
   int a1 = 1;
   int a2 = 2;
   int a3 = 3;
@@ -50,6 +50,21 @@ void big_function() { // VIOLATES: has 10 effective lines (>= 50)
   int e3 = 3;
   int e4 = 4;
   int e5 = 5;
-  // CHECK-MESSAGES: :[[@LINE-10]]:6: warning: function 'big_function' has 50 lines (exceeds 50 line
-  // limit)  [codelint-function-size]
+  int e6 = 6;
+  int e7 = 7;
+  int e8 = 8;
+  int e9 = 9;
+  int e10 = 10;
+  int f1 = 1;
+  int f2 = 2;
+  int f3 = 3;
+  int f4 = 4;
+  int f5 = 5;
+  int f6 = 6;
+  int f7 = 7;
+  int f8 = 8;
+  int f9 = 9;
+  int f10 = 10;
 }
+// CHECK-MESSAGES: :[[@LINE-62]]:6: warning: function 'big_function' has 62 lines (exceeds 50 line
+// limit)  [codelint-function-size]
