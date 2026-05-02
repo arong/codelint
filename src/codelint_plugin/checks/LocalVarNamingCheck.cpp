@@ -22,26 +22,6 @@ void LocalVarNamingCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
                      this);
 }
 
-static bool violatesNamingConvention(StringRef Name) {
-  if (Name.empty()) {
-    return false;
-  }
-
-  if (Name[0] == '_') {
-    return true;
-  }
-
-  if (Name.size() >= 2 && Name[0] == 'm' && Name[1] == '_') {
-    return true;
-  }
-
-  if (Name[Name.size() - 1] == '_') {
-    return true;
-  }
-
-  return false;
-}
-
 void LocalVarNamingCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
   if (Result.Context->getDiagnostics().hasErrorOccurred()) {
     return;
@@ -63,13 +43,13 @@ void LocalVarNamingCheck::check(const ast_matchers::MatchFinder::MatchResult& Re
     return;
   }
 
-  if (!violatesNamingConvention(name)) {
-    return;
+  if (name.size() >= 2 && name[0] == 'm' && name[1] == '_') {
+    diag(varDecl->getLocation(), "local variable '%0' should not use 'm_' prefix") << name;
+  } else if (name[0] == '_') {
+    diag(varDecl->getLocation(), "local variable '%0' should not start with '_'") << name;
+  } else if (name[name.size() - 1] == '_') {
+    diag(varDecl->getLocation(), "local variable '%0' should not end with '_'") << name;
   }
-
-  diag(varDecl->getLocation(), "local variable '%0' should not start/end with '_' or start with "
-                               "'m_'")
-      << name;
 }
 
 } // namespace clang::tidy::codelint
