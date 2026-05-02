@@ -23,7 +23,7 @@ void test_equals_local() {
   int a = 1;
 }
 
-// 3. BRACE STYLE (OK - no warning)
+// 3. BRACE STYLE (OK - no msg)
 void test_brace_local() {
   int local_ok{20};
   double local_ok2{2.5};

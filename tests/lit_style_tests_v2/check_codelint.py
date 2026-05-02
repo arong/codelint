@@ -245,9 +245,17 @@ class CheckRunner:
         if not active_prefixes:
             return
 
+        # Filter to only keep actual diagnostic lines (file:line:col: level: message [check])
+        # Remove metadata lines like "Error while processing" and "N errors generated"
+        diagnostic_pattern = re.compile(r'^.*:\d+:\d+: (warning|error|note): .*$')
+        filtered_output = [
+            line for line in clang_tidy_output.splitlines()
+            if diagnostic_pattern.match(line)
+        ]
+
         messages_file = self.temp_file_name + '.msg'
         with open(messages_file, 'w', encoding='utf-8') as f:
-            f.write(clang_tidy_output)
+            f.write('\n'.join(filtered_output))
 
         try_run([
             'FileCheck',

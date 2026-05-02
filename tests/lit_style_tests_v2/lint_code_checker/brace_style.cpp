@@ -49,7 +49,7 @@ std::string str("world"); // Should suggest: std::string str{"world"}
 // CHECK-MESSAGES: :[[@LINE-1]]:13: warning: variable should use '{}' syntax for initialization
 // [codelint-lint-code]
 
-// 6. VALID CODE (no warnings)
+// 6. VALID CODE (no msgs)
 int valid{10};         // Already correct brace init
 auto valid2 = 42;      // Already correct auto equals
 unsigned valid3{100U}; // Already has suffix

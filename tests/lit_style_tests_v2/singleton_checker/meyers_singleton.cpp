@@ -3,7 +3,7 @@
 class Database {
 public:
   static Database& instance() {
-    // CHECK-MESSAGES: [[@LINE-1]]:22: warning: Meyer's Singleton pattern detected in 'instance'
+    // CHECK-MESSAGES: :[[@LINE-1]]:20: warning: Meyer's Singleton pattern detected in 'instance'
     // [codelint-singleton]
     static Database inst;
     return inst;
