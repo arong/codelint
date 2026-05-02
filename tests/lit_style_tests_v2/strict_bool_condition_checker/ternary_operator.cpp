@@ -6,9 +6,11 @@ void test_ternary_operator() {
   int a1 = x ? 1 : 0;
   // CHECK-MESSAGES: [[@LINE-1]]:12: warning: condition must be bool type, but got 'int'
   // [codelint-strict-bool-condition]
+
   int a2 = 1 ? 1 : 0;
   // CHECK-MESSAGES: [[@LINE-1]]:12: warning: condition must be bool type, but got 'int'
   // [codelint-strict-bool-condition]
+
   int a3 = nullptr ? 1 : 0;
   // CHECK-MESSAGES: [[@LINE-1]]:12: warning: condition must be bool type, but got 'nullptr_t'
   // [codelint-strict-bool-condition]

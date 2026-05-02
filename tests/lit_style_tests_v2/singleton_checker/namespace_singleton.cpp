@@ -6,6 +6,7 @@ public:
   static Settings& instance() {
     // CHECK-MESSAGES: :[[@LINE-1]]:20: warning: Meyer's Singleton pattern detected in 'instance'
     // [codelint-singleton]
+
     static Settings cfg;
     return cfg;
   }

@@ -21,6 +21,7 @@ std::string s = "hello"; // Should suggest: std::string s{"hello"}
 int c = {1}; // Should suggest: int c{1}
 // CHECK-MESSAGES: :[[@LINE-1]]:5: warning: initializer should use '{}' syntax instead of '= {}'
 // [codelint-lint-code]
+
 int d = {}; // Should suggest: int d{}
 // CHECK-MESSAGES: :[[@LINE-1]]:5: warning: initializer should use '{}' syntax instead of '= {}'
 // [codelint-lint-code]

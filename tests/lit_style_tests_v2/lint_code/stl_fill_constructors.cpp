@@ -100,9 +100,11 @@ void test_safe_to_convert() {
   std::string s1 = "hello";
   // CHECK-MESSAGES: :[[@LINE-1]]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
+
   std::string s2("world");
   // CHECK-MESSAGES: :[[@LINE-1]]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
+
   std::wstring ws1 = L"hello";
   // CHECK-MESSAGES: :[[@LINE-1]]:16: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]

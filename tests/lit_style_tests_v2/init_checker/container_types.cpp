@@ -38,6 +38,7 @@ void test_local_containers() {
   std::vector<int> local_vec;
   // CHECK-MESSAGES: :[[@LINE-1]]:20: warning: variable is not explicitly initialized
   // [codelint-init]
+
   std::map<int, int> local_map;
   // CHECK-MESSAGES: :[[@LINE-1]]:22: warning: variable is not explicitly initialized
   // [codelint-init]

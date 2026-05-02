@@ -9,14 +9,17 @@ class UninitializedMembers {
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'x' is not initialized in constructor
   // [codelint-init]
+
   int y;
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'y' is not initialized in constructor
   // [codelint-init]
+
   double d;
   // CHECK-MESSAGES: :[[@LINE-1]]:10: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:10: error: member variable 'd' is not initialized in constructor
   // [codelint-init]
+
   char* ptr;
   // CHECK-MESSAGES: :[[@LINE-1]]:9: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:9: error: member variable 'ptr' is not initialized in constructor
@@ -34,6 +37,7 @@ class PartiallyInitialized {
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'b' is not initialized in constructor
   // [codelint-init]
+
   int c;
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'c' is not initialized in constructor
@@ -71,6 +75,7 @@ class MixedInitialization {
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
   // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'b' is not initialized in constructor
   // [codelint-init]
+
   int c = 30;
 
 public:

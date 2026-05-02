@@ -42,6 +42,7 @@ void test_safe_to_convert() {
   std::string str1 = "hello";
   // CHECK-MESSAGES: :[[@LINE-1]]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]
+
   std::string str2("world");
   // CHECK-MESSAGES: :[[@LINE-1]]:15: warning: variable should use '{}' syntax for initialization
   // [codelint-lint-code]

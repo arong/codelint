@@ -25,6 +25,7 @@ void test_template_container() {
   TemplateContainer<int> tc5;
   // CHECK-MESSAGES: :[[@LINE-1]]:26: warning: variable is not explicitly initialized
   // [codelint-init]
+
   TemplateContainer<int> tc6 = 6;
 }
 

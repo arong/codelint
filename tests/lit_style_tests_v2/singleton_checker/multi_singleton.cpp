@@ -9,6 +9,7 @@ public:
   static Database& instance() {
     // CHECK-MESSAGES: [[@LINE-1]]:20: warning: Meyer's Singleton pattern detected in 'instance'
     // [codelint-singleton]
+
     static Database inst;
     return inst;
   }
@@ -24,6 +25,7 @@ public:
   static Logger& getInstance() {
     // CHECK-MESSAGES: [[@LINE-1]]:18: warning: Meyer's Singleton pattern detected in 'getInstance'
     // [codelint-singleton]
+
     static Logger log;
     return log;
   }

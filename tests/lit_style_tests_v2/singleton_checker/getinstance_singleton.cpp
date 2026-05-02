@@ -5,6 +5,7 @@ public:
   static LogManager& getInstance() {
     // CHECK-MESSAGES: :[[@LINE-1]]:22: warning: Meyer's Singleton pattern detected in 'getInstance'
     // [codelint-singleton]
+
     static LogManager manager;
     return manager;
   }

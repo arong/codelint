@@ -71,6 +71,7 @@ void test_catch_used() {
     std::string copy = msg; // copy the catch variable
     // CHECK-MESSAGES: :[[@LINE-1]]:17: warning: variable should use '{}' syntax for initialization
     // [codelint-lint-code]
+
     std::cout << copy << std::endl;
   }
 }

@@ -11,6 +11,7 @@ public:
   static Config& getInstance(const std::string& name) {
     // CHECK-MESSAGES: [[@LINE-1]]:18: warning: Meyer's Singleton pattern detected in 'getInstance'
     // [codelint-singleton]
+
     static Config cfg;
     return cfg;
   }

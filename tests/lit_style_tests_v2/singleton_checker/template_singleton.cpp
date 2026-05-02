@@ -8,6 +8,7 @@ public:
   static SingletonHolder& instance() {
     // CHECK-MESSAGES: [[@LINE-1]]:27: warning: Meyer's Singleton pattern detected in 'instance'
     // [codelint-singleton]
+
     static SingletonHolder inst;
     return inst;
   }

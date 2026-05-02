@@ -7,10 +7,12 @@ void test_do_while_statements() {
   } while (x);
   // CHECK-MESSAGES: [[@LINE-1]]:12: warning: condition must be bool type, but got 'int'
   // [codelint-strict-bool-condition]
+
   do {
   } while (1);
   // CHECK-MESSAGES: [[@LINE-1]]:12: warning: condition must be bool type, but got 'int'
   // [codelint-strict-bool-condition]
+
   do {
   } while (nullptr);
   // CHECK-MESSAGES: [[@LINE-1]]:12: warning: condition must be bool type, but got 'nullptr_t'
