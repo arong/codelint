@@ -110,9 +110,8 @@ struct StructMembers {
 };
 
 class StaticMembers {
-  static int static_var; // Static members should NOT trigger warnings
-  // CHECK-MESSAGES: :[[@LINE-1]]:14: error: variable is not initialized  [codelint-init]
-  int instance_var; // Should trigger warning if not initialized
+  static int static_var; // Static data members are declarations, not definitions
+  int instance_var;
   // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
 };
 

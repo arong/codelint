@@ -14,7 +14,9 @@ This directory contains **lit-style tests** for the codelint clang-tidy plugin, 
 | `strict_bool_condition_checker` | `codelint-strict-bool-condition` | 7 | Bool-only condition enforcement |
 | `signed_to_unsigned_checker` | `codelint-signed-to-unsigned-return` | 1 | Signed→unsigned return value detection |
 | `global_const_string_checker` | `codelint-global-const-string` | 2 | Global const string detection |
-| **Total** | | **65** | |
+| `local_var_naming_checker` | `codelint-local-var-naming` | 1 | Local variable naming convention |
+| `function_size_checker` | `codelint-function-size` | 1 | Oversized function detection |
+| **Total** | | **69** | |
 
 ### init_checker vs lint_code
 
@@ -74,7 +76,7 @@ Each test file follows clang-tidy's lit pattern with `@LINE` references:
 // RUN: %codelint %s codelint-init %t
 
 int global1;
-// CHECK-MESSAGES: :[@LINE-1]:5: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:5: error: variable is not initialized  [codelint-init]
 
 int global3 = 1;
 // No CHECK-MESSAGES — not tested by codelint-init
@@ -85,13 +87,13 @@ int global3 = 1;
 
 ### @LINE Reference Syntax
 
-Line references use `[@LINE-N]` to avoid hardcoding line numbers:
+Line references use `[[@LINE-N]]` to avoid hardcoding line numbers:
 
 | Syntax | Meaning |
 |--------|---------|
-| `[@LINE-1]` | The line before this CHECK comment |
-| `[@LINE-2]` | Two lines before this CHECK comment |
-| `[@LINE]` | The same line as this CHECK comment |
+| `[[@LINE-1]]` | The line before this CHECK comment |
+| `[[@LINE-2]]` | Two lines before this CHECK comment |
+| `[[@LINE]]` | The same line as this CHECK comment |
 
 **Why @LINE?** When CHECK-MESSAGES lines are added or removed, fixed line numbers break. `@LINE` references stay correct regardless of edits.
 
@@ -138,7 +140,7 @@ Create a `.cpp` file in `init_checker/`:
 
 void test() {
   int x;
-  // CHECK-MESSAGES: :[@LINE-1]:7: error: variable is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: error: variable is not initialized  [codelint-init]
 
   int y{}; // OK — no warning
 }
@@ -153,7 +155,7 @@ Create a `.cpp` file in `lint_code/`:
 
 void test() {
   int x = 5;
-  // CHECK-MESSAGES: :[@LINE-1]:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: warning: variable should use '{}' syntax for initialization  [codelint-lint-code]
 
   int y{5}; // OK — already using brace init
 }
@@ -162,7 +164,7 @@ void test() {
 ### Key Rules
 
 1. **One check per directory**: `init_checker/` tests only `codelint-init`, `lint_code/` tests only `codelint-lint-code`
-2. **Use `@LINE` references**: Never hardcode line numbers — use `[@LINE-1]`, `[@LINE-2]`, etc.
+2. **Use `@LINE` references**: Never hardcode line numbers — use `[[@LINE-1]]`, `[[@LINE-2]]`, etc.
 3. **Include CHECK-FIXES**: Add expected fixed output after `// === Expected Fixed Output ===`
 4. **No mixed check types**: Don't put `codelint-init` and `codelint-lint-code` CHECK-MESSAGES in the same file
 
@@ -174,7 +176,7 @@ void test() {
 | Expected output | `check-output/*.txt` | `// CHECK-MESSAGES:` inline |
 | Expected fixed | `fixed/*.cpp` | `// CHECK-FIXES:` inline |
 | Test runner | `run_plugin_regression.sh` | `check_codelint.py` + FileCheck |
-| Line references | Manual (fragile) | `[@LINE-N]` syntax (robust) |
+| Line references | Manual (fragile) | `[[@LINE-N]]` syntax (robust) |
 | Check isolation | Mixed (init + lint-code) | Separated by directory |
 
 ## Original Tests Preserved

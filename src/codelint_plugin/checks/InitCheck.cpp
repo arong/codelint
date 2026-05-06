@@ -47,7 +47,8 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
 
   Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
 
-  Finder->addMatcher(cxxConstructExpr(has(expr().bind("single_arg")), isListInitialization())
+  Finder->addMatcher(cxxConstructExpr(has(expr().bind("single_arg")), isListInitialization(),
+                                      unless(hasAncestor(varDecl(hasType(autoType())))))
                          .bind("init_list_single"),
                      this);
 }
@@ -139,6 +140,10 @@ void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
 
   if (shouldSkipAuto(VarDeclPtr) || shouldSkipUnion(VarDeclPtr) || shouldSkipExtern(VarDeclPtr) ||
       shouldSkipEnumClass(VarDeclPtr)) {
+    return;
+  }
+
+  if (VarDeclPtr->isStaticDataMember()) {
     return;
   }
 
