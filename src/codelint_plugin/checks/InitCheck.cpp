@@ -48,7 +48,8 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
   Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
 
   Finder->addMatcher(cxxConstructExpr(has(expr().bind("single_arg")), isListInitialization(),
-                                      unless(hasAncestor(varDecl(hasType(autoType())))))
+                                      hasAncestor(varDecl(unless(hasType(autoType())))),
+                                      unless(hasAncestor(binaryOperator())))
                          .bind("init_list_single"),
                      this);
 }

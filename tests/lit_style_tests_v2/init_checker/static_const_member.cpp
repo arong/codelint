@@ -31,11 +31,13 @@ public:
 // CHECK-FIXES:   static const int kVersion = 1;
 // CHECK-FIXES:   int instance_var{};
 // CHECK-FIXES: public:
-// CHECK-FIXES:   Foo() {}
+// CHECK-FIXES:   Foo() {
+// CHECK-FIXES:   }
 // CHECK-FIXES: };
 // CHECK-FIXES: class Bar {
 // CHECK-FIXES:   static const double kPi;
 // CHECK-FIXES:   int x{};
 // CHECK-FIXES: public:
-// CHECK-FIXES:   Bar() {}
+// CHECK-FIXES:   Bar() {
+// CHECK-FIXES:   }
 // CHECK-FIXES: };

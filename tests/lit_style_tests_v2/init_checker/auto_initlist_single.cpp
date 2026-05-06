@@ -4,7 +4,6 @@
 // initializer_list constructor ambiguity because auto types should be skipped
 
 #include <cstdint>
-#include <string>
 #include <vector>
 
 void test_auto_single_element_brace() {
@@ -24,7 +23,6 @@ void test_non_auto_still_warns() {
 // === Expected Fixed Output ===
 // CHECK-FIXES: #include <cstdint>
 // CHECK-FIXES: #include <vector>
-// CHECK-FIXES: #include <string>
 // CHECK-FIXES: void test_auto_single_element_brace() {
 // CHECK-FIXES:   auto resp = std::vector<uint8_t>{0U};
 // CHECK-FIXES:   auto v = std::vector<int>{42};
