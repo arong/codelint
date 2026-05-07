@@ -308,7 +308,7 @@ git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --fix
 ./bin/codelint --checks='codelint-init' your_file.cpp
 
 # Only global/singleton checks
-./bin/codelint --checks='codelint-global,codelint-singleton' src/*.cpp
+./bin/codelint --checks='codelint-init,codelint-strict-bool-condition' src/*.cpp
 ```
 
 ### Help & Documentation
@@ -347,8 +347,8 @@ git add -A && git commit
 | Check | Purpose | Auto-fix |
 |-------|---------|----------|
 | `codelint-init` | Variable initialization style | Yes |
-| `codelint-global` | Global variable detection | No |
-| `codelint-singleton` | Meyer's Singleton pattern | No |
+| `codelint-lint-code` | Style: brace init, unsigned suffix | Yes |
+| `codelint-strict-bool-condition` | Bool-only conditions | No |
 
 ## Troubleshooting
 

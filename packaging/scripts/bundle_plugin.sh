@@ -40,14 +40,14 @@ else
     PLUGIN_EXT="so"
 fi
 
-PACKAGE_NAME="codelint-plugin-${VERSION}-${PLATFORM_NAME}-${ARCH}-llvm${LLVM_VERSION}"
+PACKAGE_NAME="codelint-core-Ubuntu22.04-LLVM${LLVM_VERSION}"
 PACKAGE_DIR="${OUTPUT_DIR}/${PACKAGE_NAME}"
 
 echo "========================================"
-echo "Creating codelint plugin package (LLVM ${LLVM_VERSION})"
+echo "Creating codelint-core package (LLVM ${LLVM_VERSION})"
 echo "========================================"
 echo "Version: ${VERSION}"
-echo "Platform: ${PLATFORM_NAME}-${ARCH}"
+echo "Platform: Ubuntu 22.04"
 echo "Output: ${PACKAGE_DIR}"
 echo ""
 
@@ -64,7 +64,7 @@ if [ ! -f "${PLUGIN_PATH}" ]; then
 fi
 
 # Copy plugin with versioned name
-PLUGIN_NAME_VERSIONED="codelint-plugin-${VERSION}-${PLATFORM_NAME}-${ARCH}-llvm${LLVM_VERSION}.${PLUGIN_EXT}"
+PLUGIN_NAME_VERSIONED="codelint-core-LLVM${LLVM_VERSION}.${PLUGIN_EXT}"
 cp "${PLUGIN_PATH}" "${PACKAGE_DIR}/${PLUGIN_NAME_VERSIONED}"
 echo "Copied: ${PLUGIN_NAME_VERSIONED}"
 
@@ -76,10 +76,10 @@ cd - > /dev/null
 
 # Create README
 cat > "${PACKAGE_DIR}/README.md" << EOF
-# codelint plugin (LLVM ${LLVM_VERSION})
+# codelint-core (LLVM ${LLVM_VERSION})
 
 Version: ${VERSION}
-Platform: ${PLATFORM_NAME}-${ARCH}
+Platform: Ubuntu 22.04
 LLVM: ${LLVM_VERSION}
 
 ## Contents
@@ -119,9 +119,8 @@ clang-tidy-${LLVM_VERSION} --load=codelint-plugin.${PLUGIN_EXT} --checks='codeli
 | codelint-lint-code | Yes | Style: brace init, unsigned suffix |
 | codelint-strict-bool-condition | No | Bool-only conditions |
 | codelint-signed-to-unsigned-return | No | POSIX signed→unsigned return |
-| codelint-global | No | Global variable detection |
 | codelint-global-const-string | No | Global const string optimization |
-| codelint-singleton | No | Meyer's Singleton pattern |
+| codelint-singleton | No | Meyer's Singleton pattern (disabled in CI builds) |
 
 ## License
 
