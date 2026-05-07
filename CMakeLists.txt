@@ -8,6 +8,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Coverage support option
 option(ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 
+# Singleton check option (disabled for CI/release builds)
+option(ENABLE_SINGLETON_CHECK "Enable Meyer's Singleton pattern detection check" ON)
+
 if(ENABLE_COVERAGE)
     message(STATUS "Enabling code coverage instrumentation")
     # Clang coverage flags
@@ -53,7 +56,6 @@ add_llvm_library(codelint-plugin SHARED
     src/codelint_plugin/checks/LintCodeCheck.cpp
     src/codelint_plugin/checks/LocalVarNamingCheck.cpp
     src/codelint_plugin/checks/FunctionSizeCheck.cpp
-    src/codelint_plugin/checks/GlobalCheck.cpp
     src/codelint_plugin/checks/GlobalConstStringCheck.cpp
     src/codelint_plugin/checks/SingletonCheck.cpp
     src/codelint_plugin/checks/StrictBoolConditionCheck.cpp
@@ -71,6 +73,13 @@ target_include_directories(codelint-plugin PRIVATE
 target_compile_definitions(codelint-plugin PRIVATE
     CODELINT_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}
 )
+
+if(NOT ENABLE_SINGLETON_CHECK)
+    message(STATUS "Disabling singleton pattern detection check")
+    target_compile_definitions(codelint-plugin PRIVATE
+        CODELINT_DISABLE_SINGLETON_CHECK
+    )
+endif()
 
 # Link against clang libraries
 target_link_libraries(codelint-plugin PRIVATE

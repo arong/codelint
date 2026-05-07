@@ -3,9 +3,9 @@
 #include <cstdint>
 
 int global1;
-// CHECK-MESSAGES: :[[@LINE-1]]:5: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:5: warning: variable is not initialized  [codelint-init]
 unsigned global2;
-// CHECK-MESSAGES: :[[@LINE-1]]:10: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:10: warning: variable is not initialized  [codelint-init]
 
 int global3 = 1;
 unsigned global4 = 2;

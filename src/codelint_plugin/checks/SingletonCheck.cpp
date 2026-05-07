@@ -1,5 +1,9 @@
 #include "codelint/checks/SingletonCheck.h"
 
+#include "codelint/Compatibility.h"
+
+#ifndef CODELINT_DISABLE_SINGLETON_CHECK
+
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
@@ -43,3 +47,5 @@ void SingletonCheck::check(const ast_matchers::MatchFinder::MatchResult& Result)
 }
 
 } // namespace clang::tidy::codelint
+
+#endif // CODELINT_DISABLE_SINGLETON_CHECK

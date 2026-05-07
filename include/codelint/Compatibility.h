@@ -18,3 +18,9 @@
 #else
 #define CODELINT_LANGOPTS_IS_CPP23(LangOpts) (false)
 #endif
+
+// Singleton check can be disabled for CI/release builds
+// Define CODELINT_DISABLE_SINGLETON_CHECK to exclude the singleton pattern detection check
+#ifdef CODELINT_DISABLE_SINGLETON_CHECK
+#else
+#endif
