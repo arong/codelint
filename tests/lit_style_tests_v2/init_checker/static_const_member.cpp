@@ -4,8 +4,8 @@ class Foo {
   static const int kMaxSize;
   static const int kVersion = 1;
   int instance_var;
-  // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
-  // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'instance_var' is not initialized in
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: warning: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-2]]:7: warning: member variable 'instance_var' is not initialized in
   // constructor [codelint-init]
 
 public:
@@ -16,8 +16,8 @@ public:
 class Bar {
   static const double kPi;
   int x;
-  // CHECK-MESSAGES: :[[@LINE-1]]:7: error: field is not initialized  [codelint-init]
-  // CHECK-MESSAGES: :[[@LINE-2]]:7: error: member variable 'x' is not initialized in constructor
+  // CHECK-MESSAGES: :[[@LINE-1]]:7: warning: field is not initialized  [codelint-init]
+  // CHECK-MESSAGES: :[[@LINE-2]]:7: warning: member variable 'x' is not initialized in constructor
   // [codelint-init]
 
 public:

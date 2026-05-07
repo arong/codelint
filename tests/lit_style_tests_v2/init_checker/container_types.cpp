@@ -18,7 +18,7 @@ std::vector<int> vec1;
 std::deque<int> deque1;
 // CHECK-MESSAGES: :[[@LINE-1]]:17: warning: variable is not explicitly initialized  [codelint-init]
 std::array<int, 5> arr1;
-// CHECK-MESSAGES: :[[@LINE-1]]:20: error: variable is not initialized  [codelint-init]
+// CHECK-MESSAGES: :[[@LINE-1]]:20: warning: variable is not initialized  [codelint-init]
 
 // 2. ASSOCIATIVE CONTAINERS
 std::map<int, int> map1;

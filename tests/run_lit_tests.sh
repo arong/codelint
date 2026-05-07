@@ -15,10 +15,10 @@ echo ""
 
 BUILD_DIR="$PROJECT_ROOT/build"
 
-if [ -f "$BUILD_DIR/lib/codelint-plugin.so" ]; then
-    PLUGIN="$BUILD_DIR/lib/codelint-plugin.so"
-elif [ -f "$BUILD_DIR/lib/codelint-plugin.dylib" ]; then
-    PLUGIN="$BUILD_DIR/lib/codelint-plugin.dylib"
+if [ -f "$BUILD_DIR/lib/codelint-core.so" ]; then
+    PLUGIN="$BUILD_DIR/lib/codelint-core.so"
+elif [ -f "$BUILD_DIR/lib/codelint-core.dylib" ]; then
+    PLUGIN="$BUILD_DIR/lib/codelint-core.dylib"
 else
     echo "ERROR: Plugin not found in $BUILD_DIR/lib/"
     echo "Please build the plugin first: cmake --build build"
@@ -107,7 +107,6 @@ run_lit_test() {
     local check_name=""
     case "$checker_dir" in
         "init_checker") check_name="codelint-init" ;;
-        "global_checker") check_name="codelint-global" ;;
         "singleton_checker") check_name="codelint-singleton" ;;
         "strict_bool_condition_checker") check_name="codelint-strict-bool-condition" ;;
         "signed_to_unsigned_checker") check_name="codelint-signed-to-unsigned-return" ;;
@@ -144,7 +143,6 @@ run_lit_test() {
 
 CHECKER_DIRS=(
     "init_checker"
-    "global_checker"
     "singleton_checker"
     "strict_bool_condition_checker"
     "signed_to_unsigned_checker"

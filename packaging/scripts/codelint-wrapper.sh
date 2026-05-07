@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #     codelint (this script)
 #     clang-tidy
 #   lib/
-#     codelint-plugin.so
+#     codelint-core.so
 #     [other libs]
 
 # If this script is in bin/, package root is parent
@@ -39,8 +39,8 @@ if [ ! -f "${PACKAGE_ROOT}/bin/clang-tidy" ]; then
     exit 1
 fi
 
-if [ ! -f "${PACKAGE_ROOT}/lib/codelint-plugin.so" ]; then
-    echo "ERROR: codelint-plugin.so not found at ${PACKAGE_ROOT}/lib/codelint-plugin.so"
+if [ ! -f "${PACKAGE_ROOT}/lib/codelint-core.so" ]; then
+    echo "ERROR: codelint-core.so not found at ${PACKAGE_ROOT}/lib/codelint-core.so"
     exit 1
 fi
 
@@ -87,9 +87,11 @@ if [ "$1" == "--describe" ]; then
     echo "Codelint Plugin - Variable Initialization Best Practices"
     echo ""
     echo "Available Checks:"
-    echo "  codelint-init   - Variable initialization style (auto-fix)"
-    echo "  codelint-global - Global variable detection (no auto-fix)"
-    echo "  codelint-singleton - Meyer's Singleton pattern (no auto-fix)"
+    echo "  codelint-init               - Variable initialization style (auto-fix)"
+    echo "  codelint-lint-code          - Style: brace init, unsigned suffix (auto-fix)"
+    echo "  codelint-strict-bool-condition - Bool-only conditions"
+    echo "  codelint-signed-to-unsigned-return - POSIX signed→unsigned return"
+    echo "  codelint-global-const-string - Global const string optimization"
     echo ""
     echo "What codelint-init detects and fixes:"
     echo ""
@@ -101,8 +103,8 @@ if [ "$1" == "--describe" ]; then
     echo "    - Uninitialized arrays       -> int arr[10]{}"
     echo "    - Uninitialized fields       -> int field{}"
     echo ""
-    echo "  ERROR/WARNING (manual fix required):"
-    echo "    - Integer to bool (ERROR)    -> bool b = 1 (dangerous)"
+    echo "  WARNING (manual fix required):"
+    echo "    - Integer to bool            -> bool b = 1 (dangerous)"
     echo "    - Float to int narrowing     -> int x = 3.14 (warns)"
     echo "    - Constructor members        -> add to initializer list"
     echo ""
@@ -116,7 +118,7 @@ if [ "$1" == "--describe" ]; then
     echo ""
     echo "Usage tips for AI assistants:"
     echo "  1. Always use --fix for auto-fixable issues"
-    echo "  2. Manually review ERROR-level warnings"
+    echo "  2. Manually review warning-level diagnostics"
     echo "  3. Use -p compile_commands.json for accuracy"
     echo ""
     exit 0
@@ -125,7 +127,7 @@ fi
 # Check for --list-checks
 if [ "$1" == "--list-checks" ]; then
     "${PACKAGE_ROOT}/bin/clang-tidy" \
-        --load="${PACKAGE_ROOT}/lib/codelint-plugin.so" \
+        --load="${PACKAGE_ROOT}/lib/codelint-core.so" \
         --checks='codelint-*' \
         --list-checks | grep codelint
     exit 0
@@ -133,6 +135,6 @@ fi
 
 # Default behavior: load plugin with codelint checks
 exec "${PACKAGE_ROOT}/bin/clang-tidy" \
-    --load="${PACKAGE_ROOT}/lib/codelint-plugin.so" \
+    --load="${PACKAGE_ROOT}/lib/codelint-core.so" \
     --checks='codelint-*' \
     "$@"

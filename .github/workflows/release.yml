@@ -37,6 +37,7 @@ jobs:
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_SINGLETON_CHECK=OFF \
             -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION}/lib/cmake/llvm
 
       - name: Build plugin
@@ -45,44 +46,27 @@ jobs:
       - name: Verify plugin
         run: |
           ls -la build/lib/
-          file build/lib/codelint-plugin.so
+          file build/lib/codelint-core.so
 
-      - name: Create plugin package
+      - name: Create release package
         run: |
           chmod +x packaging/scripts/bundle_plugin.sh
           ./packaging/scripts/bundle_plugin.sh
 
-      - name: Create skill package
+      - name: Verify package
         run: |
-          chmod +x packaging/scripts/bundle_skill.sh
-          ./packaging/scripts/bundle_skill.sh
-
-      - name: Verify packages
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          ARCH=$(uname -m)
-
-          echo "=== Plugin Package ==="
-          PLUGIN_PACKAGE_NAME="codelint-plugin-${VERSION}-linux-${ARCH}-llvm15"
+          echo "=== Release Package ==="
           ls -la package-output/
-          tar -tzf package-output/${PLUGIN_PACKAGE_NAME}.tar.gz
-
-          echo ""
-          echo "=== Skill Package ==="
-          SKILL_PACKAGE_NAME="clang-tidy-skill-${VERSION}-linux-${ARCH}"
-          ls -la package-output/${SKILL_PACKAGE_NAME}/
-          tar -tzf package-output/${SKILL_PACKAGE_NAME}.tar.gz
+          PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
+          tar -tzf "${PACKAGE_DIR}.tar.gz"
 
       - name: Test plugin with system clang-tidy
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          ARCH=$(uname -m)
-          PLUGIN_PACKAGE_NAME="codelint-plugin-${VERSION}-linux-${ARCH}-llvm15"
+          PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
+          cd "${PACKAGE_DIR}"
 
-          cd package-output/${PLUGIN_PACKAGE_NAME}
-
-          # Test that plugin loads with system clang-tidy-15
-          clang-tidy-15 --load=$PWD/codelint-plugin.so --checks='codelint-*' --list-checks | grep codelint
+          # Test that plugin loads with system clang-tidy
+          clang-tidy-${LLVM_VERSION} --load=$PWD/codelint-core.so --checks='codelint-*' --list-checks | grep codelint
 
           cat > /tmp/test.cpp << 'EOF'
           void test() {
@@ -91,20 +75,13 @@ jobs:
           }
           EOF
 
-          clang-tidy-15 --load=$PWD/codelint-plugin.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
+          clang-tidy-15 --load=$PWD/codelint-core.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
 
-      - name: Upload plugin package artifact
+      - name: Upload release package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: codelint-plugin-package-linux
-          path: package-output/codelint-plugin-*.tar.gz
-          retention-days: 5
-
-      - name: Upload skill package artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: clang-tidy-skill-package-linux
-          path: package-output/clang-tidy-skill-*.tar.gz
+          name: codelint-core-package-linux
+          path: package-output/codelint-core-*.tar.gz
           retention-days: 5
 
   release:
@@ -134,11 +111,8 @@ jobs:
         run: |
           mkdir -p release-assets
 
-          # Copy plugin package
-          cp artifacts/codelint-plugin-package-linux/codelint-plugin-*.tar.gz release-assets/
-
-          # Copy skill package
-          cp artifacts/clang-tidy-skill-package-linux/clang-tidy-skill-*.tar.gz release-assets/
+          # Copy release package
+          cp artifacts/codelint-core-package-linux/codelint-core-*.tar.gz release-assets/
 
           ls -la release-assets/
 

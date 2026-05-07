@@ -5,7 +5,7 @@
 #
 # Creates a portable package with:
 # - clang-tidy binary
-# - codelint-plugin.so
+# - codelint-core.so
 # - All required LLVM/Clang shared libraries
 #
 # Target: Ubuntu 22.04 (no LLVM 21 installed, no network)
@@ -76,14 +76,14 @@ fi
 chmod +x "${PACKAGE_DIR}/bin/clang-tidy"
 
 # Step 2: Copy codelint plugin
-echo "[2/6] Copying codelint-plugin..."
-PLUGIN_PATH="${BUILD_DIR}/lib/codelint-plugin.so"
+echo "[2/6] Copying codelint-core..."
+PLUGIN_PATH="${BUILD_DIR}/lib/codelint-core.so"
 if [ ! -f "${PLUGIN_PATH}" ]; then
-    echo "ERROR: codelint-plugin.so not found at ${PLUGIN_PATH}"
+    echo "ERROR: codelint-core.so not found at ${PLUGIN_PATH}"
     echo "Please build the project first: cmake --build build"
     exit 1
 fi
-cp "${PLUGIN_PATH}" "${PACKAGE_DIR}/lib/codelint-plugin.so"
+cp "${PLUGIN_PATH}" "${PACKAGE_DIR}/lib/codelint-core.so"
 
 # Step 3: Collect library dependencies
 echo "[3/6] Collecting library dependencies..."
@@ -122,7 +122,7 @@ ldd "${PACKAGE_DIR}/bin/clang-tidy" 2>/dev/null | grep "=> /" | awk '{print $3}'
 done
 
 # Collect dependencies from codelint plugin
-echo "  Analyzing codelint-plugin dependencies..."
+echo "  Analyzing codelint-core dependencies..."
 ldd "${PLUGIN_PATH}" 2>/dev/null | grep "=> /" | awk '{print $3}' | while read lib; do
     copy_lib "$lib"
 done
@@ -246,7 +246,7 @@ for offline deployment on Ubuntu 22.04.
 - `bin/codelint-diff` - Incremental scanner for modified lines only
 - `bin/clang-tidy-diff.py` - LLVM's diff-based scanner
 - `bin/clang-apply-replacements` - Batch fix applicator (optional)
-- `lib/codelint-plugin.so` - Codelint clang-tidy plugin
+- `lib/codelint-core.so` - Codelint clang-tidy plugin
 - `lib/*.so` - Required LLVM/Clang libraries
 
 ## Requirements
@@ -293,7 +293,7 @@ git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --fix
 ```bash
 # Direct clang-tidy invocation
 ./bin/clang-tidy \
-    --load=lib/codelint-plugin.so \
+    --load=lib/codelint-core.so \
     --checks='codelint-*' \
     your_file.cpp
 
@@ -308,7 +308,7 @@ git diff -U0 HEAD^ | ./bin/codelint-diff -p1 --fix
 ./bin/codelint --checks='codelint-init' your_file.cpp
 
 # Only global/singleton checks
-./bin/codelint --checks='codelint-global,codelint-singleton' src/*.cpp
+./bin/codelint --checks='codelint-init,codelint-strict-bool-condition' src/*.cpp
 ```
 
 ### Help & Documentation
@@ -347,8 +347,8 @@ git add -A && git commit
 | Check | Purpose | Auto-fix |
 |-------|---------|----------|
 | `codelint-init` | Variable initialization style | Yes |
-| `codelint-global` | Global variable detection | No |
-| `codelint-singleton` | Meyer's Singleton pattern | No |
+| `codelint-lint-code` | Style: brace init, unsigned suffix | Yes |
+| `codelint-strict-bool-condition` | Bool-only conditions | No |
 
 ## Troubleshooting
 
@@ -359,7 +359,7 @@ If you see "library not found" errors:
 ldd bin/clang-tidy | grep "not found"
 
 # Check plugin dependencies
-ldd lib/codelint-plugin.so | grep "not found"
+ldd lib/codelint-core.so | grep "not found"
 ```
 
 ## Version
@@ -373,7 +373,7 @@ echo ""
 echo "[Optional] Setting RPATH on binaries..."
 if command -v patchelf >/dev/null 2>&1; then
     patchelf --set-rpath '$ORIGIN/../lib' "${PACKAGE_DIR}/bin/clang-tidy" 2>/dev/null || true
-    patchelf --set-rpath '$ORIGIN' "${PACKAGE_DIR}/lib/codelint-plugin.so" 2>/dev/null || true
+    patchelf --set-rpath '$ORIGIN' "${PACKAGE_DIR}/lib/codelint-core.so" 2>/dev/null || true
     echo "  RPATH set successfully"
 else
     echo "  patchelf not available - relying on LD_LIBRARY_PATH wrapper"

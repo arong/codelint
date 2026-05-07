@@ -155,9 +155,9 @@ jobs:
         if: matrix.llvm_version == 15
         run: |
           echo "🔍 Verifying LLVM 15 plugin compatibility..."
-          ls -la build/lib/codelint-plugin.so
+          ls -la build/lib/codelint-core.so
           clang-tidy-${LLVM_VERSION} --version
-          clang-tidy-${LLVM_VERSION} --load=build/lib/codelint-plugin.so --checks='codelint-*' --list-checks | grep codelint
+          clang-tidy-${LLVM_VERSION} --load=build/lib/codelint-core.so --checks='codelint-*' --list-checks | grep codelint
 
       - name: Check code formatting
         if: github.event_name == 'pull_request' && matrix.llvm_version == 21
@@ -185,7 +185,7 @@ jobs:
           # 2. Only check src/ files
           # 3. Excludes tests/ directory (only source code)
           clang-tidy-${LLVM_VERSION} \
-            --load=build/lib/codelint-plugin.so \
+            --load=build/lib/codelint-core.so \
             --checks='codelint-*' \
             -p build \
             $src_files 2>&1 | tee codelint_output.txt

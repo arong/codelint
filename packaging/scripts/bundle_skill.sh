@@ -2,7 +2,7 @@
 # bundle_skill.sh - Bundle clang-tidy skill for distribution
 #
 # Creates a minimal skill package containing:
-# - codelint-plugin.so (for LLVM 15)
+# - codelint-core.so (for LLVM 15)
 # - skill scripts (run_clang_tidy.py, run_clang_tidy_diff.py)
 # - skill configs (default, strict, security presets)
 #
@@ -47,9 +47,9 @@ SKILL_PACKAGE_DIR="${OUTPUT_DIR}/${SKILL_PACKAGE_NAME}"
 
 find_plugin() {
     if [ "$PLATFORM_NAME" = "darwin" ]; then
-        plugin="${BUILD_DIR}/lib/codelint-plugin.dylib"
+        plugin="${BUILD_DIR}/lib/codelint-core.dylib"
     else
-        plugin="${BUILD_DIR}/lib/codelint-plugin.so"
+        plugin="${BUILD_DIR}/lib/codelint-core.so"
     fi
 
     if [ -f "$plugin" ]; then
@@ -94,7 +94,7 @@ LLVM: ${LLVM_VERSION} (system-installed)
 
 ## Contents
 
-- \`lib/codelint-plugin.${PLUGIN_EXT}\` - codelint clang-tidy plugin
+- \`lib/codelint-core.${PLUGIN_EXT}\` - codelint clang-tidy plugin
 - \`share/clang-tidy-skill/scripts/\` - Skill runner scripts
 - \`share/clang-tidy-skill/configs/\` - Preset configurations
 
@@ -119,7 +119,7 @@ cd clang-tidy-skill-${VERSION}-${PLATFORM_NAME}-${ARCH}
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 # Run analysis using system clang-tidy
-clang-tidy-${LLVM_VERSION} --load=lib/codelint-plugin.${PLUGIN_EXT} --checks='codelint-*' -p build src/*.cpp
+clang-tidy-${LLVM_VERSION} --load=lib/codelint-core.${PLUGIN_EXT} --checks='codelint-*' -p build src/*.cpp
 \`\`\`
 
 ## Skill Scripts

@@ -110,8 +110,7 @@ void InitCheck::checkUninitializedField(const FieldDecl* FieldDeclPtr, ASTContex
   if (hasNonTrivialDefaultConstructor(FieldDeclPtr->getType())) {
     diag(Loc, "field is not explicitly initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
   } else {
-    diag(Loc, "field is not initialized", DiagnosticIDs::Error)
-        << FixItHint::CreateInsertion(EndLoc, "{}");
+    diag(Loc, "field is not initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
   }
 }
 
@@ -150,8 +149,7 @@ void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
     auto LangOpts = Ctx->getLangOpts();
     const auto Loc = VarDeclPtr->getLocation();
 
-    diag(Loc, "reference variable is not initialized and must be bound to a value",
-         DiagnosticIDs::Error);
+    diag(Loc, "reference variable is not initialized and must be bound to a value");
     return;
   }
 
@@ -187,16 +185,14 @@ void InitCheck::checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
       diag(Loc, "C-style array should be initialized with braces '{}'")
           << FixItHint::CreateInsertion(EndLoc, "{}");
     } else {
-      diag(Loc, "C-style array is not initialized", DiagnosticIDs::Error)
-          << FixItHint::CreateInsertion(EndLoc, "{}");
+      diag(Loc, "C-style array is not initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
     }
   } else {
     if (hasNonTrivialDefaultConstructor(VarDeclPtr->getType())) {
       diag(Loc, "variable is not explicitly initialized")
           << FixItHint::CreateInsertion(EndLoc, "{}");
     } else {
-      diag(Loc, "variable is not initialized", DiagnosticIDs::Error)
-          << FixItHint::CreateInsertion(EndLoc, "{}");
+      diag(Loc, "variable is not initialized") << FixItHint::CreateInsertion(EndLoc, "{}");
     }
   }
 }
@@ -245,7 +241,7 @@ void InitCheck::checkDangerousConversion(const VarDecl* VarDeclPtr, ASTContext* 
 
   if (DestTy->isBooleanType() && SrcTy->isIntegerType() && !SrcTy->isBooleanType()) {
     diag(VarDeclPtr->getLocation(),
-         "assigning integer to bool is dangerous; use explicit comparison", DiagnosticIDs::Error);
+         "assigning integer to bool is dangerous; use explicit comparison");
     return;
   }
 }
@@ -302,8 +298,7 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
       diag(Loc, "member variable '%0' is not explicitly initialized in constructor")
           << Field->getName();
     } else {
-      diag(Loc, "member variable '%0' is not initialized in constructor", DiagnosticIDs::Error)
-          << Field->getName();
+      diag(Loc, "member variable '%0' is not initialized in constructor") << Field->getName();
     }
   }
 }
