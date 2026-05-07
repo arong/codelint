@@ -1,14 +1,16 @@
 #!/bin/bash
-# bundle_plugin.sh - Bundle codelint plugin for LLVM 15
+# bundle_plugin.sh - Bundle codelint plugin for distribution
 #
-# Creates a minimal package containing only the codelint plugin with a symlink.
-# Target environment is assumed to have LLVM 15 (including clang-tidy-15) installed.
+# Creates a minimal package containing only the codelint plugin.
+# Target environment is assumed to have LLVM (including clang-tidy) installed.
 #
 # Usage: ./bundle_plugin.sh
 #
-# Output: codelint-plugin-VERSION-linux-ARCH-llvm15.tar.gz
-#   - codelint-plugin-VERSION-linux-ARCH-llvm15.so
-#   - codelint-plugin.so (symlink to the above)
+# Output: codelint-core-<distro_id><distro_version>-LLVM<llvm_version>.tar.gz
+#   e.g. codelint-core-Ubuntu22.04-LLVM15.tar.gz
+#
+# Environment variables:
+#   LLVM_VERSION - LLVM major version (default: 15)
 
 set -e
 
@@ -16,10 +18,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/build"
 OUTPUT_DIR="${PROJECT_ROOT}/package-output"
-LLVM_VERSION="15"
+LLVM_VERSION="${LLVM_VERSION:-15}"
 
 get_version() {
-    if [ -n "$GITHUB_REF" ]; then
+    if [ -n "$GITHUB_REF" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then
         echo "${GITHUB_REF#refs/tags/v}"
     elif git rev-parse --git-dir >/dev/null 2>&1; then
         git describe --tags --always 2>/dev/null || echo "dev"
@@ -28,26 +30,49 @@ get_version() {
     fi
 }
 
+get_distro_id() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "${ID}" | sed 's/.*/\u&/'
+    elif command -v lsb_release >/dev/null 2>&1; then
+        lsb_release -si
+    else
+        echo "Linux"
+    fi
+}
+
+get_distro_version() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "${VERSION_ID}"
+    elif command -v lsb_release >/dev/null 2>&1; then
+        lsb_release -rs
+    else
+        echo "unknown"
+    fi
+}
+
 VERSION=$(get_version)
+DISTRO_ID=$(get_distro_id)
+DISTRO_VERSION=$(get_distro_version)
 ARCH=$(uname -m)
 PLATFORM=$(uname -s)
 
 if [ "$PLATFORM" = "Darwin" ]; then
-    PLATFORM_NAME="darwin"
     PLUGIN_EXT="dylib"
 else
-    PLATFORM_NAME="linux"
     PLUGIN_EXT="so"
 fi
 
-PACKAGE_NAME="codelint-core-Ubuntu22.04-LLVM${LLVM_VERSION}"
+PACKAGE_NAME="codelint-core-${DISTRO_ID}${DISTRO_VERSION}-LLVM${LLVM_VERSION}"
 PACKAGE_DIR="${OUTPUT_DIR}/${PACKAGE_NAME}"
 
 echo "========================================"
-echo "Creating codelint-core package (LLVM ${LLVM_VERSION})"
+echo "Creating codelint-core package"
 echo "========================================"
 echo "Version: ${VERSION}"
-echo "Platform: Ubuntu 22.04"
+echo "Distro: ${DISTRO_ID} ${DISTRO_VERSION}"
+echo "LLVM: ${LLVM_VERSION}"
 echo "Output: ${PACKAGE_DIR}"
 echo ""
 
@@ -56,43 +81,35 @@ rm -rf "${PACKAGE_DIR}"
 mkdir -p "${PACKAGE_DIR}"
 
 # Find the plugin
-PLUGIN_PATH="${BUILD_DIR}/lib/codelint-plugin.${PLUGIN_EXT}"
+PLUGIN_PATH="${BUILD_DIR}/lib/codelint-core.${PLUGIN_EXT}"
 if [ ! -f "${PLUGIN_PATH}" ]; then
-    echo "ERROR: codelint-plugin.${PLUGIN_EXT} not found at ${PLUGIN_PATH}"
+    echo "ERROR: codelint-core.${PLUGIN_EXT} not found at ${PLUGIN_PATH}"
     echo "Please build the project first: cmake --build build"
     exit 1
 fi
 
-# Copy plugin with versioned name
-PLUGIN_NAME_VERSIONED="codelint-core-LLVM${LLVM_VERSION}.${PLUGIN_EXT}"
-cp "${PLUGIN_PATH}" "${PACKAGE_DIR}/${PLUGIN_NAME_VERSIONED}"
-echo "Copied: ${PLUGIN_NAME_VERSIONED}"
-
-# Create symlink
-cd "${PACKAGE_DIR}"
-ln -sf "${PLUGIN_NAME_VERSIONED}" "codelint-plugin.${PLUGIN_EXT}"
-echo "Created symlink: codelint-plugin.${PLUGIN_EXT} -> ${PLUGIN_NAME_VERSIONED}"
-cd - > /dev/null
+# Copy plugin
+cp "${PLUGIN_PATH}" "${PACKAGE_DIR}/codelint-core.${PLUGIN_EXT}"
+echo "Copied: codelint-core.${PLUGIN_EXT}"
 
 # Create README
 cat > "${PACKAGE_DIR}/README.md" << EOF
-# codelint-core (LLVM ${LLVM_VERSION})
+# codelint-core
 
 Version: ${VERSION}
-Platform: Ubuntu 22.04
+Platform: ${DISTRO_ID} ${DISTRO_VERSION}
 LLVM: ${LLVM_VERSION}
 
 ## Contents
 
-- \`${PLUGIN_NAME_VERSIONED}\` - codelint clang-tidy plugin
-- \`codelint-plugin.${PLUGIN_EXT}\` - Symlink to the plugin
+- \`codelint-core.${PLUGIN_EXT}\` - codelint clang-tidy plugin
 
 ## Requirements
 
-- Ubuntu 22.04 with LLVM ${LLVM_VERSION} installed
+- ${DISTRO_ID} ${DISTRO_VERSION} with LLVM ${LLVM_VERSION} installed
 - clang-tidy-${LLVM_VERSION} must be available
 
-Install LLVM ${LLVM_VERSION} on Ubuntu 22.04:
+Install LLVM ${LLVM_VERSION} on ${DISTRO_ID} ${DISTRO_VERSION}:
 \`\`\`bash
 apt-get install clang-tidy-${LLVM_VERSION} libclang-${LLVM_VERSION}-dev
 \`\`\`
@@ -105,10 +122,7 @@ tar -xzf ${PACKAGE_NAME}.tar.gz
 cd ${PACKAGE_NAME}
 
 # Use with clang-tidy
-clang-tidy-${LLVM_VERSION} --load=codelint-plugin.${PLUGIN_EXT} --checks='codelint-*' your_file.cpp
-
-# Or using the symlink
-clang-tidy-${LLVM_VERSION} --load=codelint-plugin.${PLUGIN_EXT} --checks='codelint-init' src/*.cpp
+clang-tidy-${LLVM_VERSION} --load=codelint-core.${PLUGIN_EXT} --checks='codelint-*' your_file.cpp
 \`\`\`
 
 ## Available Checks
@@ -120,7 +134,6 @@ clang-tidy-${LLVM_VERSION} --load=codelint-plugin.${PLUGIN_EXT} --checks='codeli
 | codelint-strict-bool-condition | No | Bool-only conditions |
 | codelint-signed-to-unsigned-return | No | POSIX signed→unsigned return |
 | codelint-global-const-string | No | Global const string optimization |
-| codelint-singleton | No | Meyer's Singleton pattern (disabled in CI builds) |
 
 ## License
 
@@ -137,7 +150,7 @@ TARBALL_SIZE=$(du -h "${PACKAGE_NAME}.tar.gz" | cut -f1)
 
 echo ""
 echo "========================================"
-echo "Plugin package created successfully!"
+echo "Package created successfully!"
 echo "========================================"
 echo "Package: ${OUTPUT_DIR}/${PACKAGE_NAME}.tar.gz"
 echo "Size: ${TARBALL_SIZE}"

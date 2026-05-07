@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(codelint-plugin VERSION 1.0.0 LANGUAGES C CXX)
+project(codelint-core VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,7 +49,7 @@ list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 include(AddLLVM)
 
 # Plugin shared library
-add_llvm_library(codelint-plugin SHARED
+add_llvm_library(codelint-core SHARED
     src/codelint_plugin/CodelintModule.cpp
     src/codelint_plugin/utils/InitUtils.cpp
     src/codelint_plugin/checks/InitCheck.cpp
@@ -65,24 +65,24 @@ add_llvm_library(codelint-plugin SHARED
     support
 )
 
-target_include_directories(codelint-plugin PRIVATE
+target_include_directories(codelint-core PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # Pass LLVM version for macro-based compatibility
-target_compile_definitions(codelint-plugin PRIVATE
+target_compile_definitions(codelint-core PRIVATE
     CODELINT_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}
 )
 
 if(NOT ENABLE_SINGLETON_CHECK)
     message(STATUS "Disabling singleton pattern detection check")
-    target_compile_definitions(codelint-plugin PRIVATE
+    target_compile_definitions(codelint-core PRIVATE
         CODELINT_DISABLE_SINGLETON_CHECK
     )
 endif()
 
 # Link against clang libraries
-target_link_libraries(codelint-plugin PRIVATE
+target_link_libraries(codelint-core PRIVATE
     clangTidy
     clangTidyPlugin
     clangAST
@@ -100,19 +100,18 @@ target_link_libraries(codelint-plugin PRIVATE
 )
 
 # Set plugin properties
-set_target_properties(codelint-plugin PROPERTIES
+set_target_properties(codelint-core PROPERTIES
     PREFIX ""
-    OUTPUT_NAME "codelint-plugin"
+    OUTPUT_NAME "codelint-core"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-# Install plugin
-install(TARGETS codelint-plugin LIBRARY DESTINATION lib/clang-tidy)
+install(TARGETS codelint-core LIBRARY DESTINATION lib/clang-tidy)
 
 add_custom_target(test-lit
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/run_lit_tests.sh
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS codelint-plugin
+    DEPENDS codelint-core
     COMMENT "Running lit-style tests"
     VERBATIM
 )

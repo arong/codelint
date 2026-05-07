@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #     codelint (this script)
 #     clang-tidy
 #   lib/
-#     codelint-plugin.so
+#     codelint-core.so
 #     [other libs]
 
 # If this script is in bin/, package root is parent
@@ -39,8 +39,8 @@ if [ ! -f "${PACKAGE_ROOT}/bin/clang-tidy" ]; then
     exit 1
 fi
 
-if [ ! -f "${PACKAGE_ROOT}/lib/codelint-plugin.so" ]; then
-    echo "ERROR: codelint-plugin.so not found at ${PACKAGE_ROOT}/lib/codelint-plugin.so"
+if [ ! -f "${PACKAGE_ROOT}/lib/codelint-core.so" ]; then
+    echo "ERROR: codelint-core.so not found at ${PACKAGE_ROOT}/lib/codelint-core.so"
     exit 1
 fi
 
@@ -127,7 +127,7 @@ fi
 # Check for --list-checks
 if [ "$1" == "--list-checks" ]; then
     "${PACKAGE_ROOT}/bin/clang-tidy" \
-        --load="${PACKAGE_ROOT}/lib/codelint-plugin.so" \
+        --load="${PACKAGE_ROOT}/lib/codelint-core.so" \
         --checks='codelint-*' \
         --list-checks | grep codelint
     exit 0
@@ -135,6 +135,6 @@ fi
 
 # Default behavior: load plugin with codelint checks
 exec "${PACKAGE_ROOT}/bin/clang-tidy" \
-    --load="${PACKAGE_ROOT}/lib/codelint-plugin.so" \
+    --load="${PACKAGE_ROOT}/lib/codelint-core.so" \
     --checks='codelint-*' \
     "$@"

@@ -13,7 +13,7 @@ plugin_path = os.path.join(project_root, 'build', 'lib')
 plugin_file = None
 if os.path.isdir(plugin_path):
     for f in os.listdir(plugin_path):
-        if f.startswith('codelint-plugin') and (f.endswith('.so') or f.endswith('.dylib')):
+        if f.startswith('codelint-core') and (f.endswith('.so') or f.endswith('.dylib')):
             plugin_file = os.path.join(plugin_path, f)
             break
 

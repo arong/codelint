@@ -72,7 +72,7 @@ class CodelintSelfCheck:
     # Default configuration
     LLVM_BIN = "/opt/homebrew/opt/llvm@21/bin"
     SDK_PATH = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-    PLUGIN_NAME = "codelint-plugin.dylib"
+    PLUGIN_NAME = "codelint-core.dylib"
     CHECKS = "codelinit-*"
     FIX_CHECKS = "codelint-init"  # Only auto-fixable checks
 
@@ -109,7 +109,7 @@ class CodelintSelfCheck:
         # Check plugin
         if not self.plugin_path.is_file():
             print_error(f"Plugin not found at {self.plugin_path}")
-            print("Build with: cmake --build build --target codelint-plugin")
+            print("Build with: cmake --build build --target codelint-core")
             return False
         print_success(f"Plugin found at {self.plugin_path}")
 
@@ -240,7 +240,7 @@ class CodelintSelfCheck:
         # Rebuild to verify
         print("Rebuilding plugin...")
         build_result = subprocess.run(
-            ["cmake", "--build", str(self.project_root / "build"), "--target", "codelint-plugin"],
+            ["cmake", "--build", str(self.project_root / "build"), "--target", "codelint-core"],
             capture_output=True, text=True
         )
 

@@ -46,7 +46,7 @@ jobs:
       - name: Verify plugin
         run: |
           ls -la build/lib/
-          file build/lib/codelint-plugin.so
+          file build/lib/codelint-core.so
 
       - name: Create release package
         run: |
@@ -57,14 +57,16 @@ jobs:
         run: |
           echo "=== Release Package ==="
           ls -la package-output/
-          tar -tzf package-output/codelint-core-Ubuntu22.04-LLVM15.tar.gz
+          PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
+          tar -tzf "${PACKAGE_DIR}.tar.gz"
 
       - name: Test plugin with system clang-tidy
         run: |
-          cd package-output/codelint-core-Ubuntu22.04-LLVM15
+          PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
+          cd "${PACKAGE_DIR}"
 
-          # Test that plugin loads with system clang-tidy-15
-          clang-tidy-15 --load=$PWD/codelint-plugin.so --checks='codelint-*' --list-checks | grep codelint
+          # Test that plugin loads with system clang-tidy
+          clang-tidy-${LLVM_VERSION} --load=$PWD/codelint-core.so --checks='codelint-*' --list-checks | grep codelint
 
           cat > /tmp/test.cpp << 'EOF'
           void test() {
@@ -73,7 +75,7 @@ jobs:
           }
           EOF
 
-          clang-tidy-15 --load=$PWD/codelint-plugin.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
+          clang-tidy-15 --load=$PWD/codelint-core.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
 
       - name: Upload release package artifact
         uses: actions/upload-artifact@v4

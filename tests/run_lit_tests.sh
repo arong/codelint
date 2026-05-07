@@ -15,10 +15,10 @@ echo ""
 
 BUILD_DIR="$PROJECT_ROOT/build"
 
-if [ -f "$BUILD_DIR/lib/codelint-plugin.so" ]; then
-    PLUGIN="$BUILD_DIR/lib/codelint-plugin.so"
-elif [ -f "$BUILD_DIR/lib/codelint-plugin.dylib" ]; then
-    PLUGIN="$BUILD_DIR/lib/codelint-plugin.dylib"
+if [ -f "$BUILD_DIR/lib/codelint-core.so" ]; then
+    PLUGIN="$BUILD_DIR/lib/codelint-core.so"
+elif [ -f "$BUILD_DIR/lib/codelint-core.dylib" ]; then
+    PLUGIN="$BUILD_DIR/lib/codelint-core.dylib"
 else
     echo "ERROR: Plugin not found in $BUILD_DIR/lib/"
     echo "Please build the plugin first: cmake --build build"
