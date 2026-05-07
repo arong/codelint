@@ -114,6 +114,8 @@ run_lit_test() {
         "global_const_string_checker") check_name="codelint-global-const-string" ;;
         "lint_code_checker") check_name="codelint-lint-code" ;;
         "lint_code") check_name="codelint-lint-code" ;;
+        "local_var_naming_checker") check_name="codelint-local-var-naming" ;;
+        "function_size_checker") check_name="codelint-function-size" ;;
         *) check_name="$checker_dir" ;;
     esac
 
@@ -149,6 +151,8 @@ CHECKER_DIRS=(
     "global_const_string_checker"
     "lint_code_checker"
     "lint_code"
+    "local_var_naming_checker"
+    "function_size_checker"
 )
 
 for CHECKER in "${CHECKER_DIRS[@]}"; do

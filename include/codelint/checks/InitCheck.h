@@ -20,7 +20,6 @@ private:
   void checkUninitialized(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkUninitializedField(const FieldDecl* FieldDeclPtr, ASTContext* Ctx);
   void checkDangerousConversion(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  void checkInitializerListSingleElement(const CXXConstructExpr* CCE, ASTContext* Ctx);
   void checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
                                                        ASTContext* Ctx);
 };
