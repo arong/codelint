@@ -124,13 +124,18 @@ run_lit_test() {
 
     local temp_dir=$(mktemp -d)
 
+    local std_flag="c++17"
+    if [[ "$test_file" == *"_cpp20"* ]]; then
+        std_flag="c++20"
+    fi
+
     if python3 "$CHECK_CODELINT" \
         "$test_file" \
         "$check_name" \
         "$temp_dir" \
         --clang-tidy "$CLANG_TIDY" \
         --plugin "$PLUGIN" \
-        --std c++17 2>&1; then
+        --std "$std_flag" 2>&1; then
         echo "PASS: $checker_dir/$test_name"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
