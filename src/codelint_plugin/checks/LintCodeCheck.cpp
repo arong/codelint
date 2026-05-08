@@ -1,4 +1,5 @@
 #include "codelint/checks/LintCodeCheck.h"
+#include "codelint/Compatibility.h"
 #include "codelint/utils/InitUtils.h"
 
 #include <clang/AST/Decl.h>
@@ -616,7 +617,7 @@ void LintCodeCheck::checkDesignatedInit(const VarDecl* VarDeclPtr, const InitLis
     SyntacticILE = ILE;
   }
 
-  if (SyntacticILE->hasDesignatedInit()) {
+  if (compat::hasDesignatedInit(SyntacticILE)) {
     return;
   }
 
