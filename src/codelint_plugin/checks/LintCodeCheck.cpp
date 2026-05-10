@@ -1,4 +1,5 @@
 #include "codelint/checks/LintCodeCheck.h"
+#include "codelint/Compatibility.h"
 #include "codelint/utils/InitUtils.h"
 
 #include <clang/AST/Decl.h>
@@ -536,6 +537,8 @@ void LintCodeCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* 
     return;
   }
 
+  checkDesignatedInit(VarDeclPtr, ILE, Ctx);
+
   auto& SrcMgr = Ctx->getSourceManager();
   auto LangOpts = Ctx->getLangOpts();
 
@@ -592,6 +595,91 @@ void LintCodeCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* 
   diag(VarDeclPtr->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
       << FixItHint::CreateReplacement(CharSourceRange::getCharRange(BraceStartLoc, InitStartLoc),
                                       "");
+}
+
+void LintCodeCheck::checkDesignatedInit(const VarDecl* VarDeclPtr, const InitListExpr* ILE,
+                                        ASTContext* Ctx) {
+  if (VarDeclPtr == nullptr || ILE == nullptr || Ctx == nullptr) {
+    return;
+  }
+
+  const auto& LangOpts = Ctx->getLangOpts();
+  if (!LangOpts.CPlusPlus20) {
+    return;
+  }
+
+  if (isInSystemHeader(VarDeclPtr->getLocation(), Ctx)) {
+    return;
+  }
+
+  const auto* SyntacticILE = ILE->getSyntacticForm();
+  if (SyntacticILE == nullptr) {
+    SyntacticILE = ILE;
+  }
+
+  if (compat::hasDesignatedInit(SyntacticILE)) {
+    return;
+  }
+
+  const auto* RecType = VarDeclPtr->getType()->getAs<RecordType>();
+  if (RecType == nullptr) {
+    return;
+  }
+
+  const auto* Record = RecType->getDecl();
+  if (Record == nullptr) {
+    return;
+  }
+
+  const auto* CXXRecord = dyn_cast<CXXRecordDecl>(Record);
+  if (CXXRecord == nullptr || !CXXRecord->isAggregate()) {
+    return;
+  }
+
+  const unsigned NumInits = SyntacticILE->getNumInits();
+  if (NumInits == 0) {
+    return;
+  }
+
+  llvm::SmallVector<const FieldDecl*, 8> Fields;
+  for (const auto* Field : Record->fields()) {
+    if (Field->isBitField() && Field->getName().empty()) {
+      continue;
+    }
+    Fields.push_back(Field);
+  }
+
+  if (NumInits > Fields.size()) {
+    return;
+  }
+
+  bool AnyMissing = false;
+  llvm::SmallVector<std::pair<SourceLocation, std::string>, 8> FixIts;
+
+  for (unsigned I = 0; I < NumInits; ++I) {
+    if (isa<DesignatedInitExpr>(SyntacticILE->getInit(I))) {
+      return;
+    }
+
+    const auto* Field = Fields[I];
+    if (Field->isBitField() && Field->getName().empty()) {
+      return;
+    }
+
+    const auto* Init = SyntacticILE->getInit(I);
+    FixIts.emplace_back(Init->getBeginLoc(), ("." + Field->getName() + "=").str());
+    AnyMissing = true;
+  }
+
+  if (!AnyMissing) {
+    return;
+  }
+
+  auto Diag = diag(SyntacticILE->getLBraceLoc(),
+                   "use designated initializers for aggregate initialization");
+  for (auto& [Loc, Text] : FixIts) {
+    Diag << FixItHint::CreateInsertion(Loc, Text);
+  }
 }
 
 void LintCodeCheck::checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, ASTContext* Ctx) {

@@ -29,6 +29,7 @@ package-output/
 # AI / Tooling
 .cache
 .sisyphus
+llvm-project/
 
 # Test / Coverage
 coverage_report/
