@@ -8,7 +8,10 @@ namespace clang::tidy::codelint {
 
 class LogTagMismatchCheck : public ClangTidyCheck {
 public:
-  LogTagMismatchCheck(StringRef Name, ClangTidyContext* Context);
+  LogTagMismatchCheck(StringRef Name, ClangTidyContext* Context)
+      : ClangTidyCheck(Name, Context), LogMacroNames(Options.get("LogMacroNames", "*LOG*,*log*")),
+        AllowQualifiedName(Options.get("AllowQualifiedName", true)) {
+  }
 
   void registerMatchers(ast_matchers::MatchFinder* Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult& Result) override;

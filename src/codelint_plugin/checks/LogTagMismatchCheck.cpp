@@ -14,11 +14,6 @@ namespace clang::tidy::codelint {
 
 using namespace ast_matchers;
 
-LogTagMismatchCheck::LogTagMismatchCheck(StringRef Name, ClangTidyContext* Context)
-    : ClangTidyCheck(Name, Context), LogMacroNames(Options.get("LogMacroNames", "*LOG*,*log*")),
-      AllowQualifiedName(Options.get("AllowQualifiedName", true)) {
-}
-
 void LogTagMismatchCheck::storeOptions(ClangTidyOptions::OptionMap& Opts) {
   Options.store(Opts, "LogMacroNames", LogMacroNames);
   Options.store(Opts, "AllowQualifiedName", AllowQualifiedName);
