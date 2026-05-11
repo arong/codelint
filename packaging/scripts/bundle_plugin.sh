@@ -64,7 +64,7 @@ else
     PLUGIN_EXT="so"
 fi
 
-PACKAGE_NAME="codelint-core-${DISTRO_ID}${DISTRO_VERSION}-LLVM${LLVM_VERSION}"
+PACKAGE_NAME="codelint-core-${VERSION}-${DISTRO_ID}${DISTRO_VERSION}-LLVM${LLVM_VERSION}"
 PACKAGE_DIR="${OUTPUT_DIR}/${PACKAGE_NAME}"
 
 echo "========================================"
@@ -134,6 +134,7 @@ clang-tidy-${LLVM_VERSION} --load=codelint-core.${PLUGIN_EXT} --checks='codelint
 | codelint-strict-bool-condition | No | Bool-only conditions |
 | codelint-signed-to-unsigned-return | No | POSIX signed→unsigned return |
 | codelint-global-const-string | No | Global const string optimization |
+| codelint-log-tag-mismatch | Yes | Mismatched [FuncName] tags in logging statements |
 
 ## License
 
