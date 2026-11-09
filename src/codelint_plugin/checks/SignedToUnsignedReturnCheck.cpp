@@ -135,12 +135,18 @@ bool SignedToUnsignedReturnCheck::isUnsignedType(const QualType& QT) {
 
   const clang::Type* InnerType = QT.getTypePtr();
 
+  // bool is an unsigned integer type in the type system, but treating it as
+  // unsigned here produces noisy false positives for `bool b = geti();`.
+  if (InnerType->isBooleanType()) {
+    return false;
+  }
+
   if (InnerType->isUnsignedIntegerType()) {
     return true;
   }
 
   if (const auto* TDT = llvm::dyn_cast<clang::TypedefType>(InnerType)) {
-    return TDT->desugar()->isUnsignedIntegerType();
+    return isUnsignedType(TDT->desugar());
   }
 
   if (const auto* ET = llvm::dyn_cast<clang::ElaboratedType>(InnerType)) {
@@ -156,6 +162,10 @@ bool SignedToUnsignedReturnCheck::isSignedType(const QualType& QT) {
   }
 
   const clang::Type* InnerType = QT.getTypePtr();
+
+  if (InnerType->isBooleanType()) {
+    return false;
+  }
 
   if (InnerType->isSignedIntegerType()) {
     return true;

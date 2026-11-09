@@ -19,10 +19,12 @@ public:
 
 private:
   void checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
-  void checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx);
   void checkDesignatedInit(const VarDecl* VarDeclPtr, const InitListExpr* ILE, ASTContext* Ctx);
   void checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, ASTContext* Ctx);
+
+  static SourceLocation getDeclaratorEndLoc(const VarDecl* VarDeclPtr, const SourceManager& SrcMgr,
+                                            const LangOptions& LangOpts);
 
   static bool wouldBraceInitChangeConstructor(const CXXConstructExpr* CCE);
   static std::optional<bool>

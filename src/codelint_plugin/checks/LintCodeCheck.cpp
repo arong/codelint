@@ -6,6 +6,7 @@
 #include <clang/AST/DeclCXX.h>
 #include <clang/AST/Expr.h>
 #include <clang/AST/ExprCXX.h>
+#include <clang/AST/TypeLoc.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Basic/Diagnostic.h>
@@ -27,24 +28,40 @@ void LintCodeCheck::registerMatchers(MatchFinder* Finder) {
     return;
   }
 
+  // Exclude only the for-init DeclStmt, not variables declared inside the loop body.
   Finder->addMatcher(varDecl(hasInitializer(expr()), unless(hasInitializer(initListExpr())),
                              unless(hasType(autoType())), unless(parmVarDecl()),
-                             unless(hasParent(cxxCatchStmt())), unless(hasAncestor(forStmt())),
-                             unless(hasAncestor(cxxForRangeStmt())))
+                             unless(hasParent(cxxCatchStmt())),
+                             unless(hasParent(declStmt(hasParent(forStmt())))),
+                             unless(hasParent(declStmt(hasParent(cxxForRangeStmt())))))
                          .bind("equals"),
                      this);
 
-  Finder->addMatcher(
-      varDecl(hasType(hasCanonicalType(isUnsignedInteger())), hasInitializer(integerLiteral()))
-          .bind("unsigned"),
-      this);
-
   Finder->addMatcher(varDecl(hasInitializer(initListExpr()), unless(parmVarDecl()),
-                             unless(hasAncestor(forStmt())), unless(hasAncestor(cxxForRangeStmt())))
+                             unless(hasParent(declStmt(hasParent(forStmt())))),
+                             unless(hasParent(declStmt(hasParent(cxxForRangeStmt())))))
                          .bind("equals_brace"),
                      this);
 
   Finder->addMatcher(integerLiteral().bind("lowercase_suffix"), this);
+}
+
+SourceLocation LintCodeCheck::getDeclaratorEndLoc(const VarDecl* VarDeclPtr,
+                                                  const SourceManager& SrcMgr,
+                                                  const LangOptions& LangOpts) {
+  SourceLocation EndLoc = VarDeclPtr->getLocation();
+  if (VarDeclPtr->getType()->isArrayType()) {
+    if (TypeSourceInfo* TSI = VarDeclPtr->getTypeSourceInfo(); TSI != nullptr) {
+      TypeLoc TypeLocRef = TSI->getTypeLoc();
+      while (auto ArrayTL = TypeLocRef.getAs<ArrayTypeLoc>()) {
+        if (ArrayTL.getRBracketLoc().isValid()) {
+          EndLoc = ArrayTL.getRBracketLoc();
+        }
+        TypeLocRef = ArrayTL.getElementLoc();
+      }
+    }
+  }
+  return Lexer::getLocForEndOfToken(EndLoc, 0, SrcMgr, LangOpts);
 }
 
 void LintCodeCheck::check(const MatchFinder::MatchResult& Result) {
@@ -58,9 +75,6 @@ void LintCodeCheck::check(const MatchFinder::MatchResult& Result) {
 
   if (const auto* VarDeclPtr = Result.Nodes.getNodeAs<VarDecl>("equals"); VarDeclPtr != nullptr) {
     checkEqualsInit(VarDeclPtr, Result.Context);
-  } else if (const auto* VarDeclPtr = Result.Nodes.getNodeAs<VarDecl>("unsigned");
-             VarDeclPtr != nullptr) {
-    checkUnsignedSuffix(VarDeclPtr, Result.Context);
   } else if (const auto* VarDeclPtr = Result.Nodes.getNodeAs<VarDecl>("equals_brace");
              VarDeclPtr != nullptr) {
     checkEqualsBraceInit(VarDeclPtr, Result.Context);
@@ -309,6 +323,11 @@ void LintCodeCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
     return;
   }
 
+  // Macro-expanded initializers: spelling is the macro name, not the literal text.
+  if (Init->getBeginLoc().isMacroID() || Init->getExprLoc().isMacroID()) {
+    return;
+  }
+
   const bool IsCallInit{(InitStyle == VarDecl::CallInit)};
   if (IsCallInit) {
     const Expr* InitExpr{Init->IgnoreImplicit()};
@@ -333,13 +352,13 @@ void LintCodeCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
     return;
   }
 
+  auto& SrcMgr = Ctx->getSourceManager();
+  auto LangOpts = Ctx->getLangOpts();
+  auto VarEndLoc = getDeclaratorEndLoc(VarDeclPtr, SrcMgr, LangOpts);
+
   if (InitStyle == VarDecl::CInit) {
     if (const auto* CCE = dyn_cast<CXXConstructExpr>(InitExpr); CCE != nullptr) {
       if (CCE->isListInitialization()) {
-        auto& SrcMgr = Ctx->getSourceManager();
-        auto LangOpts = Ctx->getLangOpts();
-        auto VarEndLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
-        VarEndLoc = Lexer::getLocForEndOfToken(VarEndLoc, 0, SrcMgr, LangOpts);
         auto InitStartLoc = Init->getBeginLoc();
         diag(VarDeclPtr->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
             << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc),
@@ -353,16 +372,11 @@ void LintCodeCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
     }
   }
 
-  auto& SrcMgr = Ctx->getSourceManager();
-  auto LangOpts = Ctx->getLangOpts();
-
   const auto InitRange = Init->getSourceRange();
   const auto Value =
       Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SrcMgr, LangOpts);
 
-  auto VarEndLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
   auto InitStartLoc = Init->getBeginLoc();
-
   const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SrcMgr, LangOpts);
 
   std::string ClosingBrace{"}"};
@@ -413,100 +427,6 @@ void LintCodeCheck::checkEqualsInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) 
         << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarEndLoc, InitStartLoc), "{")
         << FixItHint::CreateInsertion(InitEnd, ClosingBrace);
   }
-}
-
-void LintCodeCheck::checkUnsignedSuffix(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
-  if ((VarDeclPtr == nullptr) || (Ctx == nullptr)) {
-    return;
-  }
-
-  if (isInSystemHeader(VarDeclPtr->getLocation(), Ctx)) {
-    return;
-  }
-
-  const auto Name = VarDeclPtr->getName();
-  if (Name.empty()) {
-    return;
-  }
-
-  auto& SrcMgr = Ctx->getSourceManager();
-  auto LangOpts = Ctx->getLangOpts();
-
-  const auto* Init = VarDeclPtr->getInit();
-  if (Init == nullptr) {
-    return;
-  }
-
-  const auto* IntLit = dyn_cast<IntegerLiteral>(Init);
-  if (IntLit == nullptr) {
-    return;
-  }
-
-  const auto InitRange = Init->getSourceRange();
-  const SourceLocation InitBeginLoc = Init->getBeginLoc();
-  const SourceLocation InitEndLoc = Init->getEndLoc();
-  const SourceLocation TokEndLoc = Lexer::getLocForEndOfToken(InitEndLoc, 0, SrcMgr, LangOpts);
-  auto ValueText =
-      Lexer::getSourceText(CharSourceRange::getTokenRange(InitRange), SrcMgr, LangOpts);
-
-  if (ValueText.empty() || ValueText.size() > kMaxValueTextLength) {
-    return;
-  }
-
-  std::string FullText = ValueText.str();
-
-  char SuffixBuf[16] = {};
-  const char* ExtraBuf = SrcMgr.getCharacterData(InitEndLoc);
-  const char* P = ExtraBuf;
-  const char* End = P + static_cast<int>(ValueText.size()) + 8;
-  for (char SuffixChar : FullText) {
-    (void)SuffixChar;
-    P++;
-  }
-  std::size_t SuffixLen = 0;
-  while (P < End && SuffixLen < sizeof(SuffixBuf) - 1) {
-    if (*P == 'U' || *P == 'u' || *P == 'L' || *P == 'l') {
-      SuffixBuf[SuffixLen++] = *P;
-      P++;
-    } else if (*P == '\0' || *P == '\n' || *P == ' ' || *P == ',' || *P == ';' || *P == ')') {
-      break;
-    } else {
-      P++;
-      break;
-    }
-  }
-  if (SuffixLen > 0) {
-    FullText.append(SuffixBuf, SuffixLen);
-  }
-
-  bool HasSuffix = false;
-  for (const char Ch : FullText) {
-    if (Ch == 'U' || Ch == 'u' || Ch == 'L' || Ch == 'l') {
-      HasSuffix = true;
-      break;
-    }
-  }
-
-  if (HasSuffix) {
-    return;
-  }
-
-  const auto InitEnd = Lexer::getLocForEndOfToken(Init->getEndLoc(), 0, SrcMgr, LangOpts);
-
-  const QualType VarType{VarDeclPtr->getType()};
-  const clang::Type* CanonicalType{VarType.getTypePtr()->getCanonicalTypeInternal().getTypePtr()};
-
-  bool NeedsLongSuffix{false};
-  if (CanonicalType->isSpecificBuiltinType(clang::BuiltinType::ULong) ||
-      CanonicalType->isSpecificBuiltinType(clang::BuiltinType::ULongLong) ||
-      CanonicalType->isSpecificBuiltinType(clang::BuiltinType::UInt128)) {
-    NeedsLongSuffix = true;
-  }
-
-  const std::string Suffix{NeedsLongSuffix ? "UL" : "U"};
-
-  diag(Init->getBeginLoc(), "unsigned integer literal should have '%0' suffix")
-      << Suffix << FixItHint::CreateInsertion(InitEnd, Suffix);
 }
 
 void LintCodeCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* Ctx) {
@@ -568,28 +488,7 @@ void LintCodeCheck::checkEqualsBraceInit(const VarDecl* VarDeclPtr, ASTContext* 
     return;
   }
 
-  SourceLocation BraceStartLoc{};
-  if (VarDeclPtr->getType()->isArrayType()) {
-    if (auto* TSI = VarDeclPtr->getTypeSourceInfo(); TSI != nullptr) {
-      TypeLoc TypeLocRef{TSI->getTypeLoc()};
-      while (TypeLocRef.getAs<ArrayTypeLoc>()) {
-        const ArrayTypeLoc ArrayTypeLocRef{TypeLocRef.getAs<ArrayTypeLoc>()};
-        TypeLocRef = ArrayTypeLocRef.getElementLoc();
-        BraceStartLoc = ArrayTypeLocRef.getRBracketLoc().isValid()
-                            ? ArrayTypeLocRef.getRBracketLoc()
-                            : VarDeclPtr->getLocation();
-      }
-      if (BraceStartLoc.isInvalid()) {
-        BraceStartLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
-      }
-    } else {
-      BraceStartLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
-    }
-  } else {
-    BraceStartLoc = Lexer::getLocForEndOfToken(VarDeclPtr->getLocation(), 0, SrcMgr, LangOpts);
-  }
-
-  BraceStartLoc = Lexer::getLocForEndOfToken(BraceStartLoc, 0, SrcMgr, LangOpts);
+  SourceLocation BraceStartLoc = getDeclaratorEndLoc(VarDeclPtr, SrcMgr, LangOpts);
   auto InitStartLoc = Init->getBeginLoc();
 
   diag(VarDeclPtr->getLocation(), "initializer should use '{}' syntax instead of '= {}'")
@@ -633,6 +532,12 @@ void LintCodeCheck::checkDesignatedInit(const VarDecl* VarDeclPtr, const InitLis
 
   const auto* CXXRecord = dyn_cast<CXXRecordDecl>(Record);
   if (CXXRecord == nullptr || !CXXRecord->isAggregate()) {
+    return;
+  }
+
+  // Base-class subobjects come before fields in aggregate init; designators for
+  // bases are ill-formed, so skip aggregates with bases.
+  if (CXXRecord->getNumBases() != 0) {
     return;
   }
 
@@ -692,6 +597,10 @@ void LintCodeCheck::checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, AS
     return;
   }
 
+  if (IntLit->getBeginLoc().isMacroID() || IntLit->getExprLoc().isMacroID()) {
+    return;
+  }
+
   auto LangOpts = Ctx->getLangOpts();
 
   const auto LitRange = IntLit->getSourceRange();
@@ -703,31 +612,7 @@ void LintCodeCheck::checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, AS
     return;
   }
 
-  std::string FullText = ValueText.str();
-
-  char SuffixBuf[16] = {};
-  const char* ExtraBuf = SrcMgr.getCharacterData(LitEndLoc);
-  const char* P = ExtraBuf;
-  const char* End = P + static_cast<int>(ValueText.size()) + 8;
-  for (char SuffixChar : FullText) {
-    (void)SuffixChar;
-    P++;
-  }
-  std::size_t SuffixLen = 0;
-  while (P < End && SuffixLen < sizeof(SuffixBuf) - 1) {
-    if (*P == 'U' || *P == 'u' || *P == 'L' || *P == 'l') {
-      SuffixBuf[SuffixLen++] = *P;
-      P++;
-    } else if (*P == '\0' || *P == '\n' || *P == ' ' || *P == ',' || *P == ';' || *P == ')') {
-      break;
-    } else {
-      P++;
-      break;
-    }
-  }
-  if (SuffixLen > 0) {
-    FullText.append(SuffixBuf, SuffixLen);
-  }
+  const std::string FullText = ValueText.str();
 
   std::size_t SuffixLength = 0;
   for (std::size_t i = 0; i < FullText.size() && SuffixLength < 4; ++i) {
@@ -768,18 +653,13 @@ void LintCodeCheck::checkLowercaseLiteralSuffix(const IntegerLiteral* IntLit, AS
     }
   }
 
-  const auto LitBeginDecomp = SrcMgr.getDecomposedLoc(IntLit->getBeginLoc());
-  const auto TokBeginDecomp = SrcMgr.getDecomposedLoc(TokEndLoc);
-  if (LitBeginDecomp.first != TokBeginDecomp.first) {
-    return;
-  }
-
   const SourceLocation SuffixStartLoc =
       IntLit->getBeginLoc().getLocWithOffset(static_cast<int>(NumericLen));
 
+  // getCharRange: [SuffixStartLoc, TokEndLoc) — TokEndLoc is already past the token.
   diag(IntLit->getBeginLoc(), "integer literal suffix should be uppercase")
-      << FixItHint::CreateReplacement(
-             CharSourceRange::getTokenRange(SourceRange(SuffixStartLoc, TokEndLoc)), UpperSuffix);
+      << FixItHint::CreateReplacement(CharSourceRange::getCharRange(SuffixStartLoc, TokEndLoc),
+                                      UpperSuffix);
 }
 
 } // namespace clang::tidy::codelint

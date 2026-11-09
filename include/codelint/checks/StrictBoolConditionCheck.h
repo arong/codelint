@@ -20,7 +20,7 @@ public:
   }
 
 private:
-  void checkCondition(const Expr* Cond, ASTContext* Ctx);
+  void checkCondition(const Expr* Cond, ASTContext* Ctx, bool HasConditionVariable);
   static bool isBoolType(const Expr* expr);
   static const Expr* getNonBoolOperand(const Expr* expr);
   static std::string getComparisonFix(const Expr* expr);

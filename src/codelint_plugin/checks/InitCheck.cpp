@@ -27,8 +27,10 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
     return;
   }
 
+  // Exclude only for-init DeclStmts, not variables declared inside loop bodies.
   Finder->addMatcher(varDecl(unless(parmVarDecl()), unless(hasType(autoType())),
-                             unless(hasAncestor(cxxForRangeStmt())), unless(hasAncestor(forStmt())),
+                             unless(hasParent(declStmt(hasParent(forStmt())))),
+                             unless(hasParent(declStmt(hasParent(cxxForRangeStmt())))),
                              unless(hasAncestor(recordDecl(isUnion()))),
                              unless(hasParent(cxxCatchStmt())))
                          .bind("uninit"),
@@ -39,12 +41,14 @@ void InitCheck::registerMatchers(MatchFinder* Finder) {
 
   Finder->addMatcher(varDecl(hasInitializer(expr()), unless(hasInitializer(initListExpr())),
                              unless(hasType(autoType())), unless(parmVarDecl()),
-                             unless(hasParent(cxxCatchStmt())), unless(hasAncestor(forStmt())),
-                             unless(hasAncestor(cxxForRangeStmt())))
+                             unless(hasParent(cxxCatchStmt())),
+                             unless(hasParent(declStmt(hasParent(forStmt())))),
+                             unless(hasParent(declStmt(hasParent(cxxForRangeStmt())))))
                          .bind("dangerous"),
                      this);
 
-  Finder->addMatcher(cxxConstructorDecl(unless(isImplicit())).bind("constructor"), this);
+  Finder->addMatcher(cxxConstructorDecl(unless(isImplicit()), isDefinition()).bind("constructor"),
+                     this);
 }
 
 void InitCheck::check(const MatchFinder::MatchResult& Result) {
@@ -233,9 +237,10 @@ void InitCheck::checkDangerousConversion(const VarDecl* VarDeclPtr, ASTContext* 
   const Type* DestTy{VarDeclPtr->getType().getTypePtr()};
   const Type* SrcTy{InitExpr->getType().getTypePtr()};
 
-  if (DestTy->isIntegerType() && SrcTy->isFloatingType()) {
+  // bool is an integer type; check it first for a precise diagnostic.
+  if (DestTy->isBooleanType() && SrcTy->isFloatingType()) {
     diag(VarDeclPtr->getLocation(),
-         "narrowing conversion from floating to integer; cannot use '{}' initialization");
+         "assigning floating to bool is dangerous; use explicit comparison");
     return;
   }
 
@@ -244,11 +249,22 @@ void InitCheck::checkDangerousConversion(const VarDecl* VarDeclPtr, ASTContext* 
          "assigning integer to bool is dangerous; use explicit comparison");
     return;
   }
+
+  if (DestTy->isIntegerType() && !DestTy->isBooleanType() && SrcTy->isFloatingType()) {
+    diag(VarDeclPtr->getLocation(),
+         "narrowing conversion from floating to integer; cannot use '{}' initialization");
+    return;
+  }
 }
 
 void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstructorDecl* Ctor,
                                                                 ASTContext* Ctx) {
   if ((Ctor == nullptr) || (Ctx == nullptr) || Ctor->isImplicit()) {
+    return;
+  }
+
+  if (!Ctor->isThisDeclarationADefinition() || Ctor->isDefaulted() || Ctor->isDeleted() ||
+      Ctor->isDelegatingConstructor()) {
     return;
   }
 
@@ -270,6 +286,10 @@ void InitCheck::checkUninitializedMemberVariablesInConstructors(const CXXConstru
     }
 
     if (Field->isBitField()) {
+      continue;
+    }
+
+    if (Field->getType()->isReferenceType()) {
       continue;
     }
 
