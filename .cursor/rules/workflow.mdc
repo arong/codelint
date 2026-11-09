@@ -1,0 +1,48 @@
+---
+description: Feature/fix branches, local worktrees, cloud branching, and PRs
+alwaysApply: true
+---
+
+# Workflow
+
+Blocked for commits: `main`, `master`, `production`, `release`.
+
+Branch naming: `feature/<short-name>` or `fix/<short-name>`.
+
+## Local (primary clone on main)
+
+Keep the primary clone on `main`. Develop in a separate worktree:
+
+```bash
+git fetch origin main
+git worktree add ../codelint-<short-name> -b feature/<short-name> origin/main
+cd ../codelint-<short-name>
+# implement, commit, push
+```
+
+After merge:
+
+```bash
+git fetch --prune origin
+git worktree remove ../codelint-<short-name>
+git branch -d feature/<short-name>
+```
+
+Do not `git checkout` a feature branch in the primary `main` clone.
+
+## Cursor Cloud
+
+Single checkout — create the branch in place (no sibling worktree required):
+
+```bash
+git fetch origin main
+git switch -c feature/<short-name> origin/main
+```
+
+## Pull requests
+
+```bash
+gh pr create --base main --head feature/<short-name>
+```
+
+When asked to "submit PR": create the PR, then `gh run watch --exit-status`, and fix CI before reporting done.

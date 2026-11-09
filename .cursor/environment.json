@@ -1,0 +1,7 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "install": "./setup.sh && cmake --preset linux-llvm15 && cmake --build build -j$(nproc)"
+}

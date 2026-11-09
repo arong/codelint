@@ -1,0 +1,41 @@
+---
+description: AI commit author, hooks setup, and no --no-verify
+alwaysApply: true
+---
+
+# Git safety
+
+## Commit author
+
+AI commits must use:
+
+```
+Sisyphus <sisyphus@codelint.dev>
+```
+
+```bash
+git commit --author="Sisyphus <sisyphus@codelint.dev>" -m "type: description"
+```
+
+## Hooks
+
+After clone (or in Cursor Cloud `install`), run:
+
+```bash
+./setup.sh
+```
+
+This sets an absolute `core.hooksPath` to `.githooks`.
+
+Never use `--no-verify` unless the user explicitly asks.
+
+### pre-commit
+
+- clang-format on staged C++ (auto-fix)
+- trailing whitespace / newlines
+- sensitive file detection
+
+### commit-msg
+
+- format: `type: description` (or `type(scope): description`)
+- blocks commits on `main` / `master` / `production` / `release`
