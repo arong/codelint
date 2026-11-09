@@ -43,16 +43,20 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
   }
 
   const Expr* Cond{nullptr};
+  bool HasConditionVariable{false};
 
   if (const auto* IfStmtPtr = Result.Nodes.getNodeAs<clang::IfStmt>("ifStmt");
       IfStmtPtr != nullptr) {
     Cond = IfStmtPtr->getCond();
+    HasConditionVariable = IfStmtPtr->getConditionVariable() != nullptr;
   } else if (const auto* WhileStmtPtr = Result.Nodes.getNodeAs<clang::WhileStmt>("whileStmt");
              WhileStmtPtr != nullptr) {
     Cond = WhileStmtPtr->getCond();
+    HasConditionVariable = WhileStmtPtr->getConditionVariable() != nullptr;
   } else if (const auto* ForStmtPtr = Result.Nodes.getNodeAs<clang::ForStmt>("forStmt");
              ForStmtPtr != nullptr) {
     Cond = ForStmtPtr->getCond();
+    HasConditionVariable = ForStmtPtr->getConditionVariable() != nullptr;
   } else if (const auto* DoStmtPtr = Result.Nodes.getNodeAs<clang::DoStmt>("doStmt");
              DoStmtPtr != nullptr) {
     Cond = DoStmtPtr->getCond();
@@ -62,11 +66,12 @@ void StrictBoolConditionCheck::check(const ast_matchers::MatchFinder::MatchResul
   }
 
   if (Cond != nullptr) {
-    checkCondition(Cond, Result.Context);
+    checkCondition(Cond, Result.Context, HasConditionVariable);
   }
 }
 
-void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::ASTContext* Ctx) {
+void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::ASTContext* Ctx,
+                                              bool HasConditionVariable) {
   if ((Cond == nullptr) || (Ctx == nullptr)) {
     return;
   }
@@ -85,7 +90,13 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
   const clang::QualType CondType{NonBoolOperand->getType()};
 
   const std::string Fix = getComparisonFix(NonBoolOperand);
-  if (!Fix.empty()) {
+  const clang::Expr* CondCore{Cond->IgnoreImpCasts()};
+  // Only emit a fix-it when replacing the whole condition operand. Nested
+  // operands (e.g. inside `!p`) or condition-variable declarations would produce
+  // ill-formed replacements.
+  const bool CanFix = !Fix.empty() && !HasConditionVariable && NonBoolOperand == CondCore;
+
+  if (CanFix) {
     auto& LangOpts = Ctx->getLangOpts();
     const auto NonBoolRange = NonBoolOperand->getSourceRange();
     const auto NonBoolText =
@@ -94,7 +105,7 @@ void StrictBoolConditionCheck::checkCondition(const clang::Expr* Cond, clang::AS
     diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
         << normalizeTypeName(CondType.getAsString())
         << FixItHint::CreateReplacement(CharSourceRange::getTokenRange(NonBoolRange),
-                                        NonBoolText.str() + Fix);
+                                        "(" + NonBoolText.str() + ")" + Fix);
   } else {
     diag(NonBoolOperand->getBeginLoc(), "condition must be bool type, but got '%0'")
         << normalizeTypeName(CondType.getAsString());

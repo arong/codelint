@@ -29,13 +29,12 @@ const StringLiteral* GlobalConstStringCheck::findStringLiteral(const Expr* Init)
   }
 
   if (const auto* CCE = dyn_cast<CXXConstructExpr>(E); CCE != nullptr) {
-    for (unsigned I = 0; I < CCE->getNumArgs(); ++I) {
-      const StringLiteral* SL = findStringLiteral(CCE->getArg(I));
-      if (SL != nullptr) {
-        return SL;
-      }
+    // Multi-arg basic_string ctors (e.g. (const char*, size_t)) must not be
+    // rewritten — that would change the string value.
+    if (CCE->getNumArgs() != 1) {
+      return nullptr;
     }
-    return nullptr;
+    return findStringLiteral(CCE->getArg(0));
   }
 
   if (const auto* Cast = dyn_cast<CXXFunctionalCastExpr>(E); Cast != nullptr) {
@@ -144,6 +143,26 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
+  // Multi-declarator groups share getBeginLoc(); rewriting would delete siblings.
+  unsigned SameBeginCount = 0;
+  if (const DeclContext* DC = VD->getLexicalDeclContext(); DC != nullptr) {
+    for (const Decl* D : DC->decls()) {
+      if (const auto* Other = dyn_cast<VarDecl>(D);
+          Other != nullptr && Other->getBeginLoc() == VD->getBeginLoc()) {
+        ++SameBeginCount;
+      }
+    }
+  }
+  const bool MultiDeclarator = SameBeginCount > 1;
+
+  auto Diag =
+      diag(VD->getLocation(), "global const std::string initialized with string literal should be "
+                              "'constexpr const char*'");
+
+  if (MultiDeclarator) {
+    return;
+  }
+
   auto& SrcMgr = Result.Context->getSourceManager();
   auto LangOpts = Result.Context->getLangOpts();
 
@@ -156,10 +175,6 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
       Lexer::getSourceText(CharSourceRange::getTokenRange(SL->getSourceRange()), SrcMgr, LangOpts);
 
   const std::string NewInit = "{" + LitText.str() + "}";
-
-  auto Diag =
-      diag(VD->getLocation(), "global const std::string initialized with string literal should be "
-                              "'constexpr const char*'");
 
   Diag << FixItHint::CreateReplacement(CharSourceRange::getCharRange(VarStart, VarNameStart),
                                        "constexpr const char* ");

@@ -5,7 +5,6 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
-#include <clang/Lex/Lexer.h>
 
 namespace clang::tidy::codelint {
 
@@ -19,40 +18,12 @@ void FunctionSizeCheck::registerMatchers(ast_matchers::MatchFinder* Finder) {
       this);
 }
 
-static bool isBlankLine(StringRef Line) {
-  return Line.trim().empty();
-}
-
-static bool isCommentLine(StringRef Line) {
-  return Line.find("//") != StringRef::npos;
-}
-
-static StringRef getLineText(const SourceManager& SrcMgr, FileID FID, unsigned LineNumber) {
-  StringRef FullText = SrcMgr.getBufferData(FID);
-
-  unsigned CurrentLine = 1;
-  size_t LineStart = 0;
-
-  for (size_t i = 0; i < FullText.size(); ++i) {
-    if (CurrentLine == LineNumber) {
-      LineStart = i;
-      break;
-    }
-    if (FullText[i] == '\n') {
-      ++CurrentLine;
-    }
+static bool isBlankOrLeadingCommentLine(StringRef Line) {
+  const StringRef Trimmed = Line.trim();
+  if (Trimmed.empty()) {
+    return true;
   }
-
-  if (CurrentLine != LineNumber) {
-    return StringRef();
-  }
-
-  size_t LineEnd = LineStart;
-  while (LineEnd < FullText.size() && FullText[LineEnd] != '\n') {
-    ++LineEnd;
-  }
-
-  return FullText.substr(LineStart, LineEnd - LineStart);
+  return Trimmed.size() >= 2 && Trimmed[0] == '/' && Trimmed[1] == '/';
 }
 
 void FunctionSizeCheck::check(const ast_matchers::MatchFinder::MatchResult& Result) {
@@ -79,22 +50,41 @@ void FunctionSizeCheck::check(const ast_matchers::MatchFinder::MatchResult& Resu
     return;
   }
 
-  const auto FID = SrcMgr.getFileID(ExpansionStart);
-  const auto StartLine = SrcMgr.getExpansionLineNumber(ExpansionStart);
-  const auto EndLine = SrcMgr.getExpansionLineNumber(ExpansionEnd);
+  const auto StartDecomp = SrcMgr.getDecomposedExpansionLoc(ExpansionStart);
+  const auto EndDecomp = SrcMgr.getDecomposedExpansionLoc(ExpansionEnd);
+  if (StartDecomp.first != EndDecomp.first) {
+    return;
+  }
 
+  const FileID FID = StartDecomp.first;
+  const StringRef Buffer = SrcMgr.getBufferData(FID);
+  if (StartDecomp.second >= Buffer.size() || EndDecomp.second >= Buffer.size()) {
+    return;
+  }
+
+  // Single pass over the function body byte range.
   int LineCount = 0;
-  for (unsigned Line = StartLine; Line <= EndLine; ++Line) {
-    StringRef LineText = getLineText(SrcMgr, FID, Line);
-
-    if (isBlankLine(LineText) || isCommentLine(LineText)) {
+  size_t LineStart = StartDecomp.second;
+  const size_t BodyEnd = EndDecomp.second;
+  for (size_t I = StartDecomp.second; I <= BodyEnd; ++I) {
+    const bool AtEnd = (I == BodyEnd);
+    if (!AtEnd && Buffer[I] != '\n') {
       continue;
     }
 
-    ++LineCount;
+    const size_t LineEnd = AtEnd && Buffer[I] != '\n' ? I + 1 : I;
+    const StringRef LineText = Buffer.substr(LineStart, LineEnd - LineStart);
+    if (!isBlankOrLeadingCommentLine(LineText)) {
+      ++LineCount;
+    }
+
+    LineStart = I + 1;
+    if (AtEnd) {
+      break;
+    }
   }
 
-  if (LineCount >= 50) {
+  if (LineCount > 50) {
     diag(FunctionDecl->getLocation(), "function '%0' has %1 lines (exceeds 50 line limit)")
         << FunctionDecl->getName() << LineCount;
   }
