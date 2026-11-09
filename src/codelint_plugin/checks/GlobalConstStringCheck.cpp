@@ -143,17 +143,24 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     return;
   }
 
-  // Multi-declarator groups share getBeginLoc(); rewriting would delete siblings.
-  unsigned SameBeginCount = 0;
+  // Multi-declarator groups share getBeginLoc() but have distinct name locations.
+  // Only treat a sibling with a different name loc as a multi-declarator group —
+  // counting all same-begin decls is too aggressive (redecls / TU noise).
+  bool MultiDeclarator = false;
   if (const DeclContext* DC = VD->getLexicalDeclContext(); DC != nullptr) {
+    const SourceLocation Begin = VD->getBeginLoc();
+    const SourceLocation NameLoc = VD->getLocation();
     for (const Decl* D : DC->decls()) {
-      if (const auto* Other = dyn_cast<VarDecl>(D);
-          Other != nullptr && Other->getBeginLoc() == VD->getBeginLoc()) {
-        ++SameBeginCount;
+      const auto* Other = dyn_cast<VarDecl>(D);
+      if (Other == nullptr || Other == VD) {
+        continue;
+      }
+      if (Other->getBeginLoc() == Begin && Other->getLocation() != NameLoc) {
+        MultiDeclarator = true;
+        break;
       }
     }
   }
-  const bool MultiDeclarator = SameBeginCount > 1;
 
   auto Diag =
       diag(VD->getLocation(), "global const std::string initialized with string literal should be "
