@@ -1,0 +1,39 @@
+---
+description: Build, LLVM paths, tests, and CI debug commands
+alwaysApply: true
+---
+
+# Build and CI
+
+## Configure / build
+
+```bash
+# macOS (LLVM 21 via Homebrew)
+SDKROOT=$(xcrun --show-sdk-path) cmake --preset default
+cmake --build build
+
+# Linux / Cursor Cloud (LLVM 15)
+cmake --preset linux-llvm15
+cmake --build build -j$(nproc)
+```
+
+LLVM paths:
+
+- macOS: `/opt/homebrew/opt/llvm@21/bin/` (adjust version as needed)
+- Linux cloud image: `/usr/lib/llvm-15/` (`clang-format-15`, `clang-tidy-15`)
+
+Do not use `cmake --preset default` on the cloud LLVM 15 image — `default` targets LLVM 21 on Linux.
+
+## Tests
+
+```bash
+bash tests/run_lit_tests.sh
+```
+
+## CI debug
+
+```bash
+gh run list --limit 1
+gh run watch <ID> --exit-status
+gh run view <ID> --log-failed
+```

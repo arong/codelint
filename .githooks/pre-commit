@@ -1,9 +1,30 @@
 #!/bin/bash
 set -euo pipefail
 
-CLANG_FORMAT="/opt/homebrew/opt/llvm@21/bin/clang-format"
+resolve_clang_format() {
+    local candidates=(
+        "/opt/homebrew/opt/llvm@21/bin/clang-format"
+        "/opt/homebrew/opt/llvm/bin/clang-format"
+        "clang-format-15"
+        "clang-format-21"
+        "clang-format"
+    )
+    local c
+    for c in "${candidates[@]}"; do
+        if [[ "$c" == /* ]]; then
+            if [[ -x "$c" ]]; then
+                echo "$c"
+                return 0
+            fi
+        elif command -v "$c" >/dev/null 2>&1; then
+            command -v "$c"
+            return 0
+        fi
+    done
+    return 1
+}
 
-echo "🔍 Running pre-commit checks..."
+echo "Running pre-commit checks..."
 
 # Get all staged files once (Add, Copy, Modify, Rename)
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
@@ -11,32 +32,33 @@ STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 # ========================================
 # Check 1: clang-format C++ files
 # ========================================
-echo "📝 Checking C++ formatting..."
+echo "Checking C++ formatting..."
 
 # Get staged C++ files (exclude test fixture files)
 STAGED_CPP=$(echo "$STAGED_FILES" | grep -E '\.(cpp|cc|cxx|h|hpp|hh|hxx)$' | grep -v 'tests/CodeLintTest/src/init_checker/fixed/' || true)
 
 if [[ -n "$STAGED_CPP" ]]; then
-    if [[ ! -x "$CLANG_FORMAT" ]]; then
-        echo "⚠️  Warning: clang-format not found at $CLANG_FORMAT"
-        echo "   Install LLVM or update CLANG_FORMAT path in .githooks/pre-commit"
-    else
+    if CLANG_FORMAT=$(resolve_clang_format); then
+        echo "  using: $CLANG_FORMAT"
         echo "$STAGED_CPP" | while read -r file; do
             if [[ -f "$file" ]]; then
                 "$CLANG_FORMAT" -i "$file"
                 git add "$file"
-                echo "   formatted: $file"
+                echo "  formatted: $file"
             fi
         done
+    else
+        echo "Warning: clang-format not found (tried llvm@21, llvm, clang-format-15/21, PATH)"
+        echo "  Install LLVM or ensure clang-format is on PATH"
     fi
 else
-    echo "   No C++ files staged"
+    echo "  No C++ files staged"
 fi
 
 # ========================================
 # Check 2: Trailing whitespace (only staged files)
 # ========================================
-echo "📝 Checking trailing whitespace..."
+echo "Checking trailing whitespace..."
 
 # Get staged text files
 STAGED_TEXT=$(echo "$STAGED_FILES" | grep -E '\.(cpp|h|txt|md|sh|py)$' || true)
@@ -45,23 +67,23 @@ if [[ -n "$STAGED_TEXT" ]]; then
     whitespace_errors=0
     while IFS= read -r file; do
         if [[ -f "$file" ]] && grep -q '[[:blank:]]$' "$file" 2>/dev/null; then
-            echo "❌ Trailing whitespace in: $file"
+            echo "Trailing whitespace in: $file"
             whitespace_errors=$((whitespace_errors + 1))
         fi
     done <<< "$STAGED_TEXT"
-    
+
     if [ $whitespace_errors -ne 0 ]; then
-        echo "❌ Error: Found trailing whitespace in $whitespace_errors file(s)"
+        echo "Error: Found trailing whitespace in $whitespace_errors file(s)"
         echo "Please fix and try again."
         exit 1
     fi
 fi
-echo "✅ No trailing whitespace"
+echo "No trailing whitespace"
 
 # ========================================
 # Check 3: Trailing newlines (only staged files)
 # ========================================
-echo "📝 Checking trailing newlines..."
+echo "Checking trailing newlines..."
 
 errors=0
 if [[ -n "$STAGED_TEXT" ]]; then
@@ -69,41 +91,41 @@ if [[ -n "$STAGED_TEXT" ]]; then
         if [[ ! -f "$file" ]]; then
             continue
         fi
-        
+
         file_size=$(wc -c < "$file" | tr -d " ")
-        
+
         # Skip empty files (0 bytes or 1 byte newline only)
         if [ "$file_size" -eq 0 ] || [ "$file_size" -eq 1 ]; then
             continue
         fi
-        
+
         # Check for multiple trailing newlines (0a0a)
         last_two=$(tail -c 2 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
         if [ "$last_two" = "0a0a" ]; then
-            echo "❌ Multiple trailing newlines: $file"
+            echo "Multiple trailing newlines: $file"
             errors=$((errors + 1))
             continue
         fi
-        
+
         # Check for missing trailing newline
         last=$(tail -c 1 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n')
         if [ "$last" != "0a" ]; then
-            echo "❌ Missing trailing newline: $file"
+            echo "Missing trailing newline: $file"
             errors=$((errors + 1))
         fi
     done <<< "$STAGED_TEXT"
 fi
 
 if [ $errors -ne 0 ]; then
-    echo "❌ Error: $errors file(s) have trailing newline issues"
+    echo "Error: $errors file(s) have trailing newline issues"
     exit 1
 fi
-echo "✅ All files have correct trailing newlines"
+echo "All files have correct trailing newlines"
 
 # ========================================
 # Check 4: Sensitive files detection
 # ========================================
-echo "🔒 Checking for sensitive files..."
+echo "Checking for sensitive files..."
 
 SENSITIVE_PATTERNS=(
     ".env"
@@ -121,17 +143,17 @@ sensitive_found=0
 for file in $STAGED_FILES; do
     for pattern in "${SENSITIVE_PATTERNS[@]}"; do
         if [[ "$file" == *"$pattern"* ]]; then
-            echo "❌ Sensitive file detected: $file"
+            echo "Sensitive file detected: $file"
             sensitive_found=$((sensitive_found + 1))
         fi
     done
 done
 
 if [ $sensitive_found -ne 0 ]; then
-    echo "❌ Error: Found $sensitive_found sensitive file(s)"
+    echo "Error: Found $sensitive_found sensitive file(s)"
     echo "Please remove sensitive files before committing"
     exit 1
 fi
-echo "✅ No sensitive files detected"
+echo "No sensitive files detected"
 
-echo "✨ All pre-commit checks passed!"
+echo "All pre-commit checks passed!"

@@ -1,0 +1,15 @@
+---
+description: Do not edit init_checker source or expected-output fixtures
+alwaysApply: true
+---
+
+# Test fixture protection
+
+Never modify:
+
+```
+tests/CodeLintTest/src/init_checker/src/*.cpp
+tests/CodeLintTest/src/init_checker/fixed/*.cpp
+```
+
+When tests fail: fix the **code**, not the fixtures.

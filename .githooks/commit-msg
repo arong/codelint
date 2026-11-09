@@ -10,14 +10,14 @@ set -euo pipefail
 COMMIT_MSG_FILE=$1
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
-echo "🔍 Validating commit message..."
+echo "Validating commit message..."
 
 # Valid commit types
 VALID_TYPES="feat|fix|refactor|docs|test|chore|style|perf|build|ci|release"
 
 # Check format: type: description (or type(scope): description)
 if ! echo "$COMMIT_MSG" | grep -qE "^(${VALID_TYPES})(\(.+\))?: .+"; then
-    echo "❌ Invalid commit message format!"
+    echo "Invalid commit message format!"
     echo ""
     echo "Expected format:"
     echo "  <type>: <description>"
@@ -36,13 +36,13 @@ if ! echo "$COMMIT_MSG" | grep -qE "^(${VALID_TYPES})(\(.+\))?: .+"; then
     exit 1
 fi
 
-echo "✅ Commit message format valid"
+echo "Commit message format valid"
 
 # ========================================
 # AI Branch Restriction Check
 # ========================================
-# AI can only commit on 'develop' branch
-# Blocked branches: main, master, production
+# Feature work must use feature/* or fix/* branches
+# Blocked branches: main, master, production, release
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -50,45 +50,16 @@ BLOCKED_BRANCHES="main|master|production|release"
 
 if echo "$CURRENT_BRANCH" | grep -qE "^(${BLOCKED_BRANCHES})$"; then
     echo ""
-    echo "╔════════════════════════════════════════╗"
-    echo "║  🚫 BLOCKED: AI cannot commit to       ║"
-    echo "║  production branches                   ║"
-    echo "╚════════════════════════════════════════╝"
+    echo "BLOCKED: cannot commit to production branches"
     echo ""
     echo "Current branch: $CURRENT_BRANCH"
     echo ""
-    echo "AI development workflow:"
-    echo "  1. Work on 'develop' branch (allowed)"
-    echo "  2. Push to develop"
-    echo "  3. Humans review and create PR: develop → main"
-    echo ""
-    echo "If you need to bypass this restriction:"
-    echo "  git commit --no-verify -m 'emergency fix'"
+    echo "Development workflow:"
+    echo "  Local:  git worktree add ../codelint-<name> -b feature/<name> origin/main"
+    echo "  Cloud:  git switch -c feature/<name>"
+    echo "  Then:   commit/push and open PR → main"
     echo ""
     exit 1
 fi
 
-# ========================================
-# Success Checks
-# ========================================
-echo "✅ Branch check passed (branch: $CURRENT_BRANCH)"
-
-# Run tests if on develop branch
-if [ "$CURRENT_BRANCH" = "develop" ]; then
-    echo "🧪 Running quick tests..."
-    
-    # Check if build directory exists
-    if [ -d "build" ]; then
-        # Run unit tests only (quick validation)
-        if cmake --build build --target test-unit 2>/dev/null; then
-            echo "✅ Unit tests passed"
-        else
-            echo "⚠️  Warning: Unit tests failed or not available"
-            echo "   Continuing commit (full tests run in CI)"
-        fi
-    else
-        echo "⚠️  Build directory not found, skipping tests"
-    fi
-    
-    echo "✓ All checks passed. Commit proceeding."
-fi
+echo "Branch check passed (branch: $CURRENT_BRANCH)"
