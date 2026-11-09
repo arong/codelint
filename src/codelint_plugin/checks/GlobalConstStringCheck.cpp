@@ -30,11 +30,24 @@ const StringLiteral* GlobalConstStringCheck::findStringLiteral(const Expr* Init)
 
   if (const auto* CCE = dyn_cast<CXXConstructExpr>(E); CCE != nullptr) {
     // Multi-arg basic_string ctors (e.g. (const char*, size_t)) must not be
-    // rewritten — that would change the string value.
-    if (CCE->getNumArgs() != 1) {
+    // rewritten — that would change the string value. Ignore defaulted args
+    // (libstdc++ often materializes a default Allocator argument).
+    unsigned ExplicitArgs = 0;
+    const StringLiteral* Found = nullptr;
+    for (unsigned I = 0; I < CCE->getNumArgs(); ++I) {
+      const Expr* Arg = CCE->getArg(I)->IgnoreImplicit();
+      if (isa<CXXDefaultArgExpr>(CCE->getArg(I))) {
+        continue;
+      }
+      ++ExplicitArgs;
+      if (Found == nullptr) {
+        Found = findStringLiteral(Arg);
+      }
+    }
+    if (ExplicitArgs != 1) {
       return nullptr;
     }
-    return findStringLiteral(CCE->getArg(0));
+    return Found;
   }
 
   if (const auto* Cast = dyn_cast<CXXFunctionalCastExpr>(E); Cast != nullptr) {
@@ -144,8 +157,6 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
   }
 
   // Multi-declarator groups share getBeginLoc() but have distinct name locations.
-  // Only treat a sibling with a different name loc as a multi-declarator group —
-  // counting all same-begin decls is too aggressive (redecls / TU noise).
   bool MultiDeclarator = false;
   if (const DeclContext* DC = VD->getLexicalDeclContext(); DC != nullptr) {
     const SourceLocation Begin = VD->getBeginLoc();
@@ -153,6 +164,9 @@ void GlobalConstStringCheck::check(const MatchFinder::MatchResult& Result) {
     for (const Decl* D : DC->decls()) {
       const auto* Other = dyn_cast<VarDecl>(D);
       if (Other == nullptr || Other == VD) {
+        continue;
+      }
+      if (Other->getCanonicalDecl() == VD->getCanonicalDecl()) {
         continue;
       }
       if (Other->getBeginLoc() == Begin && Other->getLocation() != NameLoc) {
