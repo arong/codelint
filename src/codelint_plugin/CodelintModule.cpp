@@ -8,7 +8,6 @@
 #ifndef CODELINT_DISABLE_SINGLETON_CHECK
 #include "codelint/checks/SingletonCheck.h"
 #endif
-#include "codelint/checks/LogTagMismatchCheck.h"
 #include "codelint/checks/StrictBoolConditionCheck.h"
 #include <clang-tidy/ClangTidyModule.h>
 #include <clang-tidy/ClangTidyModuleRegistry.h>
@@ -28,7 +27,6 @@ public:
 #endif
     CheckFactories.registerCheck<StrictBoolConditionCheck>("codelint-strict-bool-condition");
     CheckFactories.registerCheck<SignedToUnsignedReturnCheck>("codelint-signed-to-unsigned-return");
-    CheckFactories.registerCheck<LogTagMismatchCheck>("codelint-log-tag-mismatch");
   }
 };
 
