@@ -50,6 +50,7 @@ void process() {
 | **codelint-global** | Global variable detection | ❌ No | C++ |
 | **codelint-singleton** | Meyer's Singleton pattern detection | ❌ No | C++ |
 | **codelint-signed-to-unsigned-return** | Signed→unsigned return value detection | ❌ No | C++14/17/20 |
+| **codelint-log-tag-mismatch** | Mismatched `[FuncName]` tags in logging statements | ✅ Yes | C++ |
 
 ## codelint-init Features (Semantic Checks)
 
@@ -394,6 +395,63 @@ if (fd < 0) {
 |------|---------|----------|
 | Variable declaration | `size_t n = read(...)` | ✅ Yes |
 | Assignment expression | `n = read(...)` | ✅ Yes |
+
+## codelint-log-tag-mismatch Features
+
+This check detects mismatched log tags (`[FunctionName]`) in logging statements,
+catching copy-paste errors when moving log statements between functions.
+
+### What It Detects
+
+When a logging statement containing a tag like `[SomeFunc]` is placed inside a
+different function (`OtherFunc`):
+
+```cpp
+void FuncA() {
+    LOG("[FuncB] enters");     // ❌ Warning: log tag 'FuncB' does not match enclosing function 'FuncA'
+    LOG("[FuncA] finished");   // ✅ OK: tag matches function name
+}
+```
+
+### Supported Formats
+
+| Format | Example | Valid When |
+|--------|---------|------------|
+| Simple function name | `[FuncA]` | Tag matches enclosing function name |
+| Qualified name | `[MyClass::FuncA]` | Tag matches `Class::Method` |
+| No tag | `LOG("message")` | ✅ Always valid (no warning) |
+
+### Lambda Support
+
+Inside lambdas, the outer function's name is considered valid:
+
+```cpp
+void OuterFunc() {
+    auto f = []() {
+        LOG("[OuterFunc] processing");  // ✅ OK: matches outer function
+    };
+}
+```
+
+### Configuration Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `LogMacroNames` | `"*LOG*,*log*"` | Comma-separated glob patterns for log macro names |
+| `AllowQualifiedName` | `true` | Allow `[Class::Func]` format tags |
+
+### Auto-fix
+
+The checker provides automatic fix suggestions replacing mismatched tags with
+the correct function name:
+
+```cpp
+// Before:
+LOG("[FuncB] processing");  // Inside FuncA()
+
+// After auto-fix:
+LOG("[FuncA] processing");
+```
 
 ## Quick Start
 

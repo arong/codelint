@@ -62,20 +62,40 @@ jobs:
 
       - name: Test plugin with system clang-tidy
         run: |
+          set -e  # Fail on any error
           PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
           cd "${PACKAGE_DIR}"
 
-          # Test that plugin loads with system clang-tidy
+          # List all checks (does not instantiate them)
+          echo "=== Available codelint checks ==="
           clang-tidy-${LLVM_VERSION} --load=$PWD/codelint-core.so --checks='codelint-*' --list-checks | grep codelint
 
+          # IMPORTANT: Test with ALL codelint checks enabled
+          # This ensures EVERY check's registerCheck<T>() is instantiated
+          # and catches any symbol visibility issues
           cat > /tmp/test.cpp << 'EOF'
-          void test() {
+          // Test file that exercises multiple codelint checks
+          // Uninitialized variable check
+          void test_init() {
             int x;
-            int y = 5;
+          }
+
+          // Log tag mismatch check (if macros are used)
+          // bool condition check
+          void test_bool() {
+            int flag = 1;
+            if (flag) {}
           }
           EOF
 
-          clang-tidy-15 --load=$PWD/codelint-core.so --checks='codelint-init' /tmp/test.cpp 2>&1 | head -20 || true
+          echo ""
+          echo "=== Running ALL codelint checks (validate instantiation) ==="
+          clang-tidy-${LLVM_VERSION} --load=$PWD/codelint-core.so \
+            --checks='codelint-*' \
+            /tmp/test.cpp 2>&1
+
+          echo ""
+          echo "✅ All codelint checks successfully instantiated!"
 
       - name: Upload release package artifact
         uses: actions/upload-artifact@v4

@@ -60,6 +60,7 @@ add_llvm_library(codelint-core SHARED
     src/codelint_plugin/checks/SingletonCheck.cpp
     src/codelint_plugin/checks/StrictBoolConditionCheck.cpp
     src/codelint_plugin/checks/SignedToUnsignedReturnCheck.cpp
+    src/codelint_plugin/checks/LogTagMismatchCheck.cpp
 
     LINK_COMPONENTS
     support
