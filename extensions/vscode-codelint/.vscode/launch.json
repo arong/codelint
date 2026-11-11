@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode-codelint"],
+      "outFiles": ["${workspaceFolder}/extensions/vscode-codelint/out/**/*.js"],
+      "preLaunchTask": "npm: compile - extensions/vscode-codelint"
+    },
+    {
+      "name": "Run Extension (extension folder)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "preLaunchTask": "npm: compile"
+    }
+  ]
+}

@@ -412,6 +412,18 @@ clang-tidy --load=build/lib/codelint-plugin.dylib \
             src/**/*.cpp
 ```
 
+## VS Code extension
+
+A local VS Code extension lives in [`extensions/vscode-codelint`](extensions/vscode-codelint). It runs your built `codelint-core` via `clang-tidy --load` and shows findings in the Problems panel.
+
+```bash
+cd extensions/vscode-codelint
+npm install && npm run compile && npm run package
+# VS Code: Extensions → Install from VSIX… → codelint-*.vsix
+```
+
+See [extensions/vscode-codelint/README.md](extensions/vscode-codelint/README.md) for F5 debugging and settings (`codelint.pluginPath`, `codelint.clangTidyPath`, `codelint.compileCommandsDir`).
+
 ## AI Tool Integration
 
 ### For AI Assistants (Claude, Cursor, Copilot)
