@@ -1,0 +1,107 @@
+{
+  "name": "codelint",
+  "displayName": "Codelint",
+  "description": "Run codelint-core clang-tidy checks in VS Code",
+  "version": "0.0.1",
+  "publisher": "codelint",
+  "icon": "media/icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arong/codelint.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "c++",
+    "clang-tidy",
+    "codelint",
+    "lint"
+  ],
+  "activationEvents": [
+    "onLanguage:cpp",
+    "onLanguage:c"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codelint.lintActiveFile",
+        "title": "Codelint: Lint Active File"
+      },
+      {
+        "command": "codelint.lintWorkspace",
+        "title": "Codelint: Lint Workspace"
+      },
+      {
+        "command": "codelint.fixActiveFile",
+        "title": "Codelint: Fix Active File"
+      },
+      {
+        "command": "codelint.showOutput",
+        "title": "Codelint: Show Output"
+      },
+      {
+        "command": "codelint.clearCache",
+        "title": "Codelint: Clear Lint Cache"
+      }
+    ],
+    "configuration": {
+      "title": "Codelint",
+      "properties": {
+        "codelint.clangTidyPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to clang-tidy. Empty = auto-detect (Homebrew llvm@21, PATH, etc.)."
+        },
+        "codelint.pluginPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to codelint-core shared library (.dylib/.so). Empty = search workspace build/lib."
+        },
+        "codelint.compileCommandsDir": {
+          "type": "string",
+          "default": "",
+          "description": "Directory containing compile_commands.json. Empty = search workspace (build/, etc.)."
+        },
+        "codelint.checks": {
+          "type": "string",
+          "default": "codelint-*",
+          "description": "clang-tidy --checks pattern for codelint."
+        },
+        "codelint.runOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically lint C/C++ files on open and on save."
+        },
+        "codelint.fixOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Apply clang-tidy --fix on save (rewrites the file on disk)."
+        },
+        "codelint.cache": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cache lint results by file content hash. Reopening/switching to an unchanged file skips clang-tidy."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "bash scripts/pack-vsix.sh",
+    "install:vscode": "bash scripts/install-local-vscode.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}

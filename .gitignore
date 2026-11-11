@@ -11,10 +11,15 @@ cmake-build-debug/
 
 # IDE / Editor
 .idea/
-.vscode/
+/.vscode/
 *.swp
 *.swo
 *~
+
+# VS Code extension build
+extensions/vscode-codelint/node_modules/
+extensions/vscode-codelint/out/
+extensions/vscode-codelint/*.vsix
 
 # OS
 .DS_Store

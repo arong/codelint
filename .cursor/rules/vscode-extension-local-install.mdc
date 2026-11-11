@@ -1,0 +1,33 @@
+---
+description: How to reinstall Codelint VS Code extension locally without burning version numbers
+alwaysApply: true
+---
+
+# Local VS Code extension updates
+
+## Daily local debug / reinstall (default)
+
+Do **not** bump `extensions/vscode-codelint/package.json` `version` for ordinary fixes
+and UI tweaks. Rebuild and force-reinstall the same version:
+
+```bash
+cd extensions/vscode-codelint
+bash scripts/install-local-vscode.sh   # or: npm run install:vscode
+```
+
+`--force` overwrites the installed extension even when the version string is unchanged.
+After install, remind the user to **Reload Window** or **Restart Extensions**.
+
+Prefer **F5 Extension Development Host** for rapid iteration when a full VSIX install
+is unnecessary.
+
+## Real releases only
+
+Bump `version` only when the user asks to release / publish / cut a version, or when
+shipping a deliberate numbered build. After a version bump, still run
+`install-local-vscode.sh` so local VS Code matches.
+
+## CLI notes
+
+- Use `/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code`
+- Do **not** rely on `/usr/local/bin/code` (Cursor on this machine)
