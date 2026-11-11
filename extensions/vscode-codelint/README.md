@@ -19,40 +19,35 @@ cmake --build build
 
 3. Generate `compile_commands.json` for the project you are editing (`CMAKE_EXPORT_COMPILE_COMMANDS=ON`, usually under `build/`).
 
-## Develop (F5)
+## Develop
 
-From the **codelint repository root** (recommended):
+### Fast loop (recommended): F5
 
-```bash
-cd extensions/vscode-codelint
-npm install
-npm run compile
-```
-
-Open the repository in VS Code/Cursor, then launch **Run Extension** from `.vscode/launch.json` under this folder (or open `extensions/vscode-codelint` as the folder and use the “extension folder” launch config).
-
-## Install on your machine (VSIX)
+No VSIX, no version bump. From the repo root:
 
 ```bash
 cd extensions/vscode-codelint
 npm install
 npm run compile
-npm run package
-# or one-shot: build + install into Visual Studio Code
-npm run install:vscode
 ```
 
-In VS Code: **Extensions → … → Install from VSIX…** and select the generated `codelint-*.vsix`.
+Then launch **Run Extension** (Extension Development Host). Changes apply after recompile + relaunch.
 
-On this machine, prefer:
+### Install into daily VS Code (VSIX)
+
+You do **not** need to bump `package.json` version for every local install.
+`npm run install:vscode` rebuilds and `--force` overwrites the same version.
 
 ```bash
+cd extensions/vscode-codelint
 npm run install:vscode
 ```
+
+Only bump `version` when cutting a real release. Reload Window / Restart Extensions after install.
 
 (`/usr/local/bin/code` may point at Cursor; the install script targets Visual Studio Code.app.)
 
-`npm run package` uses a small local zip packer (`scripts/pack-vsix.sh`). You can also use `npx @vscode/vsce package` if preferred.
+`npm run package` uses a small local zip packer (`scripts/pack-vsix.sh`).
 
 ## Settings
 

@@ -2,7 +2,7 @@
   "name": "codelint",
   "displayName": "Codelint",
   "description": "Run codelint-core clang-tidy checks in VS Code",
-  "version": "0.1.9",
+  "version": "0.0.1",
   "publisher": "codelint",
   "icon": "media/icon.png",
   "license": "MIT",
