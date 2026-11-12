@@ -49,6 +49,16 @@ Only bump `version` when cutting a real release. Reload Window / Restart Extensi
 
 `npm run package` uses a small local zip packer (`scripts/pack-vsix.sh`).
 
+### GitHub Release (CI)
+
+Pushing a `v*` tag runs the release workflow: it packages `codelint-<version>.vsix`
+(version taken from the tag) and attaches it to the GitHub Release alongside the
+LLVM 15 `codelint-core` tarball. Install from the release asset:
+
+```bash
+code --install-extension codelint-<version>.vsix
+```
+
 ## Settings
 
 | Setting | Default | Meaning |
