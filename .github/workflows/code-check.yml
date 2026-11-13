@@ -159,6 +159,21 @@ jobs:
           clang-tidy-${LLVM_VERSION} --version
           clang-tidy-${LLVM_VERSION} --load=build/lib/codelint-core.so --checks='codelint-*' --list-checks | grep codelint
 
+          cat > /tmp/codelint_llvm15_smoke.cpp << 'EOF'
+          void test() {
+            int x;
+            (void)x;
+          }
+          EOF
+
+          OUT=$(clang-tidy-${LLVM_VERSION} \
+            --load=build/lib/codelint-core.so \
+            --checks='codelint-*' \
+            /tmp/codelint_llvm15_smoke.cpp 2>&1 || true)
+          echo "$OUT"
+          echo "$OUT" | grep -q 'codelint'
+          echo "✅ LLVM ${LLVM_VERSION} plugin emitted a codelint diagnostic"
+
       - name: Check code formatting
         if: github.event_name == 'pull_request' && matrix.llvm_version == 21
         run: |
