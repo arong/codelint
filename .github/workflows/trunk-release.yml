@@ -40,7 +40,8 @@ jobs:
       - name: Set trunk version
         id: version
         run: |
-          SHORT_SHA="${GITHUB_SHA:0:7}"
+          # Portable: ubuntu container default shell is dash (no ${var:0:7})
+          SHORT_SHA=$(printf '%.7s' "$GITHUB_SHA")
           echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "codelint_version=0.0.0-trunk.${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
@@ -123,7 +124,7 @@ jobs:
       - name: Set trunk version
         id: version
         run: |
-          SHORT_SHA="${GITHUB_SHA:0:7}"
+          SHORT_SHA=$(printf '%.7s' "$GITHUB_SHA")
           echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "codelint_version=0.0.0-trunk.${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
@@ -189,7 +190,7 @@ jobs:
 
       - name: Upsert trunk pre-release
         run: |
-          SHORT_SHA="${GITHUB_SHA:0:7}"
+          SHORT_SHA=$(printf '%.7s' "$GITHUB_SHA")
           TITLE="Trunk (${SHORT_SHA})"
           SUBJECT="$(git log -1 --format='%s')"
           NOTES="Automated trunk build from \`main\`.
