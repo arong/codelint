@@ -1,0 +1,220 @@
+name: Trunk Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: trunk-release
+  cancel-in-progress: true
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    env:
+      LLVM_VERSION: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake git python3 wget file \
+            curl zip unzip ca-certificates pkg-config \
+            lsb-release software-properties-common gnupg \
+            patchelf tar gzip
+
+          apt-get install -y --no-install-recommends \
+            llvm-${LLVM_VERSION}-dev \
+            clang-${LLVM_VERSION} \
+            clang-tidy-${LLVM_VERSION} \
+            libclang-${LLVM_VERSION}-dev
+
+      - name: Set trunk version
+        id: version
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "codelint_version=0.0.0-trunk.${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_SINGLETON_CHECK=OFF \
+            -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION}/lib/cmake/llvm
+
+      - name: Build plugin
+        run: cmake --build build -j$(nproc)
+
+      - name: Verify plugin
+        run: |
+          ls -la build/lib/
+          file build/lib/codelint-core.so
+
+      - name: Create release package
+        env:
+          CODELINT_VERSION: ${{ steps.version.outputs.codelint_version }}
+        run: |
+          chmod +x packaging/scripts/bundle_plugin.sh
+          ./packaging/scripts/bundle_plugin.sh
+
+      - name: Verify package
+        run: |
+          echo "=== Release Package ==="
+          ls -la package-output/
+          PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
+          tar -tzf "${PACKAGE_DIR}.tar.gz"
+
+      - name: Test plugin with system clang-tidy
+        run: |
+          PACKAGE_DIR=$(ls -d package-output/codelint-core-* | head -1)
+          cd "${PACKAGE_DIR}"
+
+          # Plugin must register codelint checks
+          clang-tidy-${LLVM_VERSION} --load=$PWD/codelint-core.so --checks='codelint-*' --list-checks | grep codelint
+
+          cat > /tmp/test.cpp << 'EOF'
+          void test() {
+            int x;
+            int y = 5;
+            (void)x;
+            (void)y;
+          }
+          EOF
+
+          # Sample must produce a codelint diagnostic (fail the job otherwise)
+          OUT=$(clang-tidy-${LLVM_VERSION} \
+            --load=$PWD/codelint-core.so \
+            --checks='codelint-*' \
+            /tmp/test.cpp 2>&1 || true)
+          echo "$OUT"
+          echo "$OUT" | grep -q 'codelint'
+          echo "✅ LLVM ${LLVM_VERSION} plugin emitted a codelint diagnostic"
+
+      - name: Upload release package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codelint-core-package-linux
+          path: package-output/codelint-core-*.tar.gz
+          retention-days: 5
+
+  package-vscode-extension:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: extensions/vscode-codelint/package-lock.json
+
+      - name: Set trunk version
+        id: version
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "codelint_version=0.0.0-trunk.${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Sync extension version for trunk
+        working-directory: extensions/vscode-codelint
+        env:
+          CODELINT_VERSION: ${{ steps.version.outputs.codelint_version }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = process.argv[1];
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('extension version ->', pkg.version);
+          " "$CODELINT_VERSION"
+
+      - name: Install, compile, and package VSIX
+        working-directory: extensions/vscode-codelint
+        run: |
+          npm ci
+          npm run compile
+          npm run package
+          ls -la *.vsix
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-codelint-vsix
+          path: extensions/vscode-codelint/*.vsix
+          retention-days: 5
+
+  release:
+    needs: [build-linux, package-vscode-extension]
+    if: always() && needs.build-linux.result == 'success' && needs.package-vscode-extension.result == 'success'
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: "*"
+
+      - name: List artifacts
+        run: |
+          ls -la artifacts/
+          find artifacts -type f | sort
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+
+          cp artifacts/codelint-core-package-linux/codelint-core-*.tar.gz release-assets/
+          cp artifacts/vscode-codelint-vsix/*.vsix release-assets/
+
+          ls -la release-assets/
+
+      - name: Upsert trunk pre-release
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          TITLE="Trunk (${SHORT_SHA})"
+          SUBJECT="$(git log -1 --format='%s')"
+          NOTES="Automated trunk build from \`main\`.
+
+          - Commit: \`${GITHUB_SHA}\`
+          - Subject: ${SUBJECT}
+          - Version: \`0.0.0-trunk.${SHORT_SHA}\`
+
+          This pre-release is overwritten on every push to \`main\`.
+          Stable releases use \`v*\` tags."
+
+          if gh release view trunk >/dev/null 2>&1; then
+            gh release delete trunk --yes --cleanup-tag
+          fi
+
+          # Drop a leftover floating tag if delete did not clean it up
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/trunk" >/dev/null 2>&1 || true
+
+          gh release create trunk \
+            --prerelease \
+            --target "${GITHUB_SHA}" \
+            --title "${TITLE}" \
+            --notes "${NOTES}" \
+            release-assets/*
+
+      - name: Verify trunk release
+        run: |
+          gh release view trunk --json assets,name,tagName,isPrerelease,targetCommitish

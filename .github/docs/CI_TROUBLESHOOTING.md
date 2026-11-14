@@ -64,9 +64,11 @@ apt-get install -y build-essential cmake git wget
 
 | 工作流 | 文件 | 触发条件 | 说明 |
 |--------|------|----------|------|
-| **CI** | `.github/workflows/ci.yml` | push, pull_request | 完整构建和测试 |
-| **Whitespace Check** | `.github/workflows/whitespace-check.yml` | push to main/master/develop | 代码格式检查 |
-| **Release** | `.github/workflows/release.yml` | tag push | 创建发布包 |
+| **Code Check** | `.github/workflows/code-check.yml` | push to main/master, pull_request | 格式与构建检查 |
+| **Trunk Release** | `.github/workflows/trunk-release.yml` | push to main | 覆盖更新唯一浮动 tag `trunk` 的 Pre-release（最新 main 快照） |
+| **Release (stable)** | `.github/workflows/release.yml` | tag push `v*` | 不可变正式版发布包 |
+
+**Trunk vs Stable：** Trunk 始终只有一个 `trunk` tag / Pre-release，每次 main 推送会重建并覆盖附件；Stable 使用 `vX.Y.Z` tag，发布后不可变。下载 trunk 包请用 Releases 页的 **Trunk (Pre-release)**，不要为 trunk 另打一次性 tag。
 
 ### CI 流程详情
 

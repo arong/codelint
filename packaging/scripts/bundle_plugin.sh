@@ -11,6 +11,8 @@
 #
 # Environment variables:
 #   LLVM_VERSION - LLVM major version (default: 15)
+#   CODELINT_VERSION - explicit package version (e.g. 0.0.1-trunk.abc1234);
+#                      when unset, falls back to v* tag / git describe / "dev"
 
 set -e
 
@@ -21,7 +23,9 @@ OUTPUT_DIR="${PROJECT_ROOT}/package-output"
 LLVM_VERSION="${LLVM_VERSION:-15}"
 
 get_version() {
-    if [ -n "$GITHUB_REF" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+    if [ -n "${CODELINT_VERSION:-}" ]; then
+        echo "${CODELINT_VERSION}"
+    elif [ -n "$GITHUB_REF" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then
         echo "${GITHUB_REF#refs/tags/v}"
     elif git rev-parse --git-dir >/dev/null 2>&1; then
         git describe --tags --always 2>/dev/null || echo "dev"
